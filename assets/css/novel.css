@@ -74,7 +74,7 @@ svg {
   z-index: -3;
   background:
     linear-gradient(180deg, rgba(10, 16, 24, .40), rgba(10, 16, 24, .12) 38%, rgba(10, 16, 24, .58)),
-    url("../office.jpg") center / cover no-repeat;
+    url("../office-vn.webp") center / cover no-repeat;
   transform: scale(1.03);
 }
 
