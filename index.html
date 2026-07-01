@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feedback Playbook</title>
+
+<style>
+:root {
+  --red: #e31b23;
+  --soft-red: #f8dede;
+  --bg: #f2f2f2;
+  --card: #ffffff;
+  --text: #333;
+  --muted: #888;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #555;
+  display: flex;
+  justify-content: center;
+}
+
+.app {
+  width: 100%;
+  max-width: 420px;
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 20px;
+}
+
+/* PAGE SYSTEM */
+.page { display: none; }
+.page.active { display: block; }
+
+/* CARD STYLE */
+.card {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 20px;
+  margin: 15px 0;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.back {
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* INPUT */
+input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: #eee;
+  margin: 8px 0;
+}
+
+/* BUTTON */
+button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: var(--red);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.secondary {
+  background: #ddd;
+  color: #333;
+}
+
+/* PROGRESS */
+.progress-box {
+  background: var(--soft-red);
+  border-radius: 15px;
+  padding: 15px;
+}
+
+.progress-bar {
+  height: 10px;
+  background: #eee;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.progress {
+  height: 100%;
+  background: var(--red);
+  border-radius: 10px;
+  width: 0%;
+}
+
+/* UNITS */
+.unit {
+  border-radius: 15px;
+  padding: 15px;
+  border: 1px solid #eee;
+  margin: 10px 0;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.unit span {
+  width: 35px;
+  height: 35px;
+  border-radius: 10px;
+  background: var(--soft-red);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+}
+
+/* SURVEY */
+.option {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  margin: 8px 0;
+  cursor: pointer;
+}
+
+.option.selected {
+  border: 2px solid var(--red);
+}
+
+/* DANGER */
+.danger {
+  border: 2px solid var(--red);
+  border-radius: 15px;
+  padding: 15px;
+}
+
+
+/* INTERACTION MOTION */
+:root {
+  --ease: cubic-bezier(.2,.8,.2,1);
+}
+
+body {
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  overflow-x: hidden;
+}
+
+.page.active {
+  display: block;
+  animation: pageIn .28s var(--ease);
+}
+
+.card {
+  transform-origin: center top;
+}
+
+#login.page.active .card,
+#signup.page.active .card {
+  animation: authCardIn .42s var(--ease);
+}
+
+#login h2 {
+  margin-top: 0;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  transition: transform .18s var(--ease), background .18s var(--ease);
+}
+
+.back:active {
+  transform: scale(.92);
+  background: rgba(227,27,35,.08);
+}
+
+input {
+  border: 1px solid transparent;
+  font-size: 16px;
+  outline: none;
+  transition: border-color .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease), transform .2s var(--ease);
+}
+
+input:focus {
+  background: #fff;
+  border-color: rgba(227,27,35,.5);
+  box-shadow: 0 0 0 4px rgba(227,27,35,.12);
+  transform: translateY(-1px);
+}
+
+.auth-message {
+  min-height: 20px;
+  margin: 8px 0 0;
+  color: var(--red);
+  font-size: 14px;
+}
+
+.auth-message.success {
+  color: #2f7d4f;
+}
+
+button {
+  min-height: 46px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 18px rgba(227,27,35,.2);
+  transition: transform .18s var(--ease), box-shadow .18s var(--ease), filter .18s var(--ease);
+  touch-action: manipulation;
+}
+
+button::after {
+  content: "";
+  position: absolute;
+  inset: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 999px;
+  background: rgba(255,255,255,.28);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: width .28s var(--ease), height .28s var(--ease), opacity .28s var(--ease);
+}
+
+button:hover,
+button:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 24px rgba(227,27,35,.26);
+  filter: brightness(1.02);
+}
+
+button:active {
+  transform: translateY(1px) scale(.98);
+  box-shadow: 0 7px 14px rgba(227,27,35,.2);
+}
+
+button:active::after {
+  width: 180px;
+  height: 180px;
+  opacity: 1;
+}
+
+button:disabled {
+  cursor: progress;
+  opacity: .72;
+  transform: none;
+}
+
+.secondary {
+  box-shadow: 0 8px 16px rgba(0,0,0,.08);
+}
+
+.progress {
+  transition: width .55s var(--ease);
+}
+
+.unit {
+  background: var(--card);
+  min-height: 58px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.04);
+  transition: transform .18s var(--ease), box-shadow .18s var(--ease), border-color .18s var(--ease);
+  touch-action: manipulation;
+}
+
+.unit:hover,
+.unit:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(227,27,35,.25);
+  box-shadow: 0 12px 22px rgba(0,0,0,.08);
+}
+
+.unit:active {
+  transform: scale(.98);
+}
+
+.unit span {
+  flex: 0 0 35px;
+}
+
+.option {
+  background: #fff;
+  transition: transform .18s var(--ease), border-color .18s var(--ease), box-shadow .18s var(--ease), background .18s var(--ease);
+  touch-action: manipulation;
+}
+
+.option:hover,
+.option:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(227,27,35,.35);
+  box-shadow: 0 8px 16px rgba(0,0,0,.06);
+}
+
+.option.selected {
+  background: var(--soft-red);
+  animation: optionSelect .24s var(--ease);
+}
+
+button,
+.unit,
+.option,
+.back {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes authCardIn {
+  from { opacity: 0; transform: translateY(16px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes optionSelect {
+  0% { transform: scale(.98); }
+  70% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 480px) {
+  .app {
+    padding: max(16px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+  }
+
+  .card {
+    border-radius: 18px;
+    padding: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .001ms !important;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<!-- LOGIN -->
+<div id="login" class="page active">
+  <div class="card">
+    <h2>Singapore Red Cross</h2>
+    <input id="loginEmail" placeholder="Email">
+    <input id="loginPassword" type="password" placeholder="Password">
+    <button onclick="login()">Log In</button>
+    <p id="loginMessage" class="auth-message" aria-live="polite"></p>
+    <p style="color:var(--red);cursor:pointer;" onclick="goTo('signup')">Sign Up</p>
+  </div>
+</div>
+
+<!-- SIGNUP -->
+<div id="signup" class="page">
+  <div class="header">
+    <span class="back" onclick="goTo('login')">←</span>
+    <h3>Sign Up</h3>
+  </div>
+
+  <div class="card">
+    <input id="signupEmail" placeholder="Email">
+    <input id="signupPassword" type="password" placeholder="Password">
+    <button onclick="signup()">Create Account</button>
+    <p id="signupMessage" class="auth-message" aria-live="polite"></p>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="home" class="page">
+  <h2>Feedback Playbook</h2>
+
+  <div class="unit" onclick="goToVN()"> 📄 Open Visual Novel </div>
+
+  <div class="progress-box">
+    <h3>Your Progress</h3>
+    <p id="progressText"></p>
+    <div class="progress-bar">
+      <div id="progressBar" class="progress"></div>
+    </div>
+  </div>
+
+  <h3>Learning Units</h3>
+
+  <div class="unit" onclick="goToSurvey(0)">
+    <span>1</span> Understanding Feedback
+  </div>
+
+  <div class="unit" onclick="goToSurvey(1)">
+    <span>2</span> Giving Feedback
+  </div>
+
+  <div class="unit" onclick="goToSurvey(2)">
+    <span>3</span> Receiving Feedback
+  </div>
+
+  <div class="unit" onclick="goToSurvey(3)">
+    <span>4</span> Practice
+  </div>
+
+  <div class="unit" onclick="goTo('ar')">📷 AR Scanner</div>
+  <div class="unit" onclick="goTo('settings')">⚙ Settings</div>
+</div>
+
+<!-- SURVEY -->
+<div id="survey" class="page">
+  <div class="header">
+    <span class="back" onclick="goTo('home')">←</span>
+    <h3>Survey</h3>
+  </div>
+
+  <div class="card">
+    <p id="questionTitle"></p>
+
+    <div class="option" onclick="selectOption(this,0)">Very uncomfortable</div>
+    <div class="option" onclick="selectOption(this,1)">Somewhat uncomfortable</div>
+    <div class="option" onclick="selectOption(this,2)">Neutral</div>
+    <div class="option" onclick="selectOption(this,3)">Somewhat comfortable</div>
+    <div class="option" onclick="selectOption(this,4)">Very comfortable</div>
+  </div>
+
+  <button onclick="submitSurvey()">Submit</button>
+</div>
+
+<!-- AR -->
+<div id="ar" class="page">
+  <div class="header">
+    <span class="back" onclick="goTo('home')">←</span>
+    <h3>AR Scanner</h3>
+  </div>
+
+  <div class="card" style="background:var(--soft-red)">
+    <p>Scan a quick reference card</p>
+  </div>
+
+  <div class="card">
+    <p>📷 Camera preview</p>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="settings" class="page">
+  <div class="header">
+    <span class="back" onclick="goTo('home')">←</span>
+    <h3>Settings</h3>
+  </div>
+
+  <div class="card">
+    <p><b>Email:</b> <span id="userEmail"></span></p>
+    <button class="secondary" onclick="logout()">Log Out</button>
+  </div>
+
+  <div class="danger">
+    <p>Danger Zone</p>
+    <button onclick="resetProgress()">Delete Progress</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+const firebaseVersion = "12.15.0";
+const firebaseBaseUrl = "https://www.gstatic.com/firebasejs/" + firebaseVersion;
+
+let firebaseSdk = null;
+let firebaseLoadError = null;
+let currentUser = null;
+let currentSurvey = 0;
+let answers = loadLocalAnswers();
+
+const firebaseReady = loadFirebase();
+
+async function loadFirebaseConfig() {
+  try {
+    const localConfig = await import("./firebase-config.js");
+    if (localConfig.firebaseConfig) return localConfig.firebaseConfig;
+  } catch (error) {
+    // Local config is optional and should not be committed.
+  }
+
+  try {
+    const response = await fetch("/__/firebase/init.json", { cache: "no-store" });
+    if (response.ok) return await response.json();
+  } catch (error) {
+    // Firebase Hosting provides this file after deployment.
+  }
+
+  throw new Error("Firebase config is missing. Add local firebase-config.js or deploy to Firebase Hosting.");
+}
+
+async function loadFirebase() {
+  try {
+    const firebaseConfig = await loadFirebaseConfig();
+    const [appModule, authModule, databaseModule] = await Promise.all([
+      import(firebaseBaseUrl + "/firebase-app.js"),
+      import(firebaseBaseUrl + "/firebase-auth.js"),
+      import(firebaseBaseUrl + "/firebase-database.js")
+    ]);
+
+    const app = appModule.initializeApp(firebaseConfig);
+    firebaseSdk = {
+      app,
+      auth: authModule.getAuth(app),
+      db: databaseModule.getDatabase(app),
+      createUserWithEmailAndPassword: authModule.createUserWithEmailAndPassword,
+      get: databaseModule.get,
+      onAuthStateChanged: authModule.onAuthStateChanged,
+      ref: databaseModule.ref,
+      remove: databaseModule.remove,
+      set: databaseModule.set,
+      signInWithEmailAndPassword: authModule.signInWithEmailAndPassword,
+      signOut: authModule.signOut
+    };
+
+    firebaseSdk.onAuthStateChanged(firebaseSdk.auth, async user => {
+      currentUser = user;
+
+      if (user) {
+        localStorage.setItem("userEmail", user.email || "");
+        await loadUserProgress(user);
+        goTo("home");
+      } else {
+        updateUI();
+      }
+    });
+
+    return firebaseSdk;
+  } catch (error) {
+    firebaseLoadError = error;
+    return null;
+  }
+}
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function getFirebase(messageId) {
+  if (firebaseSdk) return firebaseSdk;
+
+  const sdk = await Promise.race([firebaseReady, wait(8000).then(() => null)]);
+  if (sdk) return sdk;
+
+  const message = firebaseLoadError
+    ? "Firebase could not load. Add firebase-config.js locally or deploy through Firebase Hosting."
+    : "Firebase is still loading. Try again in a moment.";
+  setAuthMessage(messageId, message);
+  return null;
+}
+
+function loadLocalAnswers() {
+  return normalizeAnswers(JSON.parse(localStorage.getItem("answers")) || [null,null,null,null]);
+}
+
+function normalizeAnswers(value) {
+  if (!value || typeof value !== "object") return [null,null,null,null];
+  return [0,1,2,3].map(index => {
+    const answer = value[index];
+    return answer === -1 || answer === null || answer === undefined ? null : Number(answer);
+  });
+}
+
+function encodedAnswers() {
+  return answers.map(answer => answer === null ? -1 : answer);
+}
+
+function progressData() {
+  const completed = answers.filter(answer => answer !== null).length;
+  const progress = completed * 25;
+  return {
+    answers: encodedAnswers(),
+    completed,
+    progress,
+    updatedAt: Date.now()
+  };
+}
+
+function userProgressRef(user = currentUser) {
+  return firebaseSdk.ref(firebaseSdk.db, "users/" + user.uid + "/progress");
+}
+
+function userProfileRef(user = currentUser) {
+  return firebaseSdk.ref(firebaseSdk.db, "users/" + user.uid + "/profile");
+}
+
+function setAuthMessage(id, message, isSuccess = false) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = message;
+  el.classList.toggle("success", isSuccess);
+}
+
+function clearAuthMessages() {
+  setAuthMessage("loginMessage", "");
+  setAuthMessage("signupMessage", "");
+}
+
+function setBusy(pageId, busy) {
+  const button = document.querySelector("#" + pageId + " button");
+  if (button) button.disabled = busy;
+}
+
+function friendlyAuthError(error) {
+  const code = error?.code || "";
+  if (code === "auth/email-already-in-use") return "That email already has an account. Try logging in.";
+  if (code === "auth/invalid-email") return "Enter a valid email address.";
+  if (code === "auth/invalid-credential" || code === "auth/user-not-found" || code === "auth/wrong-password") return "Email or password is incorrect.";
+  if (code === "auth/operation-not-allowed") return "Enable Email/Password sign-in in Firebase Authentication first.";
+  if (code === "auth/weak-password") return "Use a password with at least 6 characters.";
+  if (code === "auth/network-request-failed") return "Network error. Check your connection and try again.";
+  return error?.message || "Something went wrong. Please try again.";
+}
+
+async function saveUserProfile(user) {
+  if (!firebaseSdk) return;
+  await firebaseSdk.set(userProfileRef(user), {
+    email: user.email,
+    updatedAt: Date.now()
+  });
+}
+
+async function loadUserProgress(user) {
+  if (!firebaseSdk) return;
+
+  try {
+    const snapshot = await firebaseSdk.get(userProgressRef(user));
+    if (snapshot.exists()) {
+      answers = normalizeAnswers(snapshot.val().answers);
+    } else {
+      answers = loadLocalAnswers();
+      await saveProgress(user);
+    }
+  } catch (error) {
+    answers = loadLocalAnswers();
+  }
+
+  localStorage.setItem("answers", JSON.stringify(answers));
+  updateUI();
+}
+
+async function saveProgress(user = currentUser) {
+  localStorage.setItem("answers", JSON.stringify(answers));
+  updateUI();
+  if (!user || !firebaseSdk) return;
+
+  try {
+    await firebaseSdk.set(userProgressRef(user), progressData());
+  } catch (error) {
+    // Keep the app usable even while database rules are being configured.
+  }
+}
+
+function renderSurveySelection() {
+  document.querySelectorAll("#survey .option").forEach((option, index) => {
+    option.classList.toggle("selected", answers[currentSurvey] === index);
+  });
+}
+
+function goTo(page) {
+  clearAuthMessages();
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById(page).classList.add("active");
+  updateUI();
+}
+
+async function login() {
+  clearAuthMessages();
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+
+  if (!email || !password) {
+    setAuthMessage("loginMessage", "Enter your email and password.");
+    return;
+  }
+
+  const sdk = await getFirebase("loginMessage");
+  if (!sdk) return;
+
+  setBusy("login", true);
+  try {
+    const credential = await sdk.signInWithEmailAndPassword(sdk.auth, email, password);
+    currentUser = credential.user;
+    localStorage.setItem("userEmail", currentUser.email || email);
+    await loadUserProgress(currentUser);
+    goTo("home");
+  } catch (error) {
+    setAuthMessage("loginMessage", friendlyAuthError(error));
+  } finally {
+    setBusy("login", false);
+  }
+}
+
+async function signup() {
+  clearAuthMessages();
+  const email = document.getElementById("signupEmail").value.trim();
+  const password = document.getElementById("signupPassword").value;
+
+  if (!email || !password) {
+    setAuthMessage("signupMessage", "Enter an email and password.");
+    return;
+  }
+
+  const sdk = await getFirebase("signupMessage");
+  if (!sdk) return;
+
+  setBusy("signup", true);
+  try {
+    const credential = await sdk.createUserWithEmailAndPassword(sdk.auth, email, password);
+    currentUser = credential.user;
+    localStorage.setItem("userEmail", currentUser.email || email);
+    await saveUserProfile(currentUser).catch(() => {});
+    await saveProgress(currentUser);
+    goTo("home");
+  } catch (error) {
+    setAuthMessage("signupMessage", friendlyAuthError(error));
+  } finally {
+    setBusy("signup", false);
+  }
+}
+
+function goToVN() {
+  window.location.href = "test3.html";
+}
+
+async function logout() {
+  const sdk = await getFirebase("loginMessage");
+  if (sdk) await sdk.signOut(sdk.auth);
+  currentUser = null;
+  localStorage.removeItem("userEmail");
+  goTo("login");
+}
+
+function goToSurvey(index) {
+  currentSurvey = index;
+  document.getElementById("questionTitle").innerText =
+    "Question " + (index + 1) + ": How comfortable are you with this skill?";
+  renderSurveySelection();
+  goTo("survey");
+}
+
+function selectOption(el, value) {
+  document.querySelectorAll(".option").forEach(o => o.classList.remove("selected"));
+  el.classList.add("selected");
+  answers[currentSurvey] = value;
+}
+
+async function submitSurvey() {
+  await saveProgress();
+  goTo("home");
+}
+
+function updateUI() {
+  const email = currentUser?.email || localStorage.getItem("userEmail") || "";
+  document.getElementById("userEmail").innerText = email;
+
+  const completed = answers.filter(answer => answer !== null).length;
+  const progress = completed * 25;
+
+  document.getElementById("progressBar").style.width = progress + "%";
+  document.getElementById("progressText").innerText =
+    completed + "/4 units completed (" + progress + "%)";
+}
+
+async function resetProgress() {
+  answers = [null,null,null,null];
+  localStorage.removeItem("answers");
+  updateUI();
+
+  if (currentUser && firebaseSdk) {
+    try {
+      await firebaseSdk.remove(userProgressRef(currentUser));
+    } catch (error) {
+      // Local reset still succeeds even if Firebase rules are not ready yet.
+    }
+  }
+}
+
+Object.assign(window, {
+  goTo,
+  login,
+  signup,
+  goToVN,
+  logout,
+  goToSurvey,
+  selectOption,
+  submitSurvey,
+  resetProgress
+});
+
+updateUI();
+</script>
+
+</body>
+</html>

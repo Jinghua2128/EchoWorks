@@ -1,0 +1,693 @@
+<!-- file: index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>VN Scenario</title>
+
+<style>
+:root {
+  --accent: #f47575;
+  --box: rgba(255,255,255,0.92);
+  --radius: 18px;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: url("assets/office.jpg") no-repeat center center;
+  background-size: cover;
+  overflow: hidden;
+}
+
+.container { width: 100vw; height: 100vh; position: relative; }
+
+.character {
+  z-index: 1;
+  position: fixed;
+  bottom: 0;
+  height: 85vh;
+  transition: all 0.25s ease;
+  filter: brightness(0.6);
+}
+
+/* positions */
+.manager { right: 30; }
+.sarah { left: 0; transform: scaleX(-1); }
+
+/* states */
+.active {
+  transform: scale(1.05);
+  filter: brightness(1);
+  z-index: 2;
+}
+
+.character.sarah.active {
+  animation: sarah_activeLoop 0.2s infinite steps(1);
+}
+
+@keyframes sarah_activeLoop {
+  0%, 24.9% { content: url('assets/sarah_talk.png'); }
+  25%, 49.99% { content: url('assets/sarah.png'); } 
+  50%, 74.99% { content: url('assets/sarah_talk.png'); }
+  76%, 100% { content: url('assets/sarah.png'); }
+}
+
+
+.character.manager.active {
+  animation: manager_activeLoop 0.2s infinite steps(1);
+}
+
+@keyframes manager_activeLoop {
+  0%, 24.9% { content: url('assets/manager_talk.png'); }
+  25%, 49.99% { content: url('assets/manager.png'); } 
+  50%, 74.99% { content: url('assets/manager_talk.png'); }
+  76%, 100% { content: url('assets/manager.png'); }
+}
+
+.inactive {
+  transform: scale(0.95);
+  filter: brightness(0.4);
+  z-index: 1;
+}
+
+.character.speaking { transform: scale(1.05); }
+.character.frustrated { filter: hue-rotate(-20deg); }
+.character.happy { filter: brightness(1.1); }
+
+.choices {
+  position: absolute;
+  top: 35%;
+  left: 25%;
+  transform: translateX(-50%);
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 99;
+}
+
+.choice {
+  padding: 14px 20px;
+  background: var(--accent);
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+}
+
+.dialogue-container {
+  z-index: 10;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding: 20px;
+}
+
+.dialogue {
+  background: var(--box);
+  border-radius: var(--radius);
+  padding: 20px;
+  min-height: 140px;
+}
+
+.name-tag {
+  position: absolute;
+  top: -20px;
+  left: 30px;
+  background: var(--accent);
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  color: white;
+}
+
+/* result overlay */
+.result {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 120px;
+  display: none;
+  z-index: 99;
+}
+
+/* VN MOTION AND MOBILE POLISH */
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --ease: cubic-bezier(.2,.8,.2,1);
+}
+
+.container {
+  height: 100dvh;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.manager {
+  right: 30px;
+}
+
+.character {
+  width: auto;
+  height: min(72dvh, 680px);
+  max-width: none;
+  object-fit: contain;
+  object-position: center bottom;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform-origin: center bottom;
+  transition: transform .28s var(--ease), filter .28s var(--ease), opacity .24s var(--ease), visibility .24s var(--ease);
+}
+
+.character.sarah {
+  left: clamp(-420px, -92vw, -260px);
+  transform: scaleX(-1);
+}
+
+.character.manager {
+  right: clamp(-420px, -92vw, -260px);
+}
+
+.character.sarah.active {
+  opacity: 1;
+  visibility: visible;
+  transform: scaleX(-1) scale(1.02);
+  animation: sarah_activeLoop 0.2s infinite steps(1);
+}
+
+.character.sarah.inactive {
+  opacity: 0;
+  visibility: hidden;
+  transform: scaleX(-1) scale(.98);
+  animation: none;
+}
+
+.character.manager.active {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1.02);
+  animation: manager_activeLoop 0.2s infinite steps(1);
+}
+
+.character.manager.inactive {
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(.98);
+  animation: none;
+}
+
+.choices {
+  top: 24%;
+  left: 50%;
+  width: min(88vw, 360px);
+  transform: translateX(-50%);
+}
+
+.choice {
+  width: 100%;
+  min-height: 50px;
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  box-shadow: 0 10px 20px rgba(244,117,117,.28);
+  transition: transform .18s var(--ease), box-shadow .18s var(--ease), filter .18s var(--ease);
+  animation: choiceIn .28s var(--ease) both;
+  touch-action: manipulation;
+}
+
+.choice:nth-child(2) {
+  animation-delay: .04s;
+}
+
+.choice:nth-child(3) {
+  animation-delay: .08s;
+}
+
+.choice:hover,
+.choice:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 26px rgba(244,117,117,.35);
+  filter: brightness(1.02);
+}
+
+.choice:active {
+  transform: scale(.98);
+}
+
+.dialogue-container {
+  left: 0;
+  padding: clamp(12px, 4vw, 20px);
+  animation: dialogueRise .45s var(--ease);
+}
+
+.dialogue {
+  line-height: 1.45;
+  font-size: clamp(15px, 3.6vw, 18px);
+  max-height: 34vh;
+  overflow-y: auto;
+  box-shadow: 0 16px 34px rgba(0,0,0,.18);
+}
+
+.name-tag {
+  animation: tagPop .35s var(--ease);
+}
+
+.result {
+  text-shadow: 0 12px 28px rgba(0,0,0,.25);
+  animation: resultPop .75s var(--ease);
+}
+
+@keyframes choiceIn {
+  from { opacity: 0; transform: translateY(10px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes dialogueRise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes tagPop {
+  0% { opacity: 0; transform: translateY(8px) scale(.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes resultPop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.75); }
+  45% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@media (max-width: 640px) {
+  .character {
+    width: auto;
+    height: 66dvh;
+  }
+
+  .character.manager {
+    right: clamp(-260px, -52vw, -150px);
+  }
+
+  .character.sarah {
+    left: clamp(-390px, -88vw, -250px);
+  }
+
+  .choices {
+    top: 18%;
+    width: calc(100vw - 28px);
+    gap: 10px;
+  }
+
+  .dialogue {
+    min-height: 150px;
+    max-height: 38vh;
+    padding: 16px;
+  }
+
+  .name-tag {
+    left: 22px;
+  }
+
+  .result {
+    font-size: 90px;
+  }
+}
+
+@media (max-height: 680px) {
+  .character {
+    height: 62dvh;
+  }
+
+  .dialogue-container {
+    padding-bottom: 12px;
+  }
+
+  .dialogue {
+    min-height: 128px;
+    max-height: 42vh;
+  }
+
+  .choices {
+    top: 12%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .001ms !important;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  
+<img src="assets/manager.png" id="manager" class="character manager"/>
+<img src="assets/sarah.png" id="sarah" class="character sarah"/>
+
+<div id="choices" class="choices"></div>
+
+<div class="dialogue-container">
+  <div id="name" class="name-tag"></div>
+  <div id="text" class="dialogue"></div>
+</div>
+
+<div id="result" class="result"></div>
+
+</div>
+
+<script>
+let baseSpeed = 20;
+let currentSpeed = baseSpeed;
+
+const scenes = {
+
+profile: {
+speaker: "Profile",
+text: `Name: Sarah Tan
+Position: Marketing Executive
+Age: 32
+
+Performance:
+128% KPI achieved
+High-quality work
+
+Strengths:
+Proactive, dependable
+Handles pressure well
+Supports juniors
+
+Development:
+Dominates discussions
+Dismisses ideas quickly
+Peers hesitant to challenge`,
+next: "intro"
+},
+
+intro: {
+speaker: "Scene",
+text: "The time to give employee feedback has come! While Sarah continues to exceed expectations in performance, recent peer feedback suggests that her communication style may be affecting team collaboration. As a manager, you want to ensure Sarah feels recognized for her achievements while also helping her understand the impact of her behaviours on the team. How would you phrase your feedback?",
+choices: [
+{ text: "Balanced recognition and feedback", next: "A" },
+{ text: "Praise, ignore issue", next: "B" },
+{ text: "Direct criticism", next: "C" }
+]
+},
+
+A: {
+speaker: "Manager",
+text: "Sarah, first of all, I want to acknowledge the great work you’ve done this quarter. Your results have been really strong, and the ownership you’ve shown across projects has made a big impact on the team. I also wanted to touch on some peer feedback that came up around team discussions. A few teammates shared that they sometimes find it difficult to contribute ideas in fast-paced conversations. I thought it’d be useful for us to discuss this together because your impact on the team is really significant.",
+next: "A_response"
+},
+
+B: {
+speaker: "Manager",
+text: "Hi Sarah, your performance this quarter has honestly been outstanding, and the results speak for themselves. I know there was some feedback around communication during discussions, but I don’t think it takes away from the great work you’ve been doing.",
+next: "B_response"
+},
+
+C: {
+speaker: "Manager",
+text: "Hi Sarah, your performance has been great overall, but I’ve received feedback that you can come across as intimidating in team discussions and that people sometimes feel uncomfortable sharing ideas around you.",
+next: "C_response"
+},
+
+/* WRONG PATHS */
+
+B_response: {
+speaker: "Sarah",
+text: "Thanks, I appreciate that. I know I can be direct sometimes, but at the end of the day we’ve still been delivering strong results",
+character: "happy",
+next: "B_outcome"
+},
+
+B_outcome: {
+speaker: "Outcome",
+text: "The conversation ends positively, but the behavioural concern is never properly addressed. Sarah leaves believing the issue is minor because her performance outweighs the impact on the team.",
+effect: "fail",
+next: "B_learn"
+},
+
+B_learn: {
+speaker: "Lesson",
+text: "You acknowledged Sarah’s achievements but minimized the developmental feedback. Strong performance should not prevent you from objectively evaluating behaviours that affect team collaboration.",
+next: "hr_fail"
+},
+
+C_response: {
+speaker: "Sarah",
+text: "Intimidating? I’m not trying to make anyone uncomfortable. I just expect people to speak up if they have something to say.",
+character: "frustrated",
+next: "C_outcome"
+},
+
+C_outcome: {
+speaker: "Outcome",
+text: "Sarah becomes defensive and focuses on defending her intentions rather than reflecting on the feedback itself. This makes the conversation become emotionally tense and less productive.",
+effect: "fail",
+next: "C_learn"
+},
+
+C_learn: {
+speaker: "Lesson",
+text: "The feedback you chose relied on labels and interpretations instead of observable behaviours. Words like “intimidating” can feel personal and make employees defensive.",
+next: "hr_fail"
+},
+
+/* CORRECT PATH */
+
+A_response: {
+speaker: "Sarah",
+text: "Thanks for bringing this up in that way. I wasn’t fully aware the discussions were coming across like that, but I can see how it might affect the team. I’d be open to working on it.",
+character: "happy",
+next: "A_outcome"
+},
+
+A_outcome: {
+speaker: "Outcome",
+text: "Sarah feels recognised for her contributions while remaining open to constructive feedback about team collaboration. ",
+effect: "success",
+next: "hr_pass"
+},
+
+/* HR TEACHING */
+
+hr_fail: {
+speaker: "HR Mentor",
+text: "Giving feedback to high performers can be challenging. Managers often struggle to balance recognition with constructive evaluation, especially when results are strong. <br> Let’s look at how the REAL framework can help structure more effective feedback conversations. (Visual of REAL framework appears, blurring both the letters A&L)  <br> In this scenario, we’ll focus on the first two pillars: Recognise and Evaluate. ",
+next: "teach_R"
+},
+
+hr_pass: {
+speaker: "HR Mentor",
+text: "Well done! Your response balanced recognition with objective evaluation, allowing the feedback conversation to remain constructive and productive. Let’s take a closer look at the principles behind this approach.",
+next: "teach_R"
+},
+
+teach_R: {
+speaker: "HR Mentor",
+text: "When giving feedback, managers should first recognise both strengths and improvement areas clearly. <br> This means shining a spotlight on observable actions, behaviours, or challenges using specific workplace examples. <br> Instead of giving vague praise like ‘good job,’ you should point to clear contributions so employees understand exactly what they are doing well and where they can improve. <br> Recognition creates trust and helps employees become more open to constructive conversations.",
+next: "teach_E"
+},
+
+teach_E: {
+speaker: "HR Mentor",
+text: "After recognising contributions, managers need to objectively evaluate performance and behaviour based on the assessment criteria Red Cross has provided <br> Strong evaluation balances the scale through observable evidence instead of assumptions or personal interpretations. <br> Managers should weigh contributions, behaviours, and outcomes carefully to distinguish employees who meet expectations from those who truly exceed them. <br> This helps feedback remain fair, constructive, and focused on growth rather than emotion or personal judgment.",
+next: "revisit"
+},
+
+/* REVISIT */
+
+revisit: {
+speaker: "HR Mentor",
+text: "Now that you’ve learned how to apply Recognise and Evaluate, let’s revisit the conversation with Sarah. ",
+next: "revisit1"
+},
+
+revisit1: {
+speaker: "Sarah",
+text: "I understand the feedback, but I also feel like being direct is part of why I’m able to get strong results.",
+choices: [
+{ text: "Balanced feedback", next: "final_A" },
+{ text: "Press the issue", next: "final_B" },
+{ text: "Ignore the issue", next: "final_C" }
+]
+},
+
+final_A: {
+speaker: "Manager",
+text: "I appreciate you sharing that perspective, and your strong results are definitely recognised. At the same time, part of leadership and collaboration is ensuring others also feel comfortable contributing ideas during discussions.  ",
+next: "end"
+},
+
+final_B: {
+speaker: "Manager",
+text: "I understand, but the feedback has come from multiple team members, so this is something you’ll need to work on. ",
+next: "end"
+},
+
+final_C: {
+speaker: "Manager",
+text: "I see your point. Maybe the team just needs to adapt to different communication styles.",
+next: "end"
+},
+
+end: {
+speaker: "HR Mentor",
+text: "You successfully applied Recognise and Evaluate to maintain both clarity and psychological safety in the conversation! "
+}
+
+};
+
+const sarahEl = document.getElementById("sarah");
+const managerEl = document.getElementById("manager");
+
+let isTyping = false;
+let skipTyping = false;
+let finalHTML = "";
+let typingCallback = null;
+
+let currentScene = "profile";
+const textEl = document.getElementById("text");
+const nameEl = document.getElementById("name");
+const choicesEl = document.getElementById("choices");
+const charEl = document.getElementById("character");
+const resultEl = document.getElementById("result");
+
+document.querySelector(".dialogue-container").addEventListener("click", () => {
+  if (isTyping) {
+    currentSpeed = 0.001;
+  }
+});
+
+function typeText(text, cb) {
+  textEl.innerHTML = "";
+  choicesEl.style.display = "none";
+
+  isTyping = true;
+  skipTyping = false;
+  currentSpeed = baseSpeed;
+  typingCallback = cb;
+
+  // normalize line breaks
+  text = text.replace(/\n/g, "<br>");
+  finalHTML = text
+
+  // split into tokens (text + <br>)
+  const tokens = text.split(/(<br>)/g);
+
+  let tokenIndex = 0;
+  let charIndex = 0;
+
+  function loop() {
+    if (skipTyping) {
+      textEl.innerHTML = fullText;
+      isTyping = false;
+      skipTyping = false;
+      cb();
+      return;
+    }
+
+    if (tokenIndex >= tokens.length) {
+      cb();
+      return;
+    }
+
+    const token = tokens[tokenIndex];
+
+    // handle line break instantly
+    if (token === "<br>") {
+      textEl.innerHTML += "<br>";
+      tokenIndex++;
+      charIndex = 0;
+      return loop();
+    }
+
+    // type normal text
+    if (charIndex < token.length) {
+      textEl.innerHTML += token[charIndex++];
+      setTimeout(loop, currentSpeed);
+    } else {
+      tokenIndex++;
+      charIndex = 0;
+      loop();
+    }
+  }
+
+  loop();
+}
+
+function renderChoices(choices) {
+choicesEl.innerHTML = "";
+if (!choices) return;
+
+choicesEl.style.display = "flex";
+
+choices.forEach(c => {
+const btn = document.createElement("button");
+btn.className = "choice";
+btn.textContent = c.text;
+btn.onclick = () => renderScene(c.next);
+choicesEl.appendChild(btn);
+});
+}
+
+function showResult(type) {
+resultEl.style.display = "block";
+resultEl.textContent = type === "success" ? "✔" : "✖";
+setTimeout(() => resultEl.style.display = "none", 1200);
+}
+
+function renderScene(id) {
+  const scene = scenes[id];
+  currentScene = id;
+
+  function setActiveSpeaker(speaker) {
+  sarahEl.classList.remove("active", "inactive");
+  managerEl.classList.remove("active", "inactive");
+
+  if (speaker === "Sarah") {
+    sarahEl.classList.add("active");
+    managerEl.classList.add("inactive");
+  } else if (speaker === "Manager") {
+    managerEl.classList.add("active");
+    sarahEl.classList.add("inactive");
+  } else {
+    sarahEl.classList.add("inactive");
+    managerEl.classList.add("inactive");
+  }
+}
+
+  nameEl.textContent = scene.speaker;
+
+  setActiveSpeaker(scene.speaker);
+
+  typeText(scene.text, () => {
+    if (scene.effect) showResult(scene.effect);
+
+    if (scene.choices) {
+      renderChoices(scene.choices);
+    } else if (scene.next) {
+      setTimeout(() => renderScene(scene.next), 1200);
+    }
+  });
+}
+
+renderScene(currentScene);
+</script>
+
+</body>
+</html>
