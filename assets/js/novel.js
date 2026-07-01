@@ -182,6 +182,37 @@ const sceneOrder = Object.keys(scenes);
 const textSpeed = 16;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+const sceneBackgrounds = {
+  neutral: "assets/office-vn.webp",
+  success: "assets/office-success.webp",
+  tense: "assets/office-tense.webp",
+  mentor: "assets/office-mentor.webp"
+};
+
+const sceneTones = {
+  A: "success",
+  A_response: "success",
+  A_outcome: "success",
+  B: "tense",
+  B_response: "tense",
+  B_outcome: "tense",
+  B_learn: "tense",
+  C: "tense",
+  C_response: "tense",
+  C_outcome: "tense",
+  C_learn: "tense",
+  hr_fail: "mentor",
+  hr_pass: "mentor",
+  teach_R: "mentor",
+  teach_E: "mentor",
+  revisit: "mentor",
+  final_A: "success",
+  final_B: "tense",
+  final_C: "tense",
+  end: "success"
+};
+
+const sceneBackdropEl = document.querySelector(".scene-backdrop");
 const managerEl = document.getElementById("manager");
 const sarahEl = document.getElementById("sarah");
 const choicesEl = document.getElementById("choices");
@@ -198,6 +229,25 @@ let pendingNext = null;
 let fullText = "";
 let typedIndex = 0;
 let isTyping = false;
+
+function sceneToneFor(id) {
+  return sceneTones[id] || "neutral";
+}
+
+function setSceneEnvironment(id) {
+  const tone = sceneToneFor(id);
+  const background = sceneBackgrounds[tone] || sceneBackgrounds.neutral;
+  const nextBackground = `url("${background}")`;
+
+  document.body.dataset.sceneTone = tone;
+
+  if (sceneBackdropEl.style.getPropertyValue("--scene-bg") === nextBackground) return;
+
+  sceneBackdropEl.classList.remove("is-changing");
+  void sceneBackdropEl.offsetWidth;
+  sceneBackdropEl.style.setProperty("--scene-bg", nextBackground);
+  sceneBackdropEl.classList.add("is-changing");
+}
 
 function clearTimers() {
   window.clearTimeout(typingTimer);
@@ -354,6 +404,7 @@ function renderScene(id) {
   const sceneIndex = sceneOrder.indexOf(id) + 1;
   sceneCountEl.textContent = sceneIndex > 0 ? `${sceneIndex} / ${sceneOrder.length}` : "";
 
+  setSceneEnvironment(id);
   setCharacters(scene);
   typeText(scene.text);
 }
@@ -380,6 +431,8 @@ function advanceScene() {
 
 function bindEvents() {
   advanceButton.addEventListener("click", advanceScene);
+
+  sceneBackdropEl.addEventListener("animationend", () => sceneBackdropEl.classList.remove("is-changing"));
 
   document.querySelector('[data-action="restart"]').addEventListener("click", () => {
     renderScene("profile");

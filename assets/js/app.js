@@ -2,6 +2,7 @@ const firebaseVersion = "12.15.0";
 const firebaseBaseUrl = `https://www.gstatic.com/firebasejs/${firebaseVersion}`;
 
 const storageKeys = {
+  version: "feedbackPlaybook.storageVersion",
   answers: "feedbackPlaybook.answers",
   legacyAnswers: "answers",
   email: "feedbackPlaybook.userEmail",
@@ -12,6 +13,7 @@ const storageKeys = {
 const protectedRoutes = new Set(["home", "survey", "ar", "settings"]);
 const authRoutes = new Set(["login", "signup"]);
 const routeIds = ["login", "signup", "home", "survey", "ar", "settings"];
+const storageVersion = "2026-07-progress-reset-v6";
 
 const units = [
   {
@@ -86,19 +88,37 @@ function normalizeAnswers(value) {
 
   return units.map((_, index) => {
     const answer = value[index];
+    if (answer === null || answer === undefined || answer === "") return null;
+
     const normalized = Number(answer);
     return Number.isInteger(normalized) && normalized >= 0 && normalized <= 4 ? normalized : null;
   });
 }
 
+function blankAnswers() {
+  return units.map(() => null);
+}
+
 function loadLocalAnswers() {
-  const stored = localStorage.getItem(storageKeys.answers) ?? localStorage.getItem(storageKeys.legacyAnswers);
-  return normalizeAnswers(safeJsonParse(stored, [null, null, null, null]));
+  if (localStorage.getItem(storageKeys.version) !== storageVersion) {
+    localStorage.removeItem(storageKeys.answers);
+    localStorage.removeItem(storageKeys.legacyAnswers);
+    localStorage.setItem(storageKeys.version, storageVersion);
+    return blankAnswers();
+  }
+
+  const stored = localStorage.getItem(storageKeys.answers);
+  return normalizeAnswers(safeJsonParse(stored, blankAnswers()));
 }
 
 function saveLocalAnswers() {
+  localStorage.setItem(storageKeys.version, storageVersion);
   localStorage.setItem(storageKeys.answers, JSON.stringify(answers));
-  localStorage.setItem(storageKeys.legacyAnswers, JSON.stringify(answers));
+  localStorage.removeItem(storageKeys.legacyAnswers);
+}
+
+function wantsGuestMode() {
+  return isGuest || localStorage.getItem(storageKeys.mode) === "guest";
 }
 
 function encodedAnswers() {
@@ -118,7 +138,7 @@ function progressData() {
 }
 
 function decodedCloudAnswers(value) {
-  if (!Array.isArray(value)) return [null, null, null, null];
+  if (!Array.isArray(value)) return blankAnswers();
   return normalizeAnswers(value.map(answer => Number(answer) < 0 ? null : answer));
 }
 
@@ -166,12 +186,25 @@ async function loadFirebase() {
     };
 
     firebaseSdk.onAuthStateChanged(firebaseSdk.auth, async user => {
+      const guestModeRequested = wantsGuestMode();
+
+      if (guestModeRequested) {
+        isGuest = true;
+        currentUser = null;
+        answers = loadLocalAnswers();
+        updateUI();
+
+        if (user) {
+          await firebaseSdk.signOut(firebaseSdk.auth).catch(() => {});
+        }
+
+        return;
+      }
+
       if (!user) {
         currentUser = null;
-        if (!isGuest) {
-          updateUI();
-          if (!authRoutes.has(activeRoute)) goTo("login", { replace: true });
-        }
+        updateUI();
+        if (!authRoutes.has(activeRoute)) goTo("login", { replace: true });
         return;
       }
 
@@ -181,6 +214,11 @@ async function loadFirebase() {
       localStorage.setItem(storageKeys.email, user.email || "");
       localStorage.setItem(storageKeys.legacyEmail, user.email || "");
       await loadUserProgress(user);
+      if (wantsGuestMode()) {
+        currentUser = null;
+        await firebaseSdk.signOut(firebaseSdk.auth).catch(() => {});
+        return;
+      }
       if (authRoutes.has(activeRoute)) goTo("home", { replace: true });
     });
 
@@ -277,10 +315,12 @@ async function saveUserProfile(user) {
 }
 
 async function loadUserProgress(user) {
-  if (!firebaseSdk) return;
+  if (!firebaseSdk || wantsGuestMode()) return;
 
   try {
     const snapshot = await firebaseSdk.get(userProgressRef(user));
+    if (wantsGuestMode()) return;
+
     if (snapshot.exists()) {
       answers = decodedCloudAnswers(snapshot.val().answers);
     } else {
@@ -288,9 +328,11 @@ async function loadUserProgress(user) {
       await saveProgress(user);
     }
   } catch {
+    if (wantsGuestMode()) return;
     answers = loadLocalAnswers();
   }
 
+  if (wantsGuestMode()) return;
   saveLocalAnswers();
   updateUI();
 }
@@ -299,7 +341,7 @@ async function saveProgress(user = currentUser) {
   saveLocalAnswers();
   updateUI();
 
-  if (!user || !firebaseSdk) return;
+  if (wantsGuestMode() || !user || !firebaseSdk) return;
 
   try {
     await firebaseSdk.set(userProgressRef(user), progressData());
@@ -308,13 +350,21 @@ async function saveProgress(user = currentUser) {
   }
 }
 
-function enterGuestMode(route = "home") {
+async function enterGuestMode(route = "home") {
+  const hadGuestSession = localStorage.getItem(storageKeys.mode) === "guest";
+
   isGuest = true;
   currentUser = null;
   localStorage.setItem(storageKeys.mode, "guest");
   localStorage.setItem(storageKeys.email, "Guest learner");
   localStorage.setItem(storageKeys.legacyEmail, "Guest learner");
-  answers = loadLocalAnswers();
+
+  if (firebaseSdk?.auth?.currentUser) {
+    await firebaseSdk.signOut(firebaseSdk.auth).catch(() => {});
+  }
+
+  answers = hadGuestSession ? loadLocalAnswers() : blankAnswers();
+  saveLocalAnswers();
   updateUI();
   goTo(route);
 }
@@ -332,6 +382,8 @@ async function login(event) {
 
   setBusy(form, true);
   try {
+    isGuest = false;
+    localStorage.setItem(storageKeys.mode, "cloud");
     const credential = await sdk.signInWithEmailAndPassword(sdk.auth, credentials.email, credentials.password);
     currentUser = credential.user;
     localStorage.setItem(storageKeys.email, currentUser.email || credentials.email);
@@ -358,6 +410,8 @@ async function signup(event) {
 
   setBusy(form, true);
   try {
+    isGuest = false;
+    localStorage.setItem(storageKeys.mode, "cloud");
     const credential = await sdk.createUserWithEmailAndPassword(sdk.auth, credentials.email, credentials.password);
     currentUser = credential.user;
     localStorage.setItem(storageKeys.email, currentUser.email || credentials.email);
@@ -391,21 +445,20 @@ async function resetProgress() {
   const confirmed = window.confirm("Delete your saved progress for all four units?");
   if (!confirmed) return;
 
-  answers = [null, null, null, null];
-  localStorage.removeItem(storageKeys.answers);
-  localStorage.removeItem(storageKeys.legacyAnswers);
+  answers = blankAnswers();
+  saveLocalAnswers();
   updateUI();
 
   if (currentUser && firebaseSdk) {
     try {
-      await firebaseSdk.remove(userProgressRef(currentUser));
+      await firebaseSdk.set(userProgressRef(currentUser), progressData());
     } catch {
       setMessage("settingsMessage", "Local progress was deleted. Cloud progress could not be reached.");
       return;
     }
   }
 
-  setMessage("settingsMessage", "Progress deleted.", "success");
+  setMessage("settingsMessage", "Progress reset to 0%.", "success");
 }
 
 function renderUnitList() {

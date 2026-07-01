@@ -69,15 +69,37 @@ svg {
 }
 
 .scene-backdrop {
+  --scene-bg: url("../office-vn.webp");
   position: absolute;
   inset: 0;
   z-index: -3;
   background:
     linear-gradient(180deg, rgba(10, 16, 24, .40), rgba(10, 16, 24, .12) 38%, rgba(10, 16, 24, .58)),
-    url("../office-vn.webp") center / cover no-repeat;
+    var(--scene-bg) center / cover no-repeat;
   transform: scale(1.03);
+  filter: saturate(1) brightness(1);
+  transition: filter .55s var(--ease), transform .7s var(--ease);
 }
 
+
+body[data-scene-tone="success"] .scene-backdrop {
+  filter: saturate(1.08) brightness(1.06);
+  transform: scale(1.045);
+}
+
+body[data-scene-tone="tense"] .scene-backdrop {
+  filter: saturate(.82) brightness(.84) contrast(1.04);
+  transform: scale(1.035);
+}
+
+body[data-scene-tone="mentor"] .scene-backdrop {
+  filter: saturate(1.02) brightness(1.03);
+  transform: scale(1.04);
+}
+
+.scene-backdrop.is-changing {
+  animation: sceneShift .55s var(--ease);
+}
 .scene-backdrop::after {
   content: "";
   position: absolute;
@@ -198,6 +220,8 @@ svg {
 
 .character.manager.active {
   transform: scale(1.03);
+  filter: saturate(1) brightness(1);
+  transition: filter .55s var(--ease), transform .7s var(--ease);
 }
 
 .character.sarah.active {
@@ -362,6 +386,11 @@ svg {
 
 .result-toast.fail {
   border-top: 5px solid var(--danger);
+}
+
+@keyframes sceneShift {
+  0% { opacity: .72; }
+  100% { opacity: 1; }
 }
 
 @keyframes choiceIn {
