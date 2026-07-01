@@ -124,7 +124,7 @@ function decodedCloudAnswers(value) {
 
 async function loadFirebaseConfig() {
   try {
-    const configUrl = new URL("../../firebase-config.js", import.meta.url);
+    const configUrl = new URL("../../firebase-config.js?v=20260701-firebase", import.meta.url);
     const localConfig = await import(configUrl.href);
     if (localConfig.firebaseConfig) return localConfig.firebaseConfig;
   } catch {

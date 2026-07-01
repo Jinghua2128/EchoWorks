@@ -1,4 +1,4 @@
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyBWmLMcTnFbvOJ8p5klUdFgunatA68j46k",
   authDomain: "echoworks-e3b4d.firebaseapp.com",
   databaseURL: "https://echoworks-e3b4d-default-rtdb.asia-southeast1.firebasedatabase.app",
