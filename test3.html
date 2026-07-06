@@ -1,63 +1,137 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta
     name="description"
-    content="Practice a workplace feedback conversation with Sarah through an interactive visual novel scenario."
+    content="Complete a 10-15 minute workplace communication scenario using the CARE and REAL frameworks."
   />
   <meta name="theme-color" content="#d71920" />
-  <title>Sarah Scenario | Feedback Playbook</title>
+  <title>Giving Constructive Feedback | Feedback Playbook</title>
   <link rel="preload" as="image" href="assets/office-vn.webp" />
-  <link rel="preload" as="image" href="assets/office-success.webp" />
-  <link rel="preload" as="image" href="assets/office-tense.webp" />
-  <link rel="preload" as="image" href="assets/office-mentor.webp" />
   <link rel="preload" as="image" href="assets/manager.webp" />
   <link rel="preload" as="image" href="assets/sarah.webp" />
-  <link rel="stylesheet" href="assets/css/novel.css?v=20260701-dynamic" />
-  <script type="module" src="assets/js/novel.js?v=20260701-dynamic"></script>
+  <link rel="prefetch" as="image" href="assets/office-success.webp" />
+  <link rel="prefetch" as="image" href="assets/office-tense.webp" />
+  <link rel="prefetch" as="image" href="assets/office-mentor.webp" />
+  <link rel="stylesheet" href="assets/css/novel.css?v=20260706-learning" />
+  <script type="module" src="assets/js/novel.js?v=20260706-learning"></script>
 </head>
 
 <body>
-  <main class="novel-shell" aria-labelledby="scenarioTitle">
+  <main class="scenario-shell" aria-labelledby="scenarioTitle">
     <div class="scene-backdrop" aria-hidden="true"></div>
 
-    <header class="novel-header">
-      <a class="icon-button" href="index.html#home" aria-label="Back to Feedback Playbook">
+    <header class="scenario-header">
+      <a class="icon-button" href="index.html#home" aria-label="Back to learning dashboard">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7" /></svg>
       </a>
-      <div>
-        <p>Feedback Playbook</p>
-        <h1 id="scenarioTitle">Sarah Scenario</h1>
+      <div class="scenario-heading">
+        <p>Interactive Learning Experience</p>
+        <h1 id="scenarioTitle">Giving Constructive Feedback</h1>
+        <span>Estimated time: 10-15 minutes</span>
       </div>
       <button class="icon-button" type="button" data-action="restart" aria-label="Restart scenario">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7M4 5v5h5" /></svg>
       </button>
     </header>
 
-    <section class="stage" aria-label="Conversation scene">
-      <img src="assets/manager.webp" data-idle="assets/manager.webp" data-talk="assets/manager_talk.webp" id="manager" class="character manager" alt="Manager" decoding="async" />
-      <img src="assets/sarah.webp" data-idle="assets/sarah.webp" data-talk="assets/sarah_talk.webp" id="sarah" class="character sarah" alt="Sarah Tan" decoding="async" />
+    <section class="progress-panel" id="scoreHud" aria-label="Scenario progress" hidden>
+      <div class="progress-copy">
+        <span id="roleBadge">Choose a role</span>
+        <strong id="frameworkBadge">CARE / REAL</strong>
+      </div>
+      <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Scenario completion">
+        <span id="scoreProgress"></span>
+      </div>
+      <p id="scenarioProgressText">Progress appears after you start.</p>
+      <p class="evaluation-note" id="scoreTotal">Framework scoring is shown after completion.</p>
+      <div class="score-breakdown" id="scoreBreakdown" aria-label="Framework score breakdown" hidden></div>
+    </section>
+
+    <section class="role-panel" id="rolePanel" aria-labelledby="roleTitle">
+      <p class="section-label">Start here</p>
+      <h2 id="roleTitle">Choose your role for this workplace scenario</h2>
+      <p>
+        Select the perspective you want to practise. Your decisions are evaluated quietly during the scenario, and you will receive a constructive CARE / REAL reflection at the end.
+      </p>
+      <div class="role-actions" aria-label="Role choices">
+        <button class="role-card" type="button" data-role="manager">
+          <span class="role-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M7 8.2a3.2 3.2 0 1 1 6.4 0 3.2 3.2 0 0 1-6.4 0ZM4.5 20c.6-3.2 2.6-5 5.7-5s5.1 1.8 5.7 5M16.5 8h3M18 6.5v3" /></svg>
+          </span>
+          <span class="role-copy">
+            <strong>Manager</strong>
+            <small>Practise giving balanced feedback using the REAL framework.</small>
+          </span>
+          <span class="role-start">Start as Manager</span>
+        </button>
+        <button class="role-card" type="button" data-role="employee">
+          <span class="role-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M8.5 8.2a3.2 3.2 0 1 1 6.4 0 3.2 3.2 0 0 1-6.4 0ZM5 20c.7-3.1 2.9-5 6.7-5s6 1.9 6.7 5M18.5 5.5l1 1 2-2" /></svg>
+          </span>
+          <span class="role-copy">
+            <strong>Employee</strong>
+            <small>Practise receiving feedback constructively using the CARE framework.</small>
+          </span>
+          <span class="role-start">Start as Employee</span>
+        </button>
+      </div>
+      <p class="sync-message" id="roleMessage" aria-live="polite"></p>
+    </section>
+
+    <section class="stage" aria-label="Scenario scene">
+      <img src="assets/manager.webp" data-idle="assets/manager.webp" data-talk="assets/manager_talk.webp" id="manager" class="character manager" alt="Manager character" decoding="async" />
+      <img src="assets/sarah.webp" data-idle="assets/sarah.webp" data-talk="assets/sarah_talk.webp" id="sarah" class="character sarah" alt="Sarah Tan character" decoding="async" />
     </section>
 
     <section class="choice-panel" id="choices" aria-label="Response choices" hidden></section>
 
     <section class="dialogue-panel" aria-live="polite">
       <div class="dialogue-meta">
-        <span class="speaker" id="speakerName"></span>
+        <span class="speaker" id="speakerName">Role</span>
         <span class="scene-count" id="sceneCount"></span>
       </div>
       <div class="dialogue-text" id="dialogueText"></div>
       <div class="dialogue-actions">
         <button class="text-button" type="button" data-action="advance">Continue</button>
-        <span>Press Enter or Space</span>
+        <span>Keyboard: Enter or Space</span>
       </div>
+    </section>
+
+    <section class="reflection-panel" id="reflectionPanel" aria-labelledby="reflectionTitle" hidden>
+      <div class="reflection-summary">
+        <p class="section-label">Scenario complete</p>
+        <h2 id="reflectionTitle">Framework result</h2>
+        <p id="reflectionSummary"></p>
+        <strong id="frameworkResult"></strong>
+      </div>
+
+      <div class="evaluation-grid" id="scoreDetails" aria-label="Framework competency feedback"></div>
+
+      <div class="feedback-columns">
+        <section aria-labelledby="strengthsTitle">
+          <h3 id="strengthsTitle">Strengths</h3>
+          <ul id="strengthsList"></ul>
+        </section>
+        <section aria-labelledby="improvementsTitle">
+          <h3 id="improvementsTitle">Areas to practise</h3>
+          <ul id="improvementList"></ul>
+        </section>
+      </div>
+
+      <form id="reflectionForm" class="reflection-form">
+        <div id="reflectionFields" class="reflection-fields"></div>
+        <p class="sync-message" id="reflectionMessage" aria-live="polite"></p>
+        <div class="reflection-actions">
+          <button class="text-button" type="submit">Save reflection</button>
+          <button class="text-button ghost" type="button" data-action="restart-route">Choose another role</button>
+        </div>
+      </form>
     </section>
 
     <div class="result-toast" id="result" role="status" aria-live="polite" hidden></div>
   </main>
 </body>
 </html>
-
-

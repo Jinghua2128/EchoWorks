@@ -1,242 +1,284 @@
-const scenes = {
-  profile: {
-    speaker: "Profile",
-    focus: "sarah",
-    text: `Name: Sarah Tan
-Position: Marketing Executive
-Age: 32
+﻿import { loadFirebaseClient } from "./firebase-client.js";
 
-Performance:
-128% KPI achieved
-High-quality work
-
-Strengths:
-Proactive, dependable
-Handles pressure well
-Supports juniors
-
-Development:
-Dominates discussions
-Dismisses ideas quickly
-Peers hesitant to challenge`,
-    next: "intro"
-  },
-
-  intro: {
-    speaker: "Scene",
-    text: `The time to give employee feedback has come. Sarah continues to exceed expectations in performance, but recent peer feedback suggests that her communication style may be affecting team collaboration. As a manager, you want Sarah to feel recognized for her achievements while also helping her understand the impact of her behavior on the team. How would you phrase your feedback?`,
-    choices: [
-      { text: "Balanced recognition and feedback", next: "A" },
-      { text: "Praise, ignore issue", next: "B" },
-      { text: "Direct criticism", next: "C" }
-    ]
-  },
-
-  A: {
-    speaker: "Manager",
-    text: `Sarah, first of all, I want to acknowledge the great work you have done this quarter. Your results have been really strong, and the ownership you have shown across projects has made a big impact on the team. I also wanted to touch on some peer feedback that came up around team discussions. A few teammates shared that they sometimes find it difficult to contribute ideas in fast-paced conversations. I thought it would be useful for us to discuss this together because your impact on the team is really significant.`,
-    next: "A_response"
-  },
-
-  B: {
-    speaker: "Manager",
-    text: `Hi Sarah, your performance this quarter has honestly been outstanding, and the results speak for themselves. I know there was some feedback around communication during discussions, but I do not think it takes away from the great work you have been doing.`,
-    next: "B_response"
-  },
-
-  C: {
-    speaker: "Manager",
-    text: `Hi Sarah, your performance has been great overall, but I have received feedback that you can come across as intimidating in team discussions and that people sometimes feel uncomfortable sharing ideas around you.`,
-    next: "C_response"
-  },
-
-  B_response: {
-    speaker: "Sarah",
-    mood: "happy",
-    text: `Thanks, I appreciate that. I know I can be direct sometimes, but at the end of the day we have still been delivering strong results.`,
-    next: "B_outcome"
-  },
-
-  B_outcome: {
-    speaker: "Outcome",
-    text: `The conversation ends positively, but the behavioral concern is never properly addressed. Sarah leaves believing the issue is minor because her performance outweighs the impact on the team.`,
-    effect: "fail",
-    next: "B_learn"
-  },
-
-  B_learn: {
-    speaker: "Lesson",
-    text: `You acknowledged Sarah's achievements but minimized the developmental feedback. Strong performance should not prevent you from objectively evaluating behaviors that affect team collaboration.`,
-    next: "hr_fail"
-  },
-
-  C_response: {
-    speaker: "Sarah",
-    mood: "frustrated",
-    text: `Intimidating? I am not trying to make anyone uncomfortable. I just expect people to speak up if they have something to say.`,
-    next: "C_outcome"
-  },
-
-  C_outcome: {
-    speaker: "Outcome",
-    text: `Sarah becomes defensive and focuses on defending her intentions rather than reflecting on the feedback itself. This makes the conversation emotionally tense and less productive.`,
-    effect: "fail",
-    next: "C_learn"
-  },
-
-  C_learn: {
-    speaker: "Lesson",
-    text: `The feedback you chose relied on labels and interpretations instead of observable behaviors. Words like intimidating can feel personal and make employees defensive.`,
-    next: "hr_fail"
-  },
-
-  A_response: {
-    speaker: "Sarah",
-    mood: "happy",
-    text: `Thanks for bringing this up in that way. I was not fully aware the discussions were coming across like that, but I can see how it might affect the team. I would be open to working on it.`,
-    next: "A_outcome"
-  },
-
-  A_outcome: {
-    speaker: "Outcome",
-    text: `Sarah feels recognized for her contributions while remaining open to constructive feedback about team collaboration.`,
-    effect: "success",
-    next: "hr_pass"
-  },
-
-  hr_fail: {
-    speaker: "HR Mentor",
-    text: `Giving feedback to high performers can be challenging. Managers often struggle to balance recognition with constructive evaluation, especially when results are strong.
-
-The REAL framework can help structure more effective feedback conversations. In this scenario, we will focus on the first two pillars: Recognise and Evaluate.`,
-    next: "teach_R"
-  },
-
-  hr_pass: {
-    speaker: "HR Mentor",
-    text: `Well done. Your response balanced recognition with objective evaluation, allowing the feedback conversation to remain constructive and productive. Let us take a closer look at the principles behind this approach.`,
-    next: "teach_R"
-  },
-
-  teach_R: {
-    speaker: "HR Mentor",
-    text: `When giving feedback, managers should first recognise both strengths and improvement areas clearly.
-
-This means shining a spotlight on observable actions, behaviors, or challenges using specific workplace examples. Instead of giving vague praise like good job, point to clear contributions so employees understand exactly what they are doing well and where they can improve.
-
-Recognition creates trust and helps employees become more open to constructive conversations.`,
-    next: "teach_E"
-  },
-
-  teach_E: {
-    speaker: "HR Mentor",
-    text: `After recognising contributions, managers need to objectively evaluate performance and behavior based on the assessment criteria Red Cross has provided.
-
-Strong evaluation balances the scale through observable evidence instead of assumptions or personal interpretations. Managers should weigh contributions, behaviors, and outcomes carefully to distinguish employees who meet expectations from those who truly exceed them.
-
-This helps feedback remain fair, constructive, and focused on growth rather than emotion or personal judgment.`,
-    next: "revisit"
-  },
-
-  revisit: {
-    speaker: "HR Mentor",
-    text: `Now that you have learned how to apply Recognise and Evaluate, let us revisit the conversation with Sarah.`,
-    next: "revisit1"
-  },
-
-  revisit1: {
-    speaker: "Sarah",
-    text: `I understand the feedback, but I also feel like being direct is part of why I am able to get strong results.`,
-    choices: [
-      { text: "Balanced feedback", next: "final_A" },
-      { text: "Press the issue", next: "final_B" },
-      { text: "Ignore the issue", next: "final_C" }
-    ]
-  },
-
-  final_A: {
-    speaker: "Manager",
-    text: `I appreciate you sharing that perspective, and your strong results are definitely recognised. At the same time, part of leadership and collaboration is ensuring others also feel comfortable contributing ideas during discussions.`,
-    next: "end"
-  },
-
-  final_B: {
-    speaker: "Manager",
-    text: `I understand, but the feedback has come from multiple team members, so this is something you will need to work on.`,
-    next: "end"
-  },
-
-  final_C: {
-    speaker: "Manager",
-    text: `I see your point. Maybe the team just needs to adapt to different communication styles.`,
-    next: "end"
-  },
-
-  end: {
-    speaker: "HR Mentor",
-    text: `You successfully applied Recognise and Evaluate to maintain both clarity and psychological safety in the conversation.`
-  }
+const scenarioFiles = {
+  manager: "assets/data/scenarios/sarah-manager.json",
+  employee: "assets/data/scenarios/sarah-employee.json"
 };
 
-const sceneOrder = Object.keys(scenes);
+const localResultsKey = "feedbackPlaybook.scenarioResults";
 const textSpeed = 16;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-const sceneBackgrounds = {
-  neutral: "assets/office-vn.webp",
-  success: "assets/office-success.webp",
-  tense: "assets/office-tense.webp",
-  mentor: "assets/office-mentor.webp"
-};
-
-const sceneTones = {
-  A: "success",
-  A_response: "success",
-  A_outcome: "success",
-  B: "tense",
-  B_response: "tense",
-  B_outcome: "tense",
-  B_learn: "tense",
-  C: "tense",
-  C_response: "tense",
-  C_outcome: "tense",
-  C_learn: "tense",
-  hr_fail: "mentor",
-  hr_pass: "mentor",
-  teach_R: "mentor",
-  teach_E: "mentor",
-  revisit: "mentor",
-  final_A: "success",
-  final_B: "tense",
-  final_C: "tense",
-  end: "success"
-};
 
 const sceneBackdropEl = document.querySelector(".scene-backdrop");
 const managerEl = document.getElementById("manager");
 const sarahEl = document.getElementById("sarah");
 const choicesEl = document.getElementById("choices");
+const rolePanelEl = document.getElementById("rolePanel");
+const roleMessageEl = document.getElementById("roleMessage");
+const scoreHudEl = document.getElementById("scoreHud");
+const roleBadgeEl = document.getElementById("roleBadge");
+const frameworkBadgeEl = document.getElementById("frameworkBadge");
+const scoreTotalEl = document.getElementById("scoreTotal");
+const scoreProgressEl = document.getElementById("scoreProgress");
+const scoreBreakdownEl = document.getElementById("scoreBreakdown");
+const scenarioProgressTextEl = document.getElementById("scenarioProgressText");
 const speakerNameEl = document.getElementById("speakerName");
 const sceneCountEl = document.getElementById("sceneCount");
 const textEl = document.getElementById("dialogueText");
 const resultEl = document.getElementById("result");
 const advanceButton = document.querySelector('[data-action="advance"]');
+const reflectionPanelEl = document.getElementById("reflectionPanel");
+const reflectionTitleEl = document.getElementById("reflectionTitle");
+const reflectionSummaryEl = document.getElementById("reflectionSummary");
+const frameworkResultEl = document.getElementById("frameworkResult");
+const scoreDetailsEl = document.getElementById("scoreDetails");
+const strengthsListEl = document.getElementById("strengthsList");
+const improvementListEl = document.getElementById("improvementList");
+const reflectionFieldsEl = document.getElementById("reflectionFields");
+const reflectionFormEl = document.getElementById("reflectionForm");
+const reflectionMessageEl = document.getElementById("reflectionMessage");
 
-let currentSceneId = "profile";
+let firebaseClient = null;
+let currentUser = null;
+let scenario = null;
+let scenes = {};
+let sceneOrder = [];
+let currentSceneId = "";
 let typingTimer = null;
 let talkingTimer = null;
 let pendingNext = null;
 let fullText = "";
 let typedIndex = 0;
 let isTyping = false;
+let scoreState = {};
+let totalScore = 0;
+let choiceHistory = [];
+let reflectionAnswers = {};
+let completedAtIso = null;
+let completionShown = false;
 
-function sceneToneFor(id) {
-  return sceneTones[id] || "neutral";
+function safeJsonParse(value, fallback) {
+  try {
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
 }
 
-function setSceneEnvironment(id) {
-  const tone = sceneToneFor(id);
-  const background = sceneBackgrounds[tone] || sceneBackgrounds.neutral;
+function readLocalResults() {
+  return safeJsonParse(localStorage.getItem(localResultsKey), {});
+}
+
+function writeLocalResult(record) {
+  const results = readLocalResults();
+  results[record.scenarioId] = record;
+  localStorage.setItem(localResultsKey, JSON.stringify(results));
+}
+
+function initialiseScoreState(nextScenario) {
+  scoreState = {};
+  nextScenario.framework.dimensions.forEach(dimension => {
+    scoreState[dimension.id] = 0;
+  });
+  totalScore = 0;
+  choiceHistory = [];
+  reflectionAnswers = {};
+  completedAtIso = null;
+  completionShown = false;
+}
+
+function clampScore(value) {
+  const maxScore = scenario?.framework?.maxScore || 0;
+  return Math.max(0, Math.min(maxScore, value));
+}
+
+function scorePercent() {
+  const maxScore = scenario?.framework?.maxScore || 0;
+  return maxScore ? Math.round((totalScore / maxScore) * 100) : 0;
+}
+
+function progressPercent() {
+  if (!scenario) return 0;
+  if (completedAtIso) return 100;
+  const decisions = scenario.decisionCount || 1;
+  return Math.min(95, Math.round((choiceHistory.length / decisions) * 100));
+}
+
+function resultBand() {
+  const percent = scorePercent();
+  if (percent >= 80) return "strong";
+  if (percent >= (scenario?.followUpThreshold || 65)) return "developing";
+  return "follow_up";
+}
+
+function needsFollowUp() {
+  return resultBand() === "follow_up" || choiceHistory.some(choice => choice.effect === "fail");
+}
+
+function decisionScenes() {
+  return Object.values(scenes).filter(scene => Array.isArray(scene.choices) && scene.choices.length);
+}
+
+function dimensionMax(dimensionId) {
+  const maxFromChoices = decisionScenes().reduce((sum, scene) => {
+    const bestChoice = Math.max(0, ...scene.choices.map(choice => Number(choice.score?.[dimensionId] || 0)));
+    return sum + bestChoice;
+  }, 0);
+
+  return Math.max(1, maxFromChoices);
+}
+
+function dimensionPercent(dimensionId) {
+  return Math.round(((scoreState[dimensionId] || 0) / dimensionMax(dimensionId)) * 100);
+}
+
+function dimensionTone(percent) {
+  if (percent >= 75) return "strong";
+  if (percent >= 50) return "developing";
+  return "follow_up";
+}
+
+function feedbackForDimension(dimension) {
+  const percent = dimensionPercent(dimension.id);
+  const tone = dimensionTone(percent);
+  const guidance = scenario?.framework?.feedback?.[dimension.id] || {};
+
+  return guidance[tone] || (
+    tone === "strong"
+      ? `You applied ${dimension.label} consistently in this route.`
+      : tone === "developing"
+        ? `${dimension.label} appeared in parts of your response. Keep practising it in the next scenario.`
+        : `${dimension.label} needs more attention. Review the scenario and consider what support would help.`
+  );
+}
+
+function buildFrameworkDetails() {
+  if (!scenario) return [];
+
+  return scenario.framework.dimensions.map(dimension => {
+    const percent = dimensionPercent(dimension.id);
+    return {
+      id: dimension.id,
+      label: dimension.label,
+      score: scoreState[dimension.id] || 0,
+      maxScore: dimensionMax(dimension.id),
+      percent,
+      tone: dimensionTone(percent),
+      explanation: feedbackForDimension(dimension)
+    };
+  });
+}
+
+function buildScenarioRecord(status = "in_progress") {
+  const nowIso = new Date().toISOString();
+  return {
+    uid: currentUser?.uid || null,
+    email: currentUser?.email || "Guest learner",
+    scenarioId: scenario.id,
+    scenarioTitle: scenario.title,
+    selectedRole: scenario.role,
+    frameworkId: scenario.framework.id,
+    progressStatus: status,
+    progressPercent: progressPercent(),
+    completed: status === "completed",
+    completedAtIso,
+    updatedAtIso: nowIso,
+    score: totalScore,
+    maxScore: scenario.framework.maxScore,
+    scorePercent: scorePercent(),
+    frameworkScores: { ...scoreState },
+    frameworkDetails: buildFrameworkDetails(),
+    resultBand: resultBand(),
+    needsFollowUp: needsFollowUp(),
+    choices: choiceHistory.map(choice => ({
+      sceneId: choice.sceneId,
+      choiceId: choice.choiceId,
+      effect: choice.effect,
+      score: choice.score,
+      totalAfter: choice.totalAfter
+    })),
+    reflectionAnswers: { ...reflectionAnswers }
+  };
+}
+
+async function saveScenarioRecord(status = "in_progress") {
+  if (!scenario) return;
+
+  const record = buildScenarioRecord(status);
+  writeLocalResult(record);
+
+  if (!firebaseClient || !currentUser) return;
+
+  const firestoreRecord = {
+    ...record,
+    uid: currentUser.uid,
+    email: currentUser.email || "",
+    updatedAt: firebaseClient.serverTimestamp()
+  };
+
+  if (status === "completed") {
+    firestoreRecord.completedAt = firebaseClient.serverTimestamp();
+  }
+
+  const resultId = `${currentUser.uid}_${scenario.id}`;
+  await Promise.all([
+    firebaseClient.setDoc(firebaseClient.doc(firebaseClient.db, "users", currentUser.uid), {
+      email: currentUser.email || "",
+      selectedRole: scenario.role,
+      updatedAt: firebaseClient.serverTimestamp()
+    }, { merge: true }),
+    firebaseClient.setDoc(firebaseClient.doc(firebaseClient.db, "users", currentUser.uid, "scenarioProgress", scenario.id), firestoreRecord, { merge: true }),
+    firebaseClient.setDoc(firebaseClient.doc(firebaseClient.db, "scenarioResults", resultId), firestoreRecord, { merge: true })
+  ]).catch(error => {
+    setRoleMessage(`Cloud save is unavailable. Your scenario result is saved locally. ${error.message || ""}`.trim(), "error");
+  });
+}
+
+function setRoleMessage(message, tone = "neutral") {
+  if (!roleMessageEl) return;
+  roleMessageEl.textContent = message;
+  roleMessageEl.dataset.tone = tone;
+}
+
+async function loadScenario(role) {
+  const file = scenarioFiles[role];
+  if (!file) throw new Error("Choose a valid role.");
+
+  const response = await fetch(file, { cache: "no-store" });
+  if (!response.ok) throw new Error("Scenario data could not be loaded.");
+  return await response.json();
+}
+
+function preloadImage(src) {
+  if (!src) return;
+  const image = new Image();
+  image.decoding = "async";
+  image.src = src;
+}
+
+function sceneToneFor(scene) {
+  return scene?.tone || "neutral";
+}
+
+function backgroundForScene(scene) {
+  const backgrounds = scenario?.assets?.backgrounds || {};
+  return backgrounds[sceneToneFor(scene)] || backgrounds.neutral || "assets/office-vn.webp";
+}
+
+function preloadSceneAssets(sceneId) {
+  const nextScene = scenes[sceneId];
+  if (!nextScene) return;
+  preloadImage(backgroundForScene(nextScene));
+
+  if (nextScene.next) preloadImage(backgroundForScene(scenes[nextScene.next]));
+  if (Array.isArray(nextScene.choices)) {
+    nextScene.choices.forEach(choice => preloadImage(backgroundForScene(scenes[choice.next])));
+  }
+}
+
+function setSceneEnvironment(scene) {
+  const tone = sceneToneFor(scene);
+  const background = backgroundForScene(scene);
   const nextBackground = `url("${background}")`;
 
   document.body.dataset.sceneTone = tone;
@@ -318,16 +360,50 @@ function setText(value) {
   textEl.textContent = value;
 }
 
+function decisionProgressLabel() {
+  if (!scenario) return "Choose a role to start.";
+  if (completedAtIso) return "Scenario complete. Review your reflection below.";
+
+  const decisions = scenario.decisionCount || 1;
+  const completed = Math.min(choiceHistory.length, decisions);
+  const nextDecision = Math.min(completed + 1, decisions);
+  return `${completed} of ${decisions} decisions completed. Decision ${nextDecision} is ${completed >= decisions ? "complete" : "next"}.`;
+}
+
+function updateScoreHud() {
+  if (!scenario) {
+    scoreHudEl.hidden = true;
+    return;
+  }
+
+  const progress = progressPercent();
+  scoreHudEl.hidden = false;
+  roleBadgeEl.textContent = `${scenario.roleLabel} route`;
+  frameworkBadgeEl.textContent = `${scenario.framework.id} framework`;
+  scoreProgressEl.style.width = `${progress}%`;
+  scoreProgressEl.parentElement.setAttribute("aria-valuenow", String(progress));
+  scenarioProgressTextEl.textContent = decisionProgressLabel();
+  scoreTotalEl.textContent = completedAtIso
+    ? `Final result: ${scorePercent()}%`
+    : "Scoring is evaluated quietly and shown at the end.";
+  scoreBreakdownEl.hidden = true;
+}
+
 function finishTyping() {
   window.clearTimeout(typingTimer);
   setText(fullText);
   isTyping = false;
   stopTalking();
-  advanceButton.textContent = pendingNext ? "Continue" : "Restart";
-
   const scene = scenes[currentSceneId];
-  if (scene.effect) showResult(scene.effect);
-  if (scene.choices) renderChoices(scene.choices);
+  if (scene.choices) {
+    advanceButton.textContent = "Choose a response";
+    advanceButton.disabled = true;
+    renderChoices(scene.choices);
+  } else {
+    advanceButton.textContent = pendingNext ? "Continue" : "Restart";
+    advanceButton.disabled = false;
+  }
+  if (scene.ending) showCompletion();
 }
 
 function typeText(text) {
@@ -336,6 +412,7 @@ function typeText(text) {
   typedIndex = 0;
   isTyping = true;
   setText("");
+  advanceButton.disabled = false;
   advanceButton.textContent = "Reveal text";
   startTalking();
 
@@ -360,6 +437,24 @@ function typeText(text) {
   tick();
 }
 
+function applyChoiceScore(choice) {
+  const score = choice.score || {};
+  Object.entries(score).forEach(([dimension, points]) => {
+    scoreState[dimension] = (scoreState[dimension] || 0) + Number(points || 0);
+  });
+
+  totalScore = clampScore(totalScore + Object.values(score).reduce((sum, value) => sum + Number(value || 0), 0));
+  choiceHistory.push({
+    sceneId: currentSceneId,
+    choiceId: choice.id,
+    effect: choice.effect || "neutral",
+    score: { ...score },
+    totalAfter: totalScore
+  });
+  updateScoreHud();
+  saveScenarioRecord("in_progress");
+}
+
 function renderChoices(choices) {
   choicesEl.textContent = "";
   choicesEl.hidden = false;
@@ -369,7 +464,10 @@ function renderChoices(choices) {
     button.className = "choice-button";
     button.type = "button";
     button.textContent = choice.text;
-    button.addEventListener("click", () => renderScene(choice.next));
+    button.addEventListener("click", () => {
+      applyChoiceScore(choice);
+      renderScene(choice.next);
+    });
     choicesEl.append(button);
   });
 
@@ -381,35 +479,165 @@ function hideChoices() {
   choicesEl.textContent = "";
 }
 
-function showResult(type) {
-  resultEl.className = `result-toast ${type}`;
-  resultEl.innerHTML = type === "success"
-    ? "<strong>Good choice</strong><span>Sarah stays open to the feedback.</span>"
-    : "<strong>Try another approach</strong><span>The conversation loses clarity.</span>";
-  resultEl.hidden = false;
-
-  window.setTimeout(() => {
-    resultEl.hidden = true;
-  }, 1800);
-}
-
 function renderScene(id) {
-  const scene = scenes[id] || scenes.profile;
+  const scene = scenes[id] || scenes[scenario.startScene];
   currentSceneId = id;
   pendingNext = scene.next || null;
   hideChoices();
   resultEl.hidden = true;
+  reflectionPanelEl.hidden = true;
   speakerNameEl.textContent = scene.speaker;
 
-  const sceneIndex = sceneOrder.indexOf(id) + 1;
-  sceneCountEl.textContent = sceneIndex > 0 ? `${sceneIndex} / ${sceneOrder.length}` : "";
+  if (scene.choices) {
+    const decisions = scenario.decisionCount || 1;
+    sceneCountEl.textContent = `Decision ${Math.min(choiceHistory.length + 1, decisions)} of ${decisions}`;
+  } else {
+    sceneCountEl.textContent = scenario?.estimatedDuration ? scenario.estimatedDuration : "Interactive scenario";
+  }
 
-  setSceneEnvironment(id);
+  setSceneEnvironment(scene);
+  preloadSceneAssets(scene.next);
+  if (Array.isArray(scene.choices)) scene.choices.forEach(choice => preloadSceneAssets(choice.next));
   setCharacters(scene);
+  updateScoreHud();
   typeText(scene.text);
 }
 
+function completionCopy() {
+  const percent = scorePercent();
+  if (percent >= 80) return "Strong application. Your decisions showed confident use of the framework and created space for a constructive workplace conversation.";
+  if (percent >= (scenario.followUpThreshold || 65)) return "Developing application. You showed useful strengths and a few areas to practise in future feedback conversations.";
+  return "Additional support recommended. This route highlights useful practice areas that can be strengthened through coaching or review.";
+}
+
+function addListItem(list, text) {
+  const item = document.createElement("li");
+  item.textContent = text;
+  list.append(item);
+}
+
+function renderEvaluationDetails() {
+  const details = buildFrameworkDetails();
+  scoreDetailsEl.textContent = "";
+  strengthsListEl.textContent = "";
+  improvementListEl.textContent = "";
+
+  details.forEach(detail => {
+    const card = document.createElement("article");
+    card.className = `evaluation-card ${detail.tone}`;
+
+    const header = document.createElement("header");
+    const heading = document.createElement("h3");
+    heading.textContent = detail.label;
+    const score = document.createElement("strong");
+    score.textContent = `${detail.score}/${detail.maxScore}`;
+    header.append(heading, score);
+
+    const explanation = document.createElement("p");
+    explanation.textContent = detail.explanation;
+    card.append(header, explanation);
+    scoreDetailsEl.append(card);
+
+    if (detail.percent >= 70) {
+      addListItem(strengthsListEl, `${detail.label}: ${detail.explanation}`);
+    } else {
+      addListItem(improvementListEl, `${detail.label}: ${detail.explanation}`);
+    }
+  });
+
+  if (!strengthsListEl.children.length) {
+    addListItem(strengthsListEl, "You completed the scenario and created a record for reflection. That is a useful first step for learning.");
+  }
+
+  if (!improvementListEl.children.length) {
+    addListItem(improvementListEl, "Keep practising the framework in different workplace situations so the behaviour becomes consistent.");
+  }
+}
+
+function renderReflectionFields() {
+  reflectionFieldsEl.textContent = "";
+  scenario.reflectionPrompts.forEach(prompt => {
+    const label = document.createElement("label");
+    label.className = "reflection-field";
+    label.htmlFor = `reflection-${prompt.id}`;
+
+    const span = document.createElement("span");
+    span.textContent = prompt.label;
+
+    const textarea = document.createElement("textarea");
+    textarea.id = `reflection-${prompt.id}`;
+    textarea.name = prompt.id;
+    textarea.rows = 3;
+    textarea.value = reflectionAnswers[prompt.id] || "";
+    textarea.maxLength = 600;
+
+    label.append(span, textarea);
+    reflectionFieldsEl.append(label);
+  });
+}
+
+function showCompletion() {
+  if (!scenario || completionShown) return;
+  completionShown = true;
+  completedAtIso = completedAtIso || new Date().toISOString();
+  updateScoreHud();
+
+  reflectionTitleEl.textContent = `${scenario.framework.id} result: ${scorePercent()}%`;
+  reflectionSummaryEl.textContent = completionCopy();
+  frameworkResultEl.textContent = `${totalScore} of ${scenario.framework.maxScore} points | ${progressPercent()}% complete | ${needsFollowUp() ? "Follow-up support suggested" : "No urgent follow-up signal"}`;
+  renderEvaluationDetails();
+  renderReflectionFields();
+  reflectionPanelEl.hidden = false;
+  saveScenarioRecord("completed");
+}
+
+function restartScenario() {
+  clearTimers();
+  scenario = null;
+  scenes = {};
+  sceneOrder = [];
+  currentSceneId = "";
+  pendingNext = null;
+  fullText = "";
+  isTyping = false;
+  completionShown = false;
+  hideChoices();
+  reflectionPanelEl.hidden = true;
+  resultEl.hidden = true;
+  scoreHudEl.hidden = true;
+  rolePanelEl.hidden = false;
+  speakerNameEl.textContent = "Role";
+  sceneCountEl.textContent = "";
+  setText("Choose Manager or Employee to begin the workplace learning scenario.");
+  setSceneEnvironment({ tone: "neutral" });
+  setCharacters({ speaker: "Scene" });
+}
+
+async function selectRole(role) {
+  setRoleMessage("Loading your scenario...", "neutral");
+  rolePanelEl.querySelectorAll("button").forEach(button => { button.disabled = true; });
+
+  try {
+    const nextScenario = await loadScenario(role);
+    scenario = nextScenario;
+    scenes = nextScenario.scenes;
+    sceneOrder = nextScenario.sceneOrder || Object.keys(scenes);
+    initialiseScoreState(nextScenario);
+    rolePanelEl.hidden = true;
+    setRoleMessage(currentUser ? "Cloud sync is ready." : "Signed out: this scenario saves on this device only.", currentUser ? "success" : "neutral");
+    updateScoreHud();
+    await saveScenarioRecord("in_progress");
+    renderScene(nextScenario.startScene);
+  } catch (error) {
+    setRoleMessage(error.message || "Scenario could not be loaded.", "error");
+  } finally {
+    rolePanelEl.querySelectorAll("button").forEach(button => { button.disabled = false; });
+  }
+}
+
 function advanceScene() {
+  if (!scenario) return;
+
   if (isTyping) {
     finishTyping();
     return;
@@ -421,27 +649,67 @@ function advanceScene() {
     return;
   }
 
+  if (scene?.ending) {
+    showCompletion();
+    return;
+  }
+
   if (pendingNext) {
     renderScene(pendingNext);
     return;
   }
 
-  renderScene("profile");
+  restartScenario();
+}
+
+async function saveReflection(event) {
+  event.preventDefault();
+  if (!scenario) return;
+
+  reflectionAnswers = {};
+  scenario.reflectionPrompts.forEach(prompt => {
+    reflectionAnswers[prompt.id] = String(reflectionFormEl.elements[prompt.id]?.value || "").trim();
+  });
+
+  await saveScenarioRecord("completed");
+  reflectionMessageEl.textContent = currentUser
+    ? "Reflection saved to your training record."
+    : "Reflection saved on this device.";
+  reflectionMessageEl.classList.add("success");
+}
+
+async function initFirebase() {
+  try {
+    firebaseClient = await loadFirebaseClient();
+    firebaseClient.onAuthStateChanged(firebaseClient.auth, user => {
+      currentUser = user;
+      if (scenario) saveScenarioRecord(completedAtIso ? "completed" : "in_progress");
+      setRoleMessage(user ? "Cloud sync is ready." : "Signed out: scenario saves on this device only.", user ? "success" : "neutral");
+    });
+  } catch (error) {
+    setRoleMessage(error.message || "Scenario progress will save locally only.", "neutral");
+  }
 }
 
 function bindEvents() {
+  rolePanelEl.addEventListener("click", event => {
+    const button = event.target.closest("[data-role]");
+    if (button) selectRole(button.dataset.role);
+  });
+
   advanceButton.addEventListener("click", advanceScene);
+  reflectionFormEl.addEventListener("submit", saveReflection);
 
   sceneBackdropEl.addEventListener("animationend", () => sceneBackdropEl.classList.remove("is-changing"));
 
-  document.querySelector('[data-action="restart"]').addEventListener("click", () => {
-    renderScene("profile");
-  });
+  document.querySelector('[data-action="restart"]').addEventListener("click", restartScenario);
+  document.querySelector('[data-action="restart-route"]').addEventListener("click", restartScenario);
 
   document.addEventListener("keydown", event => {
     const target = event.target;
+    const isTypingField = target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement;
     const isButton = target instanceof HTMLButtonElement || target instanceof HTMLAnchorElement;
-    if (isButton) return;
+    if (isTypingField || isButton || !scenario) return;
 
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -451,6 +719,6 @@ function bindEvents() {
 }
 
 bindEvents();
-renderScene(currentSceneId);
-
+restartScenario();
+window.setTimeout(() => { initFirebase(); }, 1200);
 

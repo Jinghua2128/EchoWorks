@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Protected manager dashboard for Feedback Playbook completion, CARE / REAL scoring, and reflection follow-up." />
+  <meta name="theme-color" content="#d71920" />
+  <title>Manager Dashboard | Feedback Playbook</title>
+  <link rel="stylesheet" href="assets/css/app.css?v=20260706-learning" />
+  <link rel="stylesheet" href="assets/css/admin.css?v=20260706-learning" />
+  <script type="module" src="assets/js/admin.js?v=20260706-learning"></script>
+</head>
+<body>
+  <main class="admin-shell">
+    <header class="admin-hero">
+      <a class="button subtle fit" href="index.html#home">Back to learning dashboard</a>
+      <div>
+        <p class="section-label">Manager access</p>
+        <h1>Manager Dashboard</h1>
+        <p>Review completion, CARE / REAL evaluation details, reflections, and follow-up support signals.</p>
+      </div>
+      <button class="button secondary fit" type="button" id="refreshButton">Refresh</button>
+    </header>
+
+    <section class="panel access-panel" id="accessPanel" aria-live="polite">
+      <h2>Checking access</h2>
+      <p id="accessMessage">Use the main app to sign in with an authorised dashboard account.</p>
+    </section>
+
+    <section class="admin-content" id="dashboardContent" hidden>
+      <section class="metric-grid" aria-label="Dashboard summary">
+        <article class="panel admin-metric">
+          <span>Total employees</span>
+          <strong id="userCount">0</strong>
+        </article>
+        <article class="panel admin-metric">
+          <span>Completion rate</span>
+          <strong id="completionRate">0%</strong>
+        </article>
+        <article class="panel admin-metric">
+          <span>Average CARE score</span>
+          <strong id="averageCareScore">0%</strong>
+        </article>
+        <article class="panel admin-metric">
+          <span>Average REAL score</span>
+          <strong id="averageRealScore">0%</strong>
+        </article>
+        <article class="panel admin-metric warning">
+          <span>Needs follow-up</span>
+          <strong id="followUpCount">0</strong>
+        </article>
+      </section>
+
+      <section class="panel admin-section" aria-labelledby="chartsTitle">
+        <div class="panel-heading">
+          <div>
+            <p class="section-label">Overview</p>
+            <h2 id="chartsTitle">Progress and framework performance</h2>
+          </div>
+        </div>
+        <div class="chart-grid">
+          <article class="chart-card" aria-labelledby="completionChartTitle">
+            <h3 id="completionChartTitle">Completion progress</h3>
+            <div class="bar-list" id="completionChart"></div>
+          </article>
+          <article class="chart-card" aria-labelledby="frameworkChartTitle">
+            <h3 id="frameworkChartTitle">Framework performance</h3>
+            <div class="bar-list" id="frameworkChart"></div>
+          </article>
+          <article class="chart-card" aria-labelledby="scenarioChartTitle">
+            <h3 id="scenarioChartTitle">Scenario completion</h3>
+            <div class="bar-list" id="scenarioChart"></div>
+          </article>
+          <article class="chart-card" aria-labelledby="departmentChartTitle">
+            <h3 id="departmentChartTitle">Department statistics</h3>
+            <p class="empty-note">Department data will appear here when learner profiles include a department field.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel admin-section" aria-labelledby="usersTitle">
+        <div class="panel-heading filters-heading">
+          <div>
+            <p class="section-label">Employees</p>
+            <h2 id="usersTitle">Learner progress</h2>
+          </div>
+          <div class="filter-group" aria-label="Filter learners by progress status">
+            <button class="filter-button active" type="button" data-filter="all">All</button>
+            <button class="filter-button" type="button" data-filter="completed">Completed</button>
+            <button class="filter-button" type="button" data-filter="in_progress">In progress</button>
+            <button class="filter-button" type="button" data-filter="not_started">Not started</button>
+            <button class="filter-button" type="button" data-filter="needs_follow_up">Needs follow-up</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Completed scenarios</th>
+                <th>CARE score</th>
+                <th>REAL score</th>
+                <th>Reflection</th>
+                <th>Last activity</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="usersTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel detail-panel" id="detailPanel" aria-labelledby="detailTitle" hidden>
+        <div class="panel-heading">
+          <div>
+            <p class="section-label">Learner detail</p>
+            <h2 id="detailTitle">Select a learner</h2>
+          </div>
+        </div>
+        <div id="detailBody" class="detail-body"></div>
+      </section>
+
+      <section class="panel admin-section" aria-labelledby="resultsTitle">
+        <div class="panel-heading">
+          <div>
+            <p class="section-label">Scoring details</p>
+            <h2 id="resultsTitle">CARE / REAL result records</h2>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Scenario</th>
+                <th>Framework</th>
+                <th>Score</th>
+                <th>Breakdown</th>
+                <th>Reflection</th>
+              </tr>
+            </thead>
+            <tbody id="resultsTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel admin-section" aria-labelledby="adminsTitle">
+        <div class="panel-heading">
+          <div>
+            <p class="section-label">Access control</p>
+            <h2 id="adminsTitle">Dashboard viewers</h2>
+          </div>
+        </div>
+        <form class="admin-form" id="adminForm">
+          <label class="field" for="adminEmail">
+            <span>Add viewer email</span>
+            <input id="adminEmail" name="email" type="email" placeholder="name@example.com" required />
+          </label>
+          <button class="button primary fit" type="submit">Add viewer</button>
+        </form>
+        <p class="form-message" id="adminMessage" aria-live="polite"></p>
+        <div class="admin-list" id="adminList"></div>
+      </section>
+    </section>
+  </main>
+</body>
+</html>

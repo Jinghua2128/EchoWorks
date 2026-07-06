@@ -1,0 +1,271 @@
+{
+  "id": "sarah-feedback-employee",
+  "title": "Giving Constructive Feedback",
+  "role": "employee",
+  "roleLabel": "Employee",
+  "framework": {
+    "id": "CARE",
+    "name": "CARE feedback response framework",
+    "maxScore": 12,
+    "dimensions": [
+      {
+        "id": "C",
+        "label": "Clarify"
+      },
+      {
+        "id": "A",
+        "label": "Active Listening"
+      },
+      {
+        "id": "R",
+        "label": "Respectful Response"
+      },
+      {
+        "id": "E",
+        "label": "Empathy"
+      }
+    ],
+    "competencies": [
+      "Empathy",
+      "Active Listening",
+      "Support"
+    ],
+    "feedback": {
+      "C": {
+        "strong": "You clarified the feedback by asking for examples and checking your understanding.",
+        "developing": "You clarified part of the feedback, but the response could ask for more specific examples.",
+        "follow_up": "Clarifying needs more attention. Ask what behaviour was observed and when it happened."
+      },
+      "A": {
+        "strong": "You showed active listening by acknowledging the concern before moving to solutions.",
+        "developing": "You showed some listening, but the response could reflect back the impact more clearly.",
+        "follow_up": "Active listening needs more attention. Pause, acknowledge the message, and avoid jumping straight into defence."
+      },
+      "R": {
+        "strong": "You responded respectfully, keeping the conversation calm and professional.",
+        "developing": "You remained partly respectful, but the response could reduce defensiveness.",
+        "follow_up": "Respectful response needs more attention. Defensive or withdrawn replies make it harder to learn from feedback."
+      },
+      "E": {
+        "strong": "You engaged with support by committing to a practical next step.",
+        "developing": "You showed some engagement, but the action could be clearer.",
+        "follow_up": "Support and engagement need more attention. Ask what support would help you practise the feedback."
+      }
+    }
+  },
+  "decisionCount": 2,
+  "followUpThreshold": 65,
+  "startScene": "profile",
+  "assets": {
+    "backgrounds": {
+      "neutral": "assets/office-vn.webp",
+      "success": "assets/office-success.webp",
+      "tense": "assets/office-tense.webp",
+      "mentor": "assets/office-mentor.webp"
+    }
+  },
+  "reflectionPrompts": [
+    {
+      "id": "learning",
+      "label": "What feedback did you understand most clearly?"
+    },
+    {
+      "id": "support",
+      "label": "What support would help you act on the feedback?"
+    }
+  ],
+  "sceneOrder": [
+    "profile",
+    "intro",
+    "manager_feedback",
+    "employee_care",
+    "employee_defend",
+    "employee_withdraw",
+    "care_outcome",
+    "defend_outcome",
+    "withdraw_outcome",
+    "mentor",
+    "revisit",
+    "final_commit",
+    "final_vague",
+    "final_reject",
+    "end"
+  ],
+  "scenes": {
+    "profile": {
+      "speaker": "Profile",
+      "focus": "sarah",
+      "tone": "neutral",
+      "text": "You are Sarah Tan, a Marketing Executive with strong results and visible influence in team discussions.\n\nYou recently received peer feedback that some teammates hesitate to challenge your ideas. Your goal is to respond professionally, understand the concern, and decide what support you need.",
+      "next": "intro"
+    },
+    "intro": {
+      "speaker": "Scene",
+      "tone": "neutral",
+      "text": "Your manager has scheduled a feedback conversation. You know your performance is strong, but you also want to show that you can receive feedback constructively. How will you respond when the feedback is raised?",
+      "next": "manager_feedback"
+    },
+    "manager_feedback": {
+      "speaker": "Manager",
+      "tone": "mentor",
+      "text": "Sarah, your results this quarter have been excellent. I also want to discuss peer feedback about team conversations. Some teammates shared that they sometimes hold back ideas when discussions move quickly. I would like to understand your view and explore how we can keep your strong drive while making space for others.",
+      "choices": [
+        {
+          "id": "employee-clarify-acknowledge",
+          "text": "Ask for examples and acknowledge the impact",
+          "next": "employee_care",
+          "effect": "success",
+          "score": {
+            "C": 2,
+            "A": 2,
+            "R": 1,
+            "E": 1
+          }
+        },
+        {
+          "id": "employee-defend-intent",
+          "text": "Defend your intent",
+          "next": "employee_defend",
+          "effect": "fail",
+          "score": {
+            "C": 0,
+            "A": 0,
+            "R": 1,
+            "E": 1
+          }
+        },
+        {
+          "id": "employee-withdraw",
+          "text": "Shut down and say little",
+          "next": "employee_withdraw",
+          "effect": "fail",
+          "score": {
+            "C": 0,
+            "A": 1,
+            "R": 0,
+            "E": 0
+          }
+        }
+      ]
+    },
+    "employee_care": {
+      "speaker": "Sarah",
+      "mood": "happy",
+      "tone": "success",
+      "text": "Thank you for explaining that. Could you share one or two examples so I can understand when it happens? I do not want teammates to feel shut out, even when I am trying to move work forward.",
+      "next": "care_outcome"
+    },
+    "employee_defend": {
+      "speaker": "Sarah",
+      "mood": "frustrated",
+      "tone": "tense",
+      "text": "I am direct because the team needs to move quickly. If people have ideas, they should just speak up. I do not think I am stopping anyone from contributing.",
+      "next": "defend_outcome"
+    },
+    "employee_withdraw": {
+      "speaker": "Sarah",
+      "tone": "tense",
+      "text": "Okay. I hear you.",
+      "next": "withdraw_outcome"
+    },
+    "care_outcome": {
+      "speaker": "Outcome",
+      "tone": "success",
+      "text": "Your response keeps the conversation open. You clarify the feedback, acknowledge the impact, and invite a practical next step.",
+      "effect": "success",
+      "next": "mentor"
+    },
+    "defend_outcome": {
+      "speaker": "Outcome",
+      "tone": "tense",
+      "text": "The conversation becomes defensive. Your manager now has to spend more time reducing tension before you can work on the feedback itself.",
+      "effect": "fail",
+      "next": "mentor"
+    },
+    "withdraw_outcome": {
+      "speaker": "Outcome",
+      "tone": "tense",
+      "text": "The conversation stays polite, but very little learning happens. Silence can make it hard for your manager to understand what support you need.",
+      "effect": "fail",
+      "next": "mentor"
+    },
+    "mentor": {
+      "speaker": "HR Mentor",
+      "tone": "mentor",
+      "text": "Receiving feedback well does not mean agreeing with every point immediately. A strong response creates room to clarify the message, listen actively, respond respectfully, and engage on support or next steps. Your full CARE evaluation will appear after the scenario finishes.",
+      "next": "revisit"
+    },
+    "revisit": {
+      "speaker": "Manager",
+      "tone": "mentor",
+      "text": "For the next team planning meeting, I would like you to try pausing before decisions and inviting two other perspectives before closing the discussion. What would you commit to?",
+      "choices": [
+        {
+          "id": "employee-final-commit",
+          "text": "Commit to one action and ask for support",
+          "next": "final_commit",
+          "effect": "success",
+          "score": {
+            "C": 1,
+            "A": 1,
+            "R": 2,
+            "E": 2
+          }
+        },
+        {
+          "id": "employee-final-vague",
+          "text": "Agree, but keep the next step vague",
+          "next": "final_vague",
+          "effect": "fail",
+          "score": {
+            "C": 0,
+            "A": 1,
+            "R": 1,
+            "E": 1
+          }
+        },
+        {
+          "id": "employee-final-reject",
+          "text": "Reject the action as unnecessary",
+          "next": "final_reject",
+          "effect": "fail",
+          "score": {
+            "C": 0,
+            "A": 0,
+            "R": 0,
+            "E": 0
+          }
+        }
+      ]
+    },
+    "final_commit": {
+      "speaker": "Sarah",
+      "mood": "happy",
+      "tone": "success",
+      "text": "I can do that. In the next planning meeting, I will pause before we decide and invite at least two people to share alternate ideas. It would help if you could observe once and let me know whether it changes the discussion.",
+      "next": "end"
+    },
+    "final_vague": {
+      "speaker": "Sarah",
+      "tone": "tense",
+      "text": "Sure, I will try to be more mindful in the next meeting.",
+      "next": "end"
+    },
+    "final_reject": {
+      "speaker": "Sarah",
+      "mood": "frustrated",
+      "tone": "tense",
+      "text": "I do not think that is needed. The team already knows they can speak up if they want to.",
+      "next": "end"
+    },
+    "end": {
+      "speaker": "HR Mentor",
+      "tone": "success",
+      "text": "You have completed the CARE practice route. Review your evaluation, reflect on what you learned, and note what support would help you act on the feedback.",
+      "ending": true
+    }
+  },
+  "estimatedDuration": "10-15 minutes",
+  "difficulty": "Foundational",
+  "description": "Practise a workplace feedback conversation with Sarah Tan using a role-based communication framework."
+}

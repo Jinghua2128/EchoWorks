@@ -1,12 +1,12 @@
 {
-  "name": "feedback-playbook",
-  "version": "1.0.0",
-  "private": true,
-  "description": "A GitHub Pages-ready feedback training app for Singapore Red Cross managers.",
-  "scripts": {
-    "check": "node --check assets/js/app.js && node --check assets/js/novel.js"
-  },
-  "dependencies": {
-    "firebase": "^12.15.0"
-  }
+    "name":  "feedback-playbook",
+    "version":  "1.0.0",
+    "private":  true,
+    "description":  "Singapore Red Cross workplace communication learning platform",
+    "scripts":  {
+                    "check":  "node --check assets/js/app.js \u0026\u0026 node --check assets/js/firebase-client.js \u0026\u0026 node --check assets/js/novel.js \u0026\u0026 node --check assets/js/admin.js"
+                },
+    "dependencies":  {
+                         "firebase":  "^12.15.0"
+                     }
 }

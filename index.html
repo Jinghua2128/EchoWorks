@@ -1,23 +1,36 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta
     name="description"
-    content="Feedback Playbook is a Singapore Red Cross training app for managers practicing clear, constructive feedback conversations."
+    content="Feedback Playbook is a Singapore Red Cross workplace learning platform for practising feedback conversations with CARE and REAL frameworks."
   />
   <meta name="theme-color" content="#d71920" />
   <meta property="og:title" content="Feedback Playbook" />
   <meta
     property="og:description"
-    content="Practice recognition, evaluation, and feedback conversations through bite-sized learning units and a visual scenario."
+    content="Complete short interactive workplace scenarios and reflect on CARE and REAL communication habits."
   />
   <meta property="og:type" content="website" />
   <title>Feedback Playbook | Singapore Red Cross</title>
   <link rel="preconnect" href="https://www.gstatic.com" />
-  <link rel="stylesheet" href="assets/css/app.css?v=20260701" />
-  <script type="module" src="assets/js/app.js?v=20260701-progress-v8"></script>
+  <link rel="stylesheet" href="assets/css/app.css?v=20260706-learning" />
+  <script type="module" src="assets/js/app.js?v=20260706-learning"></script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Course",
+      "name": "Feedback Playbook",
+      "description": "Interactive workplace communication learning scenarios using CARE and REAL frameworks.",
+      "provider": {
+        "@type": "Organization",
+        "name": "Singapore Red Cross"
+      },
+      "timeRequired": "PT15M"
+    }
+  </script>
 </head>
 
 <body>
@@ -58,7 +71,7 @@
           <span class="icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M4 8h3l1.4-2h7.2L17 8h3v11H4V8Zm8 8.2A3.2 3.2 0 1 0 12 9.8a3.2 3.2 0 0 0 0 6.4Z" /></svg>
           </span>
-          AR Scanner
+          Reference
         </button>
         <button class="nav-button" type="button" data-route="settings">
           <span class="icon" aria-hidden="true">
@@ -155,14 +168,14 @@
       <section class="page app-view" id="home" aria-labelledby="homeTitle">
         <header class="page-header">
           <div>
-            <p class="section-label">Manager training</p>
+            <p class="section-label">Workplace learning</p>
             <h1 id="homeTitle">Feedback Playbook</h1>
             <p class="lead">
-              Build confidence with recognition, evaluation, and clear feedback habits through short practice loops.
+              A 10-15 minute interactive learning experience for practising respectful feedback conversations using the CARE and REAL frameworks.
             </p>
           </div>
           <a class="button primary fit" href="test3.html">
-            Continue scenario
+            Continue learning
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
           </a>
         </header>
@@ -180,6 +193,11 @@
               <span id="progressBar"></span>
             </div>
             <p id="progressText" class="muted">0 of 4 units completed</p>
+            <div class="learner-stats" aria-label="Learning summary">
+              <span><strong id="completedScenarios">0</strong>Completed scenarios</span>
+              <span><strong id="remainingScenarios">1</strong>Remaining</span>
+              <span><strong id="latestScoreSummary">-</strong>Latest score</span>
+            </div>
           </section>
 
           <section class="panel next-panel" aria-labelledby="nextTitle">
@@ -190,20 +208,28 @@
               </div>
               <span class="status-dot" aria-hidden="true"></span>
             </div>
-            <p>
-              Use the visual novel to test how balanced recognition and evaluation changes the outcome of a feedback conversation.
-            </p>
+            <div class="scenario-card compact">
+              <div>
+                <strong>Giving Constructive Feedback</strong>
+                <span>Practise a workplace conversation with Sarah Tan from either the manager or employee role.</span>
+              </div>
+              <dl class="scenario-meta">
+                <div><dt>Duration</dt><dd>10-15 min</dd></div>
+                <div><dt>Status</dt><dd id="scenarioStatus">Not started</dd></div>
+                <div><dt>Latest score</dt><dd id="latestScenarioScore">-</dd></div>
+              </dl>
+            </div>
             <div class="split-actions">
-              <a class="button secondary fit" href="test3.html">Open Visual Novel</a>
-              <button class="button subtle fit" type="button" data-route="survey">Take survey</button>
+              <a class="button secondary fit" href="test3.html">Start interactive scenario</a>
+              <button class="button subtle fit" type="button" data-route="survey">Take confidence check</button>
             </div>
           </section>
 
           <section class="panel units-panel" aria-labelledby="unitsTitle">
             <div class="panel-heading">
               <div>
-                <p class="section-label">Learning units</p>
-                <h2 id="unitsTitle">Choose a module</h2>
+                <p class="section-label">Confidence checks</p>
+                <h2 id="unitsTitle">Choose a reflection topic</h2>
               </div>
             </div>
             <div class="unit-list" id="unitList"></div>
@@ -222,8 +248,8 @@
                   <svg viewBox="0 0 24 24"><path d="M4 8h3l1.4-2h7.2L17 8h3v11H4V8Zm8 8.2A3.2 3.2 0 1 0 12 9.8a3.2 3.2 0 0 0 0 6.4Z" /></svg>
                 </span>
                 <span>
-                  <strong>AR Scanner</strong>
-                  <small>Open a camera preview for reference cards.</small>
+                  <strong>Reference scanner</strong>
+                  <small>Open a camera preview for printed training cards.</small>
                 </span>
               </button>
               <button class="tool-card" type="button" data-route="settings">
@@ -272,8 +298,8 @@
           </button>
           <div>
             <p class="section-label">Quick reference</p>
-            <h1 id="arTitle">AR Scanner</h1>
-            <p class="lead">Open a camera preview to scan a reference card during a training session.</p>
+            <h1 id="arTitle">Reference scanner</h1>
+            <p class="lead">Open a camera preview when a facilitator asks you to scan a printed training card.</p>
           </div>
         </header>
 
@@ -330,6 +356,16 @@
             <button class="button secondary fit" type="button" data-action="logout">Log out</button>
           </section>
 
+          <section class="panel" aria-labelledby="adminTitle">
+            <div class="panel-heading">
+              <div>
+                <p class="section-label">Manager tools</p>
+                <h2 id="adminTitle">Admin dashboard</h2>
+              </div>
+            </div>
+            <p class="muted">Authorised dashboard viewers can review completion, CARE / REAL evaluation details, reflections, and follow-up support signals.</p>
+            <a class="button secondary fit" href="admin.html">Open dashboard</a>
+          </section>
           <section class="panel danger-panel" aria-labelledby="dangerTitle">
             <div class="panel-heading">
               <div>
@@ -347,5 +383,8 @@
   </div>
 </body>
 </html>
+
+
+
 
 

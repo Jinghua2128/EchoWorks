@@ -1,0 +1,327 @@
+{
+  "id": "sarah-feedback-manager",
+  "title": "Giving Constructive Feedback",
+  "role": "manager",
+  "roleLabel": "Manager",
+  "framework": {
+    "id": "REAL",
+    "name": "REAL workplace feedback framework",
+    "maxScore": 12,
+    "dimensions": [
+      {
+        "id": "R",
+        "label": "Respect"
+      },
+      {
+        "id": "E",
+        "label": "Engagement"
+      },
+      {
+        "id": "A",
+        "label": "Appropriate Action"
+      },
+      {
+        "id": "L",
+        "label": "Leadership"
+      }
+    ],
+    "competencies": [
+      "Respect",
+      "Engagement",
+      "Appropriate Action",
+      "Leadership"
+    ],
+    "feedback": {
+      "R": {
+        "strong": "You kept the conversation respectful by recognising Sarah as a capable employee while raising the concern clearly.",
+        "developing": "You showed some respect for Sarah, but the response could make her feel more recognised before discussing the concern.",
+        "follow_up": "Respect needs more attention. Avoid labels or dismissive wording so the employee can stay open to the message."
+      },
+      "E": {
+        "strong": "You invited engagement by creating room for Sarah to respond and understand the feedback.",
+        "developing": "You showed some engagement, but the conversation could include more curiosity and two-way discussion.",
+        "follow_up": "Engagement needs more attention. Ask follow-up questions and avoid closing the conversation too quickly."
+      },
+      "A": {
+        "strong": "You moved toward an appropriate action that connects behaviour, team impact, and next steps.",
+        "developing": "Your response included some action, but the next step could be more specific and practical.",
+        "follow_up": "Appropriate action needs more attention. The employee needs a clear behaviour to practise after the conversation."
+      },
+      "L": {
+        "strong": "You modelled leadership by balancing performance, collaboration, and support.",
+        "developing": "You showed leadership intent, but the response could better guide the employee toward growth.",
+        "follow_up": "Leadership needs more attention. Use the conversation to coach, not only to praise or criticise."
+      }
+    }
+  },
+  "decisionCount": 2,
+  "followUpThreshold": 65,
+  "startScene": "profile",
+  "assets": {
+    "backgrounds": {
+      "neutral": "assets/office-vn.webp",
+      "success": "assets/office-success.webp",
+      "tense": "assets/office-tense.webp",
+      "mentor": "assets/office-mentor.webp"
+    }
+  },
+  "reflectionPrompts": [
+    {
+      "id": "effective",
+      "label": "What did your response do well?"
+    },
+    {
+      "id": "support",
+      "label": "What follow-up support would help this employee?"
+    }
+  ],
+  "sceneOrder": [
+    "profile",
+    "intro",
+    "A",
+    "B",
+    "C",
+    "B_response",
+    "B_outcome",
+    "B_learn",
+    "C_response",
+    "C_outcome",
+    "C_learn",
+    "A_response",
+    "A_outcome",
+    "hr_fail",
+    "hr_pass",
+    "teach_R",
+    "teach_E",
+    "revisit",
+    "revisit1",
+    "final_A",
+    "final_B",
+    "final_C",
+    "end"
+  ],
+  "scenes": {
+    "profile": {
+      "speaker": "Profile",
+      "focus": "sarah",
+      "tone": "neutral",
+      "text": "Name: Sarah Tan\nPosition: Marketing Executive\nAge: 32\n\nPerformance:\n128% KPI achieved\nHigh-quality work\n\nStrengths:\nProactive, dependable\nHandles pressure well\nSupports juniors\n\nDevelopment:\nDominates discussions\nDismisses ideas quickly\nPeers hesitant to challenge",
+      "next": "intro"
+    },
+    "intro": {
+      "speaker": "Scene",
+      "tone": "neutral",
+      "text": "Sarah continues to exceed expectations in performance, but recent peer feedback suggests that her communication style may be affecting team collaboration. As her manager, you want Sarah to feel recognised while also understanding the impact of her behaviour on the team. How would you begin the conversation?",
+      "choices": [
+        {
+          "id": "manager-balanced-open",
+          "text": "Balanced recognition and feedback",
+          "next": "A",
+          "effect": "success",
+          "score": {
+            "R": 2,
+            "E": 2,
+            "A": 1,
+            "L": 1
+          }
+        },
+        {
+          "id": "manager-praise-only",
+          "text": "Praise, ignore issue",
+          "next": "B",
+          "effect": "fail",
+          "score": {
+            "R": 2,
+            "E": 0,
+            "A": 1,
+            "L": 0
+          }
+        },
+        {
+          "id": "manager-direct-label",
+          "text": "Direct criticism",
+          "next": "C",
+          "effect": "fail",
+          "score": {
+            "R": 0,
+            "E": 1,
+            "A": 0,
+            "L": 0
+          }
+        }
+      ]
+    },
+    "A": {
+      "speaker": "Manager",
+      "tone": "success",
+      "text": "Sarah, first of all, I want to acknowledge the great work you have done this quarter. Your results have been really strong, and the ownership you have shown across projects has made a big impact on the team. I also wanted to touch on some peer feedback that came up around team discussions. A few teammates shared that they sometimes find it difficult to contribute ideas in fast-paced conversations. I thought it would be useful for us to discuss this together because your impact on the team is really significant.",
+      "next": "A_response"
+    },
+    "B": {
+      "speaker": "Manager",
+      "tone": "tense",
+      "text": "Hi Sarah, your performance this quarter has honestly been outstanding, and the results speak for themselves. I know there was some feedback around communication during discussions, but I do not think it takes away from the great work you have been doing.",
+      "next": "B_response"
+    },
+    "C": {
+      "speaker": "Manager",
+      "tone": "tense",
+      "text": "Hi Sarah, your performance has been great overall, but I have received feedback that you can come across as intimidating in team discussions and that people sometimes feel uncomfortable sharing ideas around you.",
+      "next": "C_response"
+    },
+    "B_response": {
+      "speaker": "Sarah",
+      "mood": "happy",
+      "tone": "tense",
+      "text": "Thanks, I appreciate that. I know I can be direct sometimes, but at the end of the day we have still been delivering strong results.",
+      "next": "B_outcome"
+    },
+    "B_outcome": {
+      "speaker": "Outcome",
+      "tone": "tense",
+      "text": "The conversation ends positively, but the behavioral concern is never properly addressed. Sarah leaves believing the issue is minor because her performance outweighs the impact on the team.",
+      "effect": "fail",
+      "next": "B_learn"
+    },
+    "B_learn": {
+      "speaker": "Lesson",
+      "tone": "tense",
+      "text": "You acknowledged Sarah's achievements but minimised the developmental feedback. Strong performance should not prevent you from objectively evaluating behaviors that affect team collaboration.",
+      "next": "hr_fail"
+    },
+    "C_response": {
+      "speaker": "Sarah",
+      "mood": "frustrated",
+      "tone": "tense",
+      "text": "Intimidating? I am not trying to make anyone uncomfortable. I just expect people to speak up if they have something to say.",
+      "next": "C_outcome"
+    },
+    "C_outcome": {
+      "speaker": "Outcome",
+      "tone": "tense",
+      "text": "Sarah becomes defensive and focuses on defending her intentions rather than reflecting on the feedback itself. This makes the conversation emotionally tense and less productive.",
+      "effect": "fail",
+      "next": "C_learn"
+    },
+    "C_learn": {
+      "speaker": "Lesson",
+      "tone": "tense",
+      "text": "The feedback you chose relied on labels and interpretations instead of observable behaviors. Words like intimidating can feel personal and make employees defensive.",
+      "next": "hr_fail"
+    },
+    "A_response": {
+      "speaker": "Sarah",
+      "mood": "happy",
+      "tone": "success",
+      "text": "Thanks for bringing this up in that way. I was not fully aware the discussions were coming across like that, but I can see how it might affect the team. I would be open to working on it.",
+      "next": "A_outcome"
+    },
+    "A_outcome": {
+      "speaker": "Outcome",
+      "tone": "success",
+      "text": "Sarah feels recognised for her contributions while remaining open to constructive feedback about team collaboration.",
+      "effect": "success",
+      "next": "hr_pass"
+    },
+    "hr_fail": {
+      "speaker": "HR Mentor",
+      "tone": "mentor",
+      "text": "Giving feedback to high performers can be challenging. Managers often need to balance respect for strong results with clear engagement on behaviours that affect the team. The REAL framework helps you keep feedback respectful, two-way, action-focused, and grounded in leadership.",
+      "next": "teach_R"
+    },
+    "hr_pass": {
+      "speaker": "HR Mentor",
+      "tone": "mentor",
+      "text": "Well done. Your response balanced respect with clear feedback, allowing the conversation to remain constructive and productive. Let us look at how the REAL framework supports this approach.",
+      "next": "teach_R"
+    },
+    "teach_R": {
+      "speaker": "HR Mentor",
+      "tone": "mentor",
+      "text": "Respect means addressing the person professionally while still naming the issue. Strong feedback avoids personal labels and uses observable workplace examples so the employee can understand the concern without feeling attacked.",
+      "next": "teach_E"
+    },
+    "teach_E": {
+      "speaker": "HR Mentor",
+      "tone": "mentor",
+      "text": "Engagement means making the conversation two-way. Ask for the employee perspective, listen for intent and impact, and guide the discussion toward a practical next step that supports the team.",
+      "next": "revisit"
+    },
+    "revisit": {
+      "speaker": "HR Mentor",
+      "tone": "mentor",
+      "text": "Now that you have learned how to apply Recognise and Evaluate, let us revisit the conversation with Sarah.",
+      "next": "revisit1"
+    },
+    "revisit1": {
+      "speaker": "Sarah",
+      "tone": "mentor",
+      "text": "I understand the feedback, but I also feel like being direct is part of why I am able to get strong results.",
+      "choices": [
+        {
+          "id": "manager-final-balanced",
+          "text": "Balanced feedback",
+          "next": "final_A",
+          "effect": "success",
+          "score": {
+            "R": 2,
+            "E": 2,
+            "A": 1,
+            "L": 1
+          }
+        },
+        {
+          "id": "manager-final-press",
+          "text": "Press the issue",
+          "next": "final_B",
+          "effect": "fail",
+          "score": {
+            "R": 1,
+            "E": 1,
+            "A": 0,
+            "L": 0
+          }
+        },
+        {
+          "id": "manager-final-ignore",
+          "text": "Ignore the issue",
+          "next": "final_C",
+          "effect": "fail",
+          "score": {
+            "R": 1,
+            "E": 0,
+            "A": 0,
+            "L": 0
+          }
+        }
+      ]
+    },
+    "final_A": {
+      "speaker": "Manager",
+      "tone": "success",
+      "text": "I appreciate you sharing that perspective, and your strong results are definitely recognised. At the same time, part of leadership and collaboration is ensuring others also feel comfortable contributing ideas during discussions.",
+      "next": "end"
+    },
+    "final_B": {
+      "speaker": "Manager",
+      "tone": "tense",
+      "text": "I understand, but the feedback has come from multiple team members, so this is something you will need to work on.",
+      "next": "end"
+    },
+    "final_C": {
+      "speaker": "Manager",
+      "tone": "tense",
+      "text": "I see your point. Maybe the team just needs to adapt to different communication styles.",
+      "next": "end"
+    },
+    "end": {
+      "speaker": "HR Mentor",
+      "tone": "success",
+      "text": "You have completed the REAL practice route. Review your evaluation, reflect on the conversation, and note whether Sarah may need follow-up support.",
+      "ending": true
+    }
+  },
+  "estimatedDuration": "10-15 minutes",
+  "difficulty": "Foundational",
+  "description": "Practise a workplace feedback conversation with Sarah Tan using a role-based communication framework."
+}

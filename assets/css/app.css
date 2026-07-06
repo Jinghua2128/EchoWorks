@@ -967,3 +967,103 @@ legend {
 
 
 
+
+/* Corporate learning refinements */
+.learner-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.learner-stats span {
+  display: grid;
+  gap: 4px;
+  min-height: 74px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-tint);
+  color: var(--muted);
+  font-size: .84rem;
+  line-height: 1.35;
+}
+
+.learner-stats strong {
+  color: var(--charcoal);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.scenario-card.compact {
+  display: grid;
+  gap: 14px;
+  margin: 2px 0 18px;
+}
+
+.scenario-card.compact strong,
+.scenario-card.compact span {
+  display: block;
+}
+
+.scenario-card.compact strong {
+  color: var(--charcoal);
+  font-size: 1.1rem;
+  line-height: 1.25;
+}
+
+.scenario-card.compact span {
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.scenario-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.scenario-meta div {
+  min-height: 66px;
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--surface-muted);
+}
+
+.scenario-meta dt,
+.scenario-meta dd {
+  margin: 0;
+}
+
+.scenario-meta dt {
+  color: var(--muted);
+  font-size: .74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.scenario-meta dd {
+  color: var(--charcoal);
+  font-weight: 850;
+}
+
+@media (max-width: 720px) {
+  body {
+    font-size: 17px;
+  }
+
+  .learner-stats,
+  .scenario-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .learner-stats span,
+  .scenario-meta div {
+    min-height: 58px;
+  }
+}

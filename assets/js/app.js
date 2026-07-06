@@ -1,4 +1,4 @@
-const firebaseVersion = "12.15.0";
+﻿const firebaseVersion = "12.15.0";
 const firebaseBaseUrl = `https://www.gstatic.com/firebasejs/${firebaseVersion}`;
 
 const storageKeys = {
@@ -7,7 +7,8 @@ const storageKeys = {
   legacyAnswers: "answers",
   email: "feedbackPlaybook.userEmail",
   legacyEmail: "userEmail",
-  mode: "feedbackPlaybook.mode"
+  mode: "feedbackPlaybook.mode",
+  scenarioResults: "feedbackPlaybook.scenarioResults"
 };
 
 const protectedRoutes = new Set(["home", "survey", "ar", "settings"]);
@@ -32,9 +33,9 @@ const units = [
     question: "How comfortable are you receiving feedback?"
   },
   {
-    title: "Practice",
-    description: "Apply the REAL framework in a workplace scenario.",
-    question: "How comfortable are you applying the skill in practice?"
+    title: "Interactive Scenario",
+    description: "Apply CARE or REAL in a workplace learning scenario.",
+    question: "How comfortable are you applying the framework in practice?"
   }
 ];
 
@@ -70,6 +71,11 @@ const sidebarProgressBar = document.getElementById("sidebarProgressBar");
 const sidebarProgressText = document.getElementById("sidebarProgressText");
 const cameraPreview = document.getElementById("cameraPreview");
 const cameraEmpty = document.getElementById("cameraEmpty");
+const completedScenariosEl = document.getElementById("completedScenarios");
+const remainingScenariosEl = document.getElementById("remainingScenarios");
+const latestScoreSummaryEl = document.getElementById("latestScoreSummary");
+const scenarioStatusEl = document.getElementById("scenarioStatus");
+const latestScenarioScoreEl = document.getElementById("latestScenarioScore");
 
 function isSignedIn() {
   return Boolean(currentUser || isGuest);
@@ -117,6 +123,17 @@ function saveLocalAnswers() {
   localStorage.removeItem(storageKeys.legacyAnswers);
 }
 
+function readScenarioResults() {
+  return safeJsonParse(localStorage.getItem(storageKeys.scenarioResults), {});
+}
+
+function latestScenarioResult() {
+  const results = Object.values(readScenarioResults());
+  if (!results.length) return null;
+
+  return results.sort((a, b) => String(b.updatedAtIso || b.completedAtIso || "").localeCompare(String(a.updatedAtIso || a.completedAtIso || "")))[0];
+}
+
 function wantsGuestMode() {
   return isGuest || localStorage.getItem(storageKeys.mode) === "guest";
 }
@@ -158,16 +175,17 @@ async function loadFirebaseConfig() {
     // Firebase Hosting provides this file after deployment.
   }
 
-  throw new Error("Firebase config is unavailable. Guest mode will save progress on this device only.");
+  throw new Error("Cloud sync is unavailable. You can continue locally and save progress on this device.");
 }
 
 async function loadFirebase() {
   try {
     const firebaseConfig = await loadFirebaseConfig();
-    const [appModule, authModule, databaseModule] = await Promise.all([
+    const [appModule, authModule, databaseModule, firestoreModule] = await Promise.all([
       import(`${firebaseBaseUrl}/firebase-app.js`),
       import(`${firebaseBaseUrl}/firebase-auth.js`),
-      import(`${firebaseBaseUrl}/firebase-database.js`)
+      import(`${firebaseBaseUrl}/firebase-database.js`),
+      import(`${firebaseBaseUrl}/firebase-firestore.js`)
     ]);
 
     const app = appModule.initializeApp(firebaseConfig);
@@ -175,7 +193,10 @@ async function loadFirebase() {
       app,
       auth: authModule.getAuth(app),
       db: databaseModule.getDatabase(app),
+      firestoreDb: firestoreModule.getFirestore(app),
       createUserWithEmailAndPassword: authModule.createUserWithEmailAndPassword,
+      deleteDoc: firestoreModule.deleteDoc,
+      doc: firestoreModule.doc,
       get: databaseModule.get,
       onAuthStateChanged: authModule.onAuthStateChanged,
       ref: databaseModule.ref,
@@ -441,17 +462,31 @@ async function logout() {
   goTo("login");
 }
 
+async function clearCloudScenarioProgress(user = currentUser) {
+  if (!firebaseSdk?.firestoreDb || !user) return;
+
+  const scenarioIds = ["sarah-feedback-manager", "sarah-feedback-employee"];
+  const deletes = scenarioIds.flatMap(scenarioId => [
+    firebaseSdk.deleteDoc(firebaseSdk.doc(firebaseSdk.firestoreDb, "users", user.uid, "scenarioProgress", scenarioId)),
+    firebaseSdk.deleteDoc(firebaseSdk.doc(firebaseSdk.firestoreDb, "scenarioResults", `${user.uid}_${scenarioId}`))
+  ]);
+
+  await Promise.all(deletes.map(task => task.catch(() => {})));
+}
+
 async function resetProgress() {
-  const confirmed = window.confirm("Delete your saved progress for all four units?");
+  const confirmed = window.confirm("Delete your saved learning progress?");
   if (!confirmed) return;
 
   answers = blankAnswers();
+  localStorage.removeItem(storageKeys.scenarioResults);
   saveLocalAnswers();
   updateUI();
 
   if (currentUser && firebaseSdk) {
     try {
       await firebaseSdk.set(userProgressRef(currentUser), progressData());
+      await clearCloudScenarioProgress(currentUser);
     } catch {
       setMessage("settingsMessage", "Local progress was deleted. Cloud progress could not be reached.");
       return;
@@ -543,13 +578,23 @@ async function submitSurvey(event) {
 
 function updateUI() {
   const completed = answers.filter(answer => answer !== null).length;
-  const progress = completed * 25;
+  const latestScenario = latestScenarioResult();
+  const scenarioCompleted = Boolean(latestScenario?.completed);
+  const totalTasks = units.length + 1;
+  const completedTasks = completed + (scenarioCompleted ? 1 : 0);
+  const progress = Math.round((completedTasks / totalTasks) * 100);
   const email = currentUser?.email || localStorage.getItem(storageKeys.email) || localStorage.getItem(storageKeys.legacyEmail) || "Guest learner";
 
   progressBar.style.width = `${progress}%`;
   sidebarProgressBar.style.width = `${progress}%`;
   progressPercent.textContent = `${progress}%`;
-  progressText.textContent = `${completed} of ${units.length} units completed`;
+  progressText.textContent = `${completed} of ${units.length} confidence checks completed; ${scenarioCompleted ? "scenario completed" : "scenario remaining"}`;
+
+  if (completedScenariosEl) completedScenariosEl.textContent = scenarioCompleted ? "1" : "0";
+  if (remainingScenariosEl) remainingScenariosEl.textContent = scenarioCompleted ? "0" : "1";
+  if (latestScoreSummaryEl) latestScoreSummaryEl.textContent = latestScenario?.scorePercent == null ? "-" : `${latestScenario.scorePercent}%`;
+  if (scenarioStatusEl) scenarioStatusEl.textContent = scenarioCompleted ? "Complete" : latestScenario ? "In progress" : "Not started";
+  if (latestScenarioScoreEl) latestScenarioScoreEl.textContent = latestScenario?.scorePercent == null ? "-" : `${latestScenario.scorePercent}%`;
   sidebarProgressText.textContent = `${progress}% complete`;
 
   document.getElementById("userEmail").textContent = email;
@@ -708,3 +753,7 @@ function init() {
 }
 
 init();
+
+
+
+

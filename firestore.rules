@@ -1,0 +1,47 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isRootAdmin() {
+      return signedIn() && request.auth.token.email == "liuguangxuan1230@gmail.com";
+    }
+
+    function isDashboardAdmin() {
+      return isRootAdmin()
+        || (signedIn() && exists(/databases/$(database)/documents/dashboardAdminEmails/$(request.auth.token.email)));
+    }
+
+    function ownsUser(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    match /users/{uid} {
+      allow create, read, update: if ownsUser(uid) || isDashboardAdmin();
+      allow delete: if isDashboardAdmin();
+
+      match /scenarioProgress/{scenarioId} {
+        allow read, write: if ownsUser(uid) || isDashboardAdmin();
+      }
+    }
+
+    match /scenarioResults/{resultId} {
+      allow create: if (signedIn() && request.resource.data.uid == request.auth.uid) || isDashboardAdmin();
+      allow read, list: if (signedIn() && resource.data.uid == request.auth.uid) || isDashboardAdmin();
+      allow update: if (signedIn() && resource.data.uid == request.auth.uid && request.resource.data.uid == request.auth.uid) || isDashboardAdmin();
+      allow delete: if (signedIn() && resource.data.uid == request.auth.uid) || isDashboardAdmin();
+    }
+
+    match /dashboardAdminEmails/{email} {
+      allow get: if isDashboardAdmin() || (signedIn() && request.auth.token.email == email);
+      allow list, create, update, delete: if isDashboardAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
