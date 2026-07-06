@@ -181,10 +181,9 @@ async function loadFirebaseConfig() {
 async function loadFirebase() {
   try {
     const firebaseConfig = await loadFirebaseConfig();
-    const [appModule, authModule, databaseModule, firestoreModule] = await Promise.all([
+    const [appModule, authModule, firestoreModule] = await Promise.all([
       import(`${firebaseBaseUrl}/firebase-app.js`),
       import(`${firebaseBaseUrl}/firebase-auth.js`),
-      import(`${firebaseBaseUrl}/firebase-database.js`),
       import(`${firebaseBaseUrl}/firebase-firestore.js`)
     ]);
 
@@ -192,16 +191,14 @@ async function loadFirebase() {
     firebaseSdk = {
       app,
       auth: authModule.getAuth(app),
-      db: databaseModule.getDatabase(app),
-      firestoreDb: firestoreModule.getFirestore(app),
+      db: firestoreModule.getFirestore(app),
       createUserWithEmailAndPassword: authModule.createUserWithEmailAndPassword,
       deleteDoc: firestoreModule.deleteDoc,
       doc: firestoreModule.doc,
-      get: databaseModule.get,
+      getDoc: firestoreModule.getDoc,
       onAuthStateChanged: authModule.onAuthStateChanged,
-      ref: databaseModule.ref,
-      remove: databaseModule.remove,
-      set: databaseModule.set,
+      serverTimestamp: firestoreModule.serverTimestamp,
+      setDoc: firestoreModule.setDoc,
       signInWithEmailAndPassword: authModule.signInWithEmailAndPassword,
       signOut: authModule.signOut
     };
@@ -253,12 +250,8 @@ async function loadFirebase() {
   }
 }
 
-function userProgressRef(user = currentUser) {
-  return firebaseSdk.ref(firebaseSdk.db, `users/${user.uid}/progress`);
-}
-
-function userProfileRef(user = currentUser) {
-  return firebaseSdk.ref(firebaseSdk.db, `users/${user.uid}/profile`);
+function userDocRef(user = currentUser) {
+  return firebaseSdk.doc(firebaseSdk.db, "users", user.uid);
 }
 
 async function getFirebase(messageId) {
@@ -329,21 +322,23 @@ function validateCredentials(form, messageId) {
 
 async function saveUserProfile(user) {
   if (!firebaseSdk) return;
-  await firebaseSdk.set(userProfileRef(user), {
-    email: user.email,
-    updatedAt: Date.now()
-  });
+  await firebaseSdk.setDoc(userDocRef(user), {
+    email: user.email || "",
+    updatedAt: firebaseSdk.serverTimestamp()
+  }, { merge: true });
 }
 
 async function loadUserProgress(user) {
   if (!firebaseSdk || wantsGuestMode()) return;
 
   try {
-    const snapshot = await firebaseSdk.get(userProgressRef(user));
+    const snapshot = await firebaseSdk.getDoc(userDocRef(user));
     if (wantsGuestMode()) return;
 
-    if (snapshot.exists()) {
-      answers = decodedCloudAnswers(snapshot.val().answers);
+    const data = snapshot.exists() ? snapshot.data() : null;
+    const cloudProgress = data?.learningProgress;
+    if (Array.isArray(cloudProgress?.answers)) {
+      answers = decodedCloudAnswers(cloudProgress.answers);
     } else {
       answers = loadLocalAnswers();
       await saveProgress(user);
@@ -365,7 +360,11 @@ async function saveProgress(user = currentUser) {
   if (wantsGuestMode() || !user || !firebaseSdk) return;
 
   try {
-    await firebaseSdk.set(userProgressRef(user), progressData());
+    await firebaseSdk.setDoc(userDocRef(user), {
+      email: user.email || "",
+      learningProgress: progressData(),
+      updatedAt: firebaseSdk.serverTimestamp()
+    }, { merge: true });
   } catch {
     setMessage("settingsMessage", "Progress is saved locally. Cloud sync will retry next time.");
   }
@@ -463,12 +462,12 @@ async function logout() {
 }
 
 async function clearCloudScenarioProgress(user = currentUser) {
-  if (!firebaseSdk?.firestoreDb || !user) return;
+  if (!firebaseSdk?.db || !user) return;
 
   const scenarioIds = ["sarah-feedback-manager", "sarah-feedback-employee"];
   const deletes = scenarioIds.flatMap(scenarioId => [
-    firebaseSdk.deleteDoc(firebaseSdk.doc(firebaseSdk.firestoreDb, "users", user.uid, "scenarioProgress", scenarioId)),
-    firebaseSdk.deleteDoc(firebaseSdk.doc(firebaseSdk.firestoreDb, "scenarioResults", `${user.uid}_${scenarioId}`))
+    firebaseSdk.deleteDoc(firebaseSdk.doc(firebaseSdk.db, "users", user.uid, "scenarioProgress", scenarioId)),
+    firebaseSdk.deleteDoc(firebaseSdk.doc(firebaseSdk.db, "scenarioResults", `${user.uid}_${scenarioId}`))
   ]);
 
   await Promise.all(deletes.map(task => task.catch(() => {})));
@@ -485,7 +484,11 @@ async function resetProgress() {
 
   if (currentUser && firebaseSdk) {
     try {
-      await firebaseSdk.set(userProgressRef(currentUser), progressData());
+      await firebaseSdk.setDoc(userDocRef(currentUser), {
+        email: currentUser.email || "",
+        learningProgress: progressData(),
+        updatedAt: firebaseSdk.serverTimestamp()
+      }, { merge: true });
       await clearCloudScenarioProgress(currentUser);
     } catch {
       setMessage("settingsMessage", "Local progress was deleted. Cloud progress could not be reached.");
@@ -753,6 +756,7 @@ function init() {
 }
 
 init();
+
 
 
 
