@@ -510,9 +510,9 @@ function renderScene(id) {
 
 function completionCopy() {
   const percent = scorePercent();
-  if (percent >= 80) return "Strong application. Your decisions showed confident use of the framework and created space for a constructive workplace conversation.";
-  if (percent >= (scenario.followUpThreshold || 65)) return "Developing application. You showed useful strengths and a few areas to practise in future feedback conversations.";
-  return "Additional support recommended. This route highlights useful practice areas that can be strengthened through coaching or review.";
+  if (percent >= 80) return "Strong application of the framework.";
+  if (percent >= (scenario.followUpThreshold || 65)) return "Good progress, with a few skills to practise.";
+  return "Follow-up support is recommended.";
 }
 
 function addListItem(list, text) {
@@ -544,18 +544,18 @@ function renderEvaluationDetails() {
     scoreDetailsEl.append(card);
 
     if (detail.percent >= 70) {
-      addListItem(strengthsListEl, `${detail.label}: ${detail.explanation}`);
+      addListItem(strengthsListEl, detail.label);
     } else {
-      addListItem(improvementListEl, `${detail.label}: ${detail.explanation}`);
+      addListItem(improvementListEl, detail.label);
     }
   });
 
   if (!strengthsListEl.children.length) {
-    addListItem(strengthsListEl, "You completed the scenario and created a record for reflection. That is a useful first step for learning.");
+    addListItem(strengthsListEl, "Scenario completed");
   }
 
   if (!improvementListEl.children.length) {
-    addListItem(improvementListEl, "Keep practising the framework in different workplace situations so the behaviour becomes consistent.");
+    addListItem(improvementListEl, "Keep practising");
   }
 }
 
@@ -589,7 +589,7 @@ function showCompletion() {
 
   reflectionTitleEl.textContent = `${scenario.framework.id} result: ${scorePercent()}%`;
   reflectionSummaryEl.textContent = completionCopy();
-  frameworkResultEl.textContent = `${totalScore} of ${scenario.framework.maxScore} points | ${progressPercent()}% complete | ${needsFollowUp() ? "Follow-up support suggested" : "No urgent follow-up signal"}`;
+  frameworkResultEl.textContent = `${totalScore}/${scenario.framework.maxScore} points | ${needsFollowUp() ? "Follow-up suggested" : "On track"}`;
   renderEvaluationDetails();
   renderReflectionFields();
   reflectionPanelEl.hidden = false;

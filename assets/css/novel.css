@@ -438,7 +438,7 @@ body[data-scene-tone="mentor"] .scene-backdrop {
 
 .character.sarah {
   left: clamp(-178px, -9vw, -42px);
-  transform: scaleX(-1) scale(.96);
+  transform: scale(.96);
 }
 
 .character.visible {
@@ -455,7 +455,7 @@ body[data-scene-tone="mentor"] .scene-backdrop {
 }
 
 .character.sarah.active {
-  transform: scaleX(-1) scale(1.03);
+  transform: scale(1.03);
 }
 
 .character.inactive {
@@ -468,7 +468,7 @@ body[data-scene-tone="mentor"] .scene-backdrop {
 }
 
 .character.sarah.inactive {
-  transform: scaleX(-1) scale(.94);
+  transform: scale(.94);
 }
 
 .character.happy {
@@ -958,3 +958,281 @@ body[data-scene-tone="mentor"] .scene-backdrop {
 }
 
 
+
+/* Premium visual novel polish */
+:root {
+  --red: #c91822;
+  --red-dark: #8f1118;
+  --ink: #151923;
+  --muted: #657083;
+  --gold: #a98145;
+  --gold-soft: #fff7e8;
+  --panel: rgba(255, 255, 255, .9);
+  --panel-strong: #ffffff;
+  --line: rgba(255, 255, 255, .42);
+  --line-dark: rgba(21, 25, 35, .14);
+  --shadow: 0 28px 70px rgba(5, 10, 18, .28);
+  --shadow-sm: 0 14px 34px rgba(5, 10, 18, .18);
+}
+
+body {
+  background: #111722;
+}
+
+.scene-backdrop {
+  background:
+    linear-gradient(180deg, rgba(7, 11, 18, .38), rgba(7, 11, 18, .08) 44%, rgba(7, 11, 18, .48)),
+    linear-gradient(90deg, rgba(17, 23, 34, .44), transparent 30%, transparent 70%, rgba(17, 23, 34, .34)),
+    var(--scene-bg) center / cover no-repeat;
+  filter: saturate(.98) brightness(.98) contrast(1.02);
+  transform: scale(1.035);
+}
+
+.scene-backdrop::after {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .08), transparent 28%),
+    linear-gradient(90deg, rgba(255, 255, 255, .16), transparent 20%, transparent 80%, rgba(255, 255, 255, .12));
+  backdrop-filter: blur(.5px);
+}
+
+.scenario-header,
+.novel-header {
+  padding-top: clamp(16px, 2.7vw, 28px);
+  text-shadow: 0 12px 28px rgba(0, 0, 0, .28);
+}
+
+.scenario-heading h1,
+.novel-header h1 {
+  font-weight: 950;
+}
+
+.icon-button {
+  border: 1px solid rgba(255, 255, 255, .42);
+  background: rgba(255, 255, 255, .88);
+  backdrop-filter: blur(14px);
+}
+
+.progress-panel,
+.role-panel,
+.reflection-panel,
+.dialogue-panel {
+  border-color: rgba(255, 255, 255, .46);
+  background: rgba(255, 255, 255, .9);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(22px) saturate(1.1);
+}
+
+.progress-panel::before,
+.role-panel::before,
+.reflection-panel::before,
+.dialogue-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, var(--red-dark), var(--gold), var(--teal));
+  opacity: .78;
+  pointer-events: none;
+}
+
+.progress-panel,
+.role-panel,
+.reflection-panel,
+.dialogue-panel,
+.choice-button,
+.role-card {
+  overflow: hidden;
+}
+
+.role-panel h2,
+.reflection-panel h2 {
+  font-weight: 950;
+}
+
+.role-card,
+.choice-button {
+  background: linear-gradient(180deg, #fff, #f8fafc);
+  border-color: rgba(21, 25, 35, .14);
+}
+
+.role-card::before,
+.choice-button::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, var(--red-dark), var(--gold));
+  opacity: 0;
+  transition: opacity .2s var(--ease);
+}
+
+.role-card:hover::before,
+.choice-button:hover::after {
+  opacity: .86;
+}
+
+.role-card:hover,
+.choice-button:hover {
+  border-color: rgba(169, 129, 69, .4);
+  box-shadow: 0 22px 44px rgba(5, 10, 18, .18);
+}
+
+.role-icon {
+  background: linear-gradient(135deg, var(--red-soft), var(--gold-soft));
+}
+
+.role-start,
+.text-button {
+  background: linear-gradient(135deg, #151923, #303846);
+  box-shadow: 0 12px 26px rgba(21, 25, 35, .16);
+}
+
+.text-button.ghost {
+  background: rgba(255, 255, 255, .82);
+}
+
+.choice-button::before {
+  background: var(--gold);
+  box-shadow: 0 0 0 4px var(--gold-soft);
+}
+
+.dialogue-panel {
+  max-width: 1180px;
+}
+
+.dialogue-text {
+  color: #202635;
+}
+
+.speaker {
+  background: linear-gradient(135deg, var(--red-dark), var(--red));
+}
+
+.character {
+  will-change: transform, opacity, filter;
+  filter: saturate(.82) brightness(.58) contrast(1.02);
+}
+
+.character.active {
+  filter: saturate(1.04) brightness(1.04) contrast(1.02);
+}
+
+.result-toast {
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 760px) {
+  .progress-panel,
+  .role-panel,
+  .choice-panel,
+  .dialogue-panel,
+  .reflection-panel {
+    width: calc(100vw - 24px);
+  }
+
+  .role-panel {
+    top: 96px;
+  }
+
+  .dialogue-panel {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+  }
+}
+
+/* Visual novel tuning after playtest */
+.character.manager {
+  right: clamp(-76px, -3vw, 24px);
+}
+
+.character.manager.active {
+  transform: scale(1.02);
+}
+
+.character.manager.inactive {
+  transform: scale(.96);
+}
+
+@media (max-width: 820px) {
+  .character.manager {
+    right: clamp(-150px, -24vw, -72px);
+  }
+}
+
+@media (max-width: 640px) {
+  .character.manager {
+    right: clamp(-142px, -30vw, -78px);
+  }
+}
+
+/* Character stage margins */
+.character.manager {
+  right: clamp(18px, 4vw, 88px);
+}
+
+.character.sarah {
+  left: clamp(18px, 4vw, 88px);
+}
+
+@media (max-width: 920px) {
+  .character.manager {
+    right: clamp(-48px, -6vw, 22px);
+  }
+
+  .character.sarah {
+    left: clamp(-48px, -6vw, 22px);
+  }
+}
+
+@media (max-width: 640px) {
+  .character.manager {
+    right: clamp(-76px, -14vw, -26px);
+  }
+
+  .character.sarah {
+    left: clamp(-76px, -14vw, -26px);
+  }
+}
+
+/* Character image-only talking and 5px stage margin */
+.character {
+  transition: opacity .28s var(--ease), filter .28s var(--ease);
+}
+
+.character.manager {
+  right: 5px;
+  transform: none;
+}
+
+.character.sarah {
+  left: 5px;
+  transform: none;
+}
+
+.character.manager.active,
+.character.sarah.active,
+.character.manager.inactive,
+.character.sarah.inactive {
+  transform: none;
+}
+
+@media (max-width: 920px) {
+  .character.manager {
+    right: 5px;
+  }
+
+  .character.sarah {
+    left: 5px;
+  }
+}
+
+@media (max-width: 640px) {
+  .character.manager {
+    right: 5px;
+  }
+
+  .character.sarah {
+    left: 5px;
+  }
+}

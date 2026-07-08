@@ -1072,3 +1072,277 @@ legend {
 #adminSettingsPanel[hidden] {
   display: none;
 }
+
+/* Premium presentation pass */
+:root {
+  --red: #c91822;
+  --red-dark: #8f1118;
+  --red-soft: #fff0f1;
+  --charcoal: #151923;
+  --ink: #2f3541;
+  --muted: #697386;
+  --line: rgba(33, 41, 54, .13);
+  --surface: #ffffff;
+  --surface-muted: #eef2f5;
+  --surface-tint: #f7f9fb;
+  --gold: #a98145;
+  --gold-soft: #fff7e8;
+  --shadow-sm: 0 10px 28px rgba(21, 25, 35, .08);
+  --shadow-md: 0 24px 60px rgba(21, 25, 35, .14);
+  --radius-lg: 8px;
+}
+
+body {
+  background:
+    linear-gradient(135deg, rgba(21, 25, 35, .055), transparent 34%),
+    linear-gradient(180deg, #f7f9fb 0%, #eef2f5 100%);
+}
+
+.app-shell:not(.auth-mode) {
+  background: linear-gradient(180deg, #f7f9fb 0%, #edf1f4 100%);
+}
+
+.sidebar {
+  background: linear-gradient(180deg, #151923 0%, #202735 100%);
+  border-right: 1px solid rgba(255, 255, 255, .08);
+  color: #fff;
+  box-shadow: 18px 0 48px rgba(21, 25, 35, .12);
+}
+
+.sidebar .brand strong,
+.sidebar .sidebar-card strong {
+  color: #fff;
+}
+
+.sidebar .brand small,
+.sidebar .sidebar-label {
+  color: rgba(255, 255, 255, .68);
+}
+
+.sidebar .brand-mark {
+  background: linear-gradient(135deg, #f8fafc, #dfe5ea);
+  color: var(--red-dark);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, .22);
+}
+
+.sidebar .nav-button {
+  color: rgba(255, 255, 255, .78);
+}
+
+.sidebar .nav-button:hover,
+.sidebar .nav-button[aria-current="page"] {
+  background: rgba(255, 255, 255, .09);
+  color: #fff;
+}
+
+.sidebar-card {
+  border-color: rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, .07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+
+.auth-view {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, #111722 0%, #1c2432 56%, #303744 100%);
+}
+
+.auth-view::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, .08), transparent 32%),
+    linear-gradient(270deg, rgba(201, 24, 34, .18), transparent 42%);
+  pointer-events: none;
+}
+
+.auth-panel {
+  position: relative;
+  z-index: 1;
+}
+
+.auth-copy h1,
+.auth-copy p {
+  color: #fff;
+}
+
+.auth-copy p {
+  color: rgba(255, 255, 255, .76);
+}
+
+.auth-copy .brand-mark.large {
+  background: #fff;
+  color: var(--red-dark);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .22);
+}
+
+.auth-copy h1,
+.page-header h1,
+.form-heading h1 {
+  font-weight: 900;
+}
+
+.page-header {
+  padding-top: 4px;
+}
+
+.section-label,
+.sidebar-label {
+  color: var(--red-dark);
+  font-weight: 900;
+}
+
+.auth-card,
+.panel {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(33, 41, 54, .12);
+  background: rgba(255, 255, 255, .92);
+  box-shadow: var(--shadow-sm);
+}
+
+.auth-card::before,
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, var(--red-dark), var(--gold), var(--teal));
+  opacity: .72;
+  pointer-events: none;
+}
+
+.auth-card {
+  backdrop-filter: blur(18px);
+}
+
+.panel-heading h2,
+.form-heading h2,
+.form-heading h1 {
+  letter-spacing: 0;
+}
+
+.field input,
+textarea {
+  border-color: rgba(33, 41, 54, .16);
+  background: rgba(255, 255, 255, .94);
+}
+
+.field input:focus,
+textarea:focus {
+  border-color: rgba(143, 17, 24, .62);
+  box-shadow: 0 0 0 4px rgba(143, 17, 24, .1);
+}
+
+.button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  letter-spacing: 0;
+}
+
+.button.primary {
+  background: linear-gradient(135deg, var(--red-dark), var(--red));
+  box-shadow: 0 16px 34px rgba(143, 17, 24, .24);
+}
+
+.button.secondary {
+  background: linear-gradient(135deg, #151923, #303846);
+  box-shadow: 0 14px 30px rgba(21, 25, 35, .16);
+}
+
+.button.subtle,
+.button.ghost {
+  border-color: rgba(33, 41, 54, .14);
+  background: rgba(255, 255, 255, .86);
+}
+
+.button.primary:hover,
+.button.secondary:hover,
+.button.danger:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.progress-track,
+.mini-progress {
+  background: #dfe6ed;
+  box-shadow: inset 0 1px 2px rgba(21, 25, 35, .08);
+}
+
+.progress-track span,
+.mini-progress span {
+  background: linear-gradient(90deg, var(--red-dark), var(--gold), var(--teal));
+}
+
+.progress-value {
+  color: var(--red-dark);
+  font-weight: 950;
+}
+
+.unit-row,
+.tool-card,
+.rating-option,
+.scenario-meta div,
+.learner-stats span {
+  border-color: rgba(33, 41, 54, .12);
+  background: linear-gradient(180deg, #fff, #f8fafc);
+}
+
+.unit-row:hover,
+.tool-card:hover,
+.rating-option:hover {
+  border-color: rgba(169, 129, 69, .38);
+  box-shadow: 0 16px 34px rgba(21, 25, 35, .1);
+}
+
+.unit-number,
+.tool-icon {
+  background: linear-gradient(135deg, var(--red-soft), var(--gold-soft));
+  color: var(--red-dark);
+}
+
+.unit-state {
+  background: var(--gold-soft);
+  color: #7a5523;
+}
+
+.unit-row.complete .unit-state {
+  background: var(--teal-soft);
+  color: var(--teal);
+}
+
+.status-dot {
+  background: var(--teal);
+  box-shadow: 0 0 0 6px var(--teal-soft), 0 0 0 10px rgba(15, 118, 110, .08);
+}
+
+.camera-frame {
+  border-color: rgba(255, 255, 255, .1);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .06), transparent 34%),
+    linear-gradient(135deg, #111722, #273241);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+
+.danger-panel {
+  border-color: rgba(180, 35, 24, .22);
+  background: linear-gradient(180deg, #fff, #fff5f4);
+}
+
+@media (max-width: 980px) {
+  .sidebar {
+    box-shadow: 0 18px 42px rgba(21, 25, 35, .16);
+  }
+}
+
+@media (max-width: 720px) {
+  .auth-view::before {
+    opacity: .72;
+  }
+
+  .auth-copy p {
+    font-size: 1rem;
+  }
+}
