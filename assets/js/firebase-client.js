@@ -68,6 +68,3 @@ export async function loadFirebaseClient() {
   return cachedClient;
 }
 
-export function isRootAdmin(user) {
-  return normalizeEmail(user?.email) === rootAdminEmail;
-}

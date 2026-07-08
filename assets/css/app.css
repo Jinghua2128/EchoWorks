@@ -1067,3 +1067,8 @@ legend {
     min-height: 58px;
   }
 }
+
+
+#adminSettingsPanel[hidden] {
+  display: none;
+}

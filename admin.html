@@ -7,8 +7,8 @@
   <meta name="theme-color" content="#d71920" />
   <title>Manager Dashboard | Feedback Playbook</title>
   <link rel="stylesheet" href="assets/css/app.css?v=20260706-learning" />
-  <link rel="stylesheet" href="assets/css/admin.css?v=20260706-learning" />
-  <script type="module" src="assets/js/admin.js?v=20260706-learning"></script>
+  <link rel="stylesheet" href="assets/css/admin.css?v=20260708-dashboard" />
+  <script type="module" src="assets/js/admin.js?v=20260708-dashboard"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script defer src="assets/js/motion.js?v=20260706-gsap"></script>
 </head>
@@ -16,40 +16,54 @@
   <main class="admin-shell">
     <header class="admin-hero">
       <a class="button subtle fit" href="index.html#home">Back to learning dashboard</a>
-      <div>
+      <div class="admin-title-block">
         <p class="section-label">Manager access</p>
         <h1>Manager Dashboard</h1>
-        <p>Review completion, CARE / REAL evaluation details, reflections, and follow-up support signals.</p>
+        <p>Review completion, CARE / REAL scores, reflections, and follow-up signals from one protected view.</p>
       </div>
-      <button class="button secondary fit" type="button" id="refreshButton">Refresh</button>
+      <div class="hero-actions">
+        <span class="live-chip" id="dashboardSyncStatus">Secure view</span>
+        <button class="button secondary fit" type="button" id="refreshButton">Refresh</button>
+      </div>
     </header>
 
     <section class="panel access-panel" id="accessPanel" aria-live="polite">
       <h2>Checking access</h2>
       <p id="accessMessage">Use the main app to sign in with an authorised dashboard account.</p>
+      <button class="button primary fit" type="button" id="setupAdminButton" hidden>Create admin profile</button>
     </section>
 
     <section class="admin-content" id="dashboardContent" hidden>
       <section class="metric-grid" aria-label="Dashboard summary">
-        <article class="panel admin-metric">
-          <span>Total employees</span>
+        <article class="panel admin-metric" data-metric="learners">
+          <div class="metric-orb" aria-hidden="true"></div>
+          <span>Total learners</span>
           <strong id="userCount">0</strong>
+          <small>Profiles and scenario records</small>
         </article>
-        <article class="panel admin-metric">
+        <article class="panel admin-metric" data-metric="complete">
+          <div class="metric-orb" aria-hidden="true"></div>
           <span>Completion rate</span>
           <strong id="completionRate">0%</strong>
+          <small>Completed at least one scenario</small>
         </article>
-        <article class="panel admin-metric">
-          <span>Average CARE score</span>
+        <article class="panel admin-metric" data-metric="care">
+          <div class="metric-orb" aria-hidden="true"></div>
+          <span>Average CARE</span>
           <strong id="averageCareScore">0%</strong>
+          <small>Employee route average</small>
         </article>
-        <article class="panel admin-metric">
-          <span>Average REAL score</span>
+        <article class="panel admin-metric" data-metric="real">
+          <div class="metric-orb" aria-hidden="true"></div>
+          <span>Average REAL</span>
           <strong id="averageRealScore">0%</strong>
+          <small>Manager route average</small>
         </article>
-        <article class="panel admin-metric warning">
+        <article class="panel admin-metric warning" data-metric="support">
+          <div class="metric-orb" aria-hidden="true"></div>
           <span>Needs follow-up</span>
           <strong id="followUpCount">0</strong>
+          <small>Support signals to review</small>
         </article>
       </section>
 
@@ -80,6 +94,27 @@
         </div>
       </section>
 
+      <section class="insight-grid" aria-label="Dashboard insights">
+        <article class="panel insight-card" aria-labelledby="supportQueueTitle">
+          <div class="panel-heading">
+            <div>
+              <p class="section-label">Support queue</p>
+              <h2 id="supportQueueTitle">Learners who may need follow-up</h2>
+            </div>
+          </div>
+          <div class="insight-list" id="supportQueue"></div>
+        </article>
+        <article class="panel insight-card" aria-labelledby="recentActivityTitle">
+          <div class="panel-heading">
+            <div>
+              <p class="section-label">Recent activity</p>
+              <h2 id="recentActivityTitle">Latest scenario saves</h2>
+            </div>
+          </div>
+          <div class="insight-list" id="recentActivity"></div>
+        </article>
+      </section>
+
       <section class="panel admin-section" aria-labelledby="usersTitle">
         <div class="panel-heading filters-heading">
           <div>
@@ -103,6 +138,7 @@
                 <th>Completed scenarios</th>
                 <th>CARE score</th>
                 <th>REAL score</th>
+                <th>Status</th>
                 <th>Reflection</th>
                 <th>Last activity</th>
                 <th>Action</th>

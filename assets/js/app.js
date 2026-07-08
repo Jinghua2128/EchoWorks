@@ -54,6 +54,7 @@ const ratingLabels = [
 let firebaseSdk = null;
 let firebaseLoadError = null;
 let currentUser = null;
+let dashboardProfileAllowed = false;
 let isGuest = false;
 let currentSurvey = 0;
 let pendingSurveyValue = null;
@@ -80,9 +81,14 @@ const remainingScenariosEl = document.getElementById("remainingScenarios");
 const latestScoreSummaryEl = document.getElementById("latestScoreSummary");
 const scenarioStatusEl = document.getElementById("scenarioStatus");
 const latestScenarioScoreEl = document.getElementById("latestScenarioScore");
+const adminSettingsPanel = document.getElementById("adminSettingsPanel");
 
 function isSignedIn() {
   return Boolean(currentUser || isGuest);
+}
+
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
 }
 
 function safeJsonParse(value, fallback) {
@@ -213,6 +219,7 @@ async function loadFirebase() {
       if (guestModeRequested) {
         isGuest = true;
         currentUser = null;
+        dashboardProfileAllowed = false;
         answers = loadLocalAnswers();
         updateUI();
 
@@ -225,6 +232,7 @@ async function loadFirebase() {
 
       if (!user) {
         currentUser = null;
+        dashboardProfileAllowed = false;
         updateUI();
         if (!authRoutes.has(activeRoute)) goTo("login", { replace: true });
         return;
@@ -236,6 +244,7 @@ async function loadFirebase() {
       localStorage.setItem(storageKeys.email, user.email || "");
       localStorage.setItem(storageKeys.legacyEmail, user.email || "");
       await loadUserProgress(user);
+      await refreshDashboardAccess(user);
       if (wantsGuestMode()) {
         currentUser = null;
         await firebaseSdk.signOut(firebaseSdk.auth).catch(() => {});
@@ -256,6 +265,26 @@ async function loadFirebase() {
 
 function userDocRef(user = currentUser) {
   return firebaseSdk.doc(firebaseSdk.db, "users", user.uid);
+}
+
+async function refreshDashboardAccess(user = currentUser) {
+  dashboardProfileAllowed = false;
+
+  if (!firebaseSdk || !user?.email) {
+    updateUI();
+    return false;
+  }
+
+  try {
+    const email = normalizeEmail(user.email);
+    const snapshot = await firebaseSdk.getDoc(firebaseSdk.doc(firebaseSdk.db, "dashboardAdminEmails", email));
+    dashboardProfileAllowed = snapshot.exists();
+  } catch {
+    dashboardProfileAllowed = false;
+  }
+
+  updateUI();
+  return dashboardProfileAllowed;
 }
 
 async function getFirebase(messageId) {
@@ -413,6 +442,7 @@ async function login(event) {
     localStorage.setItem(storageKeys.email, currentUser.email || credentials.email);
     localStorage.setItem(storageKeys.legacyEmail, currentUser.email || credentials.email);
     await loadUserProgress(currentUser);
+    await refreshDashboardAccess(currentUser);
     goTo("home");
   } catch (error) {
     setMessage("loginMessage", friendlyAuthError(error));
@@ -442,6 +472,7 @@ async function signup(event) {
     localStorage.setItem(storageKeys.legacyEmail, currentUser.email || credentials.email);
     await saveUserProfile(currentUser).catch(() => {});
     await saveProgress(currentUser);
+    await refreshDashboardAccess(currentUser);
     goTo("home");
   } catch (error) {
     setMessage("signupMessage", friendlyAuthError(error));
@@ -457,6 +488,7 @@ async function logout() {
   }
 
   currentUser = null;
+  dashboardProfileAllowed = false;
   isGuest = false;
   localStorage.removeItem(storageKeys.mode);
   localStorage.removeItem(storageKeys.email);
@@ -609,6 +641,10 @@ function updateUI() {
   document.getElementById("accountMode").textContent = currentUser
     ? "Progress syncs with your training account."
     : "Progress is saved on this device.";
+
+  if (adminSettingsPanel) {
+    adminSettingsPanel.hidden = !(currentUser && dashboardProfileAllowed);
+  }
 
   document.querySelectorAll(".unit-row").forEach((row, index) => {
     const complete = answers[index] !== null;

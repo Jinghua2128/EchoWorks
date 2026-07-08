@@ -6,13 +6,20 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isRootAdmin() {
-      return signedIn() && request.auth.token.email == "liuguangxuan1230@gmail.com";
+    function isBootstrapAdmin(email) {
+      return signedIn()
+        && request.auth.token.email == "liuguangxuan1230@gmail.com"
+        && email == request.auth.token.email;
     }
 
     function isDashboardAdmin() {
-      return isRootAdmin()
-        || (signedIn() && exists(/databases/$(database)/documents/dashboardAdminEmails/$(request.auth.token.email)));
+      return signedIn()
+        && exists(/databases/$(database)/documents/dashboardAdminEmails/$(request.auth.token.email));
+    }
+
+    function writesBootstrapAdminProfile(email) {
+      return isBootstrapAdmin(email)
+        && request.resource.data.email == request.auth.token.email;
     }
 
     function ownsUser(uid) {
@@ -44,7 +51,9 @@ service cloud.firestore {
 
     match /dashboardAdminEmails/{email} {
       allow get: if isDashboardAdmin() || (signedIn() && request.auth.token.email == email);
-      allow list, create, update, delete: if isDashboardAdmin();
+      allow list: if isDashboardAdmin();
+      allow create: if isDashboardAdmin() || writesBootstrapAdminProfile(email);
+      allow update, delete: if isDashboardAdmin();
     }
 
     match /{document=**} {
