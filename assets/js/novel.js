@@ -57,6 +57,10 @@ let reflectionAnswers = {};
 let completedAtIso = null;
 let completionShown = false;
 
+function notifyMotion(name, detail = {}) {
+  window.dispatchEvent(new CustomEvent(name, { detail }));
+}
+
 function safeJsonParse(value, fallback) {
   try {
     return value ? JSON.parse(value) : fallback;
@@ -469,6 +473,7 @@ function renderChoices(choices) {
       renderScene(choice.next);
     });
     choicesEl.append(button);
+    notifyMotion("motion:content-added", { element: button });
   });
 
   choicesEl.querySelector("button")?.focus({ preventScroll: true });
@@ -588,6 +593,7 @@ function showCompletion() {
   renderEvaluationDetails();
   renderReflectionFields();
   reflectionPanelEl.hidden = false;
+  notifyMotion("motion:content-added", { element: reflectionPanelEl });
   saveScenarioRecord("completed");
 }
 
@@ -628,6 +634,7 @@ async function selectRole(role) {
     updateScoreHud();
     await saveScenarioRecord("in_progress");
     renderScene(nextScenario.startScene);
+    notifyMotion("motion:content-added", { element: scoreHudEl });
   } catch (error) {
     setRoleMessage(error.message || "Scenario could not be loaded.", "error");
   } finally {
@@ -721,4 +728,5 @@ function bindEvents() {
 bindEvents();
 restartScenario();
 window.setTimeout(() => { initFirebase(); }, 1200);
+
 

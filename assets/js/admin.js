@@ -30,6 +30,10 @@ let cachedUsers = [];
 let cachedResults = [];
 let cachedAdmins = [];
 
+function notifyMotion(name, detail = {}) {
+  window.dispatchEvent(new CustomEvent(name, { detail }));
+}
+
 function setAccess(title, message, allowed = false) {
   accessPanel.querySelector("h2").textContent = title;
   accessMessage.textContent = message;
@@ -240,6 +244,7 @@ function renderUsers(users, results) {
     cell.colSpan = 8;
     row.append(cell);
     usersTable.append(row);
+    notifyMotion("motion:content-added", { element: row });
     return;
   }
 
@@ -269,6 +274,7 @@ function renderUsers(users, results) {
       createCell("Action", action)
     );
     usersTable.append(row);
+    notifyMotion("motion:content-added", { element: row });
   });
 }
 
@@ -281,6 +287,7 @@ function renderResults(results) {
     cell.colSpan = 6;
     row.append(cell);
     resultsTable.append(row);
+      notifyMotion("motion:content-added", { element: row });
     return;
   }
 
@@ -298,6 +305,7 @@ function renderResults(results) {
         createCell("Reflection", reflectionValues(result).join(" / ") || "No reflection saved")
       );
       resultsTable.append(row);
+      notifyMotion("motion:content-added", { element: row });
     });
 }
 
@@ -386,6 +394,7 @@ function renderDetail(userId) {
   });
 
   detailBody.append(summary, reflections);
+  notifyMotion("motion:content-added", { element: detailPanel });
   detailPanel.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -505,3 +514,4 @@ async function init() {
 }
 
 init();
+

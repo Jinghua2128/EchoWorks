@@ -16,6 +16,10 @@ const authRoutes = new Set(["login", "signup"]);
 const routeIds = ["login", "signup", "home", "survey", "ar", "settings"];
 const storageVersion = "2026-07-progress-reset-v6";
 
+function notifyMotion(name, detail = {}) {
+  window.dispatchEvent(new CustomEvent(name, { detail }));
+}
+
 const units = [
   {
     title: "Understanding Feedback",
@@ -524,6 +528,7 @@ function renderUnitList() {
 
     button.append(number, copy, state);
     unitList.append(button);
+    notifyMotion("motion:content-added", { element: button });
   });
 }
 
@@ -649,6 +654,7 @@ function goTo(route, options = {}) {
 
   clearMessages();
   updateUI();
+  notifyMotion("motion:route-change", { route: resolvedRoute });
 
   const hash = `#${resolvedRoute}`;
   if (window.location.hash !== hash) {
@@ -756,6 +762,7 @@ function init() {
 }
 
 init();
+
 
 
 

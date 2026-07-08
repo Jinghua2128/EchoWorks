@@ -19,6 +19,13 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == uid;
     }
 
+    function writesOwnScenarioResult(resultId) {
+      return signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.scenarioId is string
+        && resultId == request.auth.uid + "_" + request.resource.data.scenarioId;
+    }
+
     match /users/{uid} {
       allow create, read, update: if ownsUser(uid) || isDashboardAdmin();
       allow delete: if isDashboardAdmin();
@@ -29,9 +36,9 @@ service cloud.firestore {
     }
 
     match /scenarioResults/{resultId} {
-      allow create: if (signedIn() && request.resource.data.uid == request.auth.uid) || isDashboardAdmin();
-      allow read, list: if (signedIn() && resource.data.uid == request.auth.uid) || isDashboardAdmin();
-      allow update: if (signedIn() && resource.data.uid == request.auth.uid && request.resource.data.uid == request.auth.uid) || isDashboardAdmin();
+      allow create, update: if writesOwnScenarioResult(resultId) || isDashboardAdmin();
+      allow read: if (signedIn() && resource.data.uid == request.auth.uid) || isDashboardAdmin();
+      allow list: if isDashboardAdmin();
       allow delete: if (signedIn() && resource.data.uid == request.auth.uid) || isDashboardAdmin();
     }
 
