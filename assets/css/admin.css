@@ -167,7 +167,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--red), var(--teal));
+  background: linear-gradient(90deg, var(--red-dark), var(--red));
 }
 
 .empty-note {
@@ -598,7 +598,7 @@ tr.needs-follow-up td {
   width: var(--score, 0%);
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--red), var(--teal));
+  background: linear-gradient(90deg, var(--red-dark), var(--red));
 }
 
 .admin-list-item > div {
@@ -714,7 +714,7 @@ body {
 
 .bar-track span,
 .score-meter span::before {
-  background: linear-gradient(90deg, var(--red-dark), var(--gold), var(--teal));
+  background: linear-gradient(90deg, var(--red-dark), var(--red));
 }
 
 .filter-button {
@@ -759,3 +759,4 @@ tbody tr:hover td {
     width: min(100% - 24px, 760px);
   }
 }
+

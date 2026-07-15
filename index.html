@@ -16,8 +16,8 @@
   <meta property="og:type" content="website" />
   <title>Feedback Playbook | Singapore Red Cross</title>
   <link rel="preconnect" href="https://www.gstatic.com" />
-  <link rel="stylesheet" href="assets/css/app.css?v=20260708-premium" />
-  <script type="module" src="assets/js/app.js?v=20260708-dashboard"></script>
+  <link rel="stylesheet" href="assets/css/app.css?v=20260715-mobile-menu" />
+  <script type="module" src="assets/js/app.js?v=20260715-mobile-menu"></script>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -56,7 +56,14 @@
         </span>
       </a>
 
-      <nav class="nav-list" aria-label="Main sections">
+      <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-controls="primaryNav" aria-expanded="false" aria-label="Open navigation">
+        <span class="mobile-nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14" /></svg>
+        </span>
+        <span>Menu</span>
+      </button>
+
+      <nav class="nav-list" id="primaryNav" aria-label="Main sections">
         <button class="nav-button" type="button" data-route="home">
           <span class="icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-8.5Z" /></svg>
@@ -81,6 +88,12 @@
           </span>
           Settings
         </button>
+        <a class="nav-button dashboard-nav" id="dashboardNavLink" href="admin.html" hidden>
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 19V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v14H4Zm4-4v-4m4 4V8m4 7v-6" /></svg>
+          </span>
+          Dashboard
+        </a>
       </nav>
 
       <div class="sidebar-card" aria-live="polite">
@@ -358,16 +371,6 @@
             <button class="button secondary fit" type="button" data-action="logout">Log out</button>
           </section>
 
-          <section class="panel" id="adminSettingsPanel" aria-labelledby="adminTitle" hidden>
-            <div class="panel-heading">
-              <div>
-                <p class="section-label">Manager tools</p>
-                <h2 id="adminTitle">Admin dashboard</h2>
-              </div>
-            </div>
-            <p class="muted">Authorised dashboard viewers can review completion, CARE / REAL evaluation details, reflections, and follow-up support signals.</p>
-            <a class="button secondary fit" href="admin.html">Open dashboard</a>
-          </section>
           <section class="panel danger-panel" aria-labelledby="dangerTitle">
             <div class="panel-heading">
               <div>

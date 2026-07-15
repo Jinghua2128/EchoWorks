@@ -15,6 +15,7 @@ const protectedRoutes = new Set(["home", "survey", "ar", "settings"]);
 const authRoutes = new Set(["login", "signup"]);
 const routeIds = ["login", "signup", "home", "survey", "ar", "settings"];
 const storageVersion = "2026-07-progress-reset-v6";
+const bootstrapAdminEmail = "liuguangxuan1230@gmail.com";
 
 function notifyMotion(name, detail = {}) {
   window.dispatchEvent(new CustomEvent(name, { detail }));
@@ -65,6 +66,9 @@ let activeRoute = "login";
 const firebaseReady = loadFirebase();
 
 const appShell = document.getElementById("appShell");
+const mobileNavToggle = document.getElementById("mobileNavToggle");
+const primaryNav = document.getElementById("primaryNav");
+const mobileNavMedia = window.matchMedia("(max-width: 980px)");
 const unitList = document.getElementById("unitList");
 const ratingOptions = document.getElementById("ratingOptions");
 const surveyForm = document.getElementById("surveyForm");
@@ -81,10 +85,36 @@ const remainingScenariosEl = document.getElementById("remainingScenarios");
 const latestScoreSummaryEl = document.getElementById("latestScoreSummary");
 const scenarioStatusEl = document.getElementById("scenarioStatus");
 const latestScenarioScoreEl = document.getElementById("latestScenarioScore");
-const adminSettingsPanel = document.getElementById("adminSettingsPanel");
+const dashboardNavLink = document.getElementById("dashboardNavLink");
 
 function isSignedIn() {
   return Boolean(currentUser || isGuest);
+}
+
+function setMobileNav(open) {
+  const shouldOpen = Boolean(open);
+  appShell.classList.toggle("nav-open", shouldOpen);
+
+  if (mobileNavToggle) {
+    mobileNavToggle.setAttribute("aria-expanded", String(shouldOpen));
+    mobileNavToggle.setAttribute("aria-label", shouldOpen ? "Close navigation" : "Open navigation");
+  }
+
+  if (primaryNav) {
+    if (mobileNavMedia.matches) {
+      primaryNav.setAttribute("aria-hidden", String(!shouldOpen));
+    } else {
+      primaryNav.removeAttribute("aria-hidden");
+    }
+  }
+}
+
+function syncMobileNavState() {
+  if (mobileNavMedia.matches) {
+    setMobileNav(appShell.classList.contains("nav-open"));
+  } else {
+    setMobileNav(false);
+  }
 }
 
 function normalizeEmail(value) {
@@ -277,6 +307,13 @@ async function refreshDashboardAccess(user = currentUser) {
 
   try {
     const email = normalizeEmail(user.email);
+
+    if (email === bootstrapAdminEmail) {
+      dashboardProfileAllowed = true;
+      updateUI();
+      return true;
+    }
+
     const snapshot = await firebaseSdk.getDoc(firebaseSdk.doc(firebaseSdk.db, "dashboardAdminEmails", email));
     dashboardProfileAllowed = snapshot.exists();
   } catch {
@@ -642,8 +679,8 @@ function updateUI() {
     ? "Progress syncs with your training account."
     : "Progress is saved on this device.";
 
-  if (adminSettingsPanel) {
-    adminSettingsPanel.hidden = !(currentUser && dashboardProfileAllowed);
+  if (dashboardNavLink) {
+    dashboardNavLink.hidden = !(currentUser && dashboardProfileAllowed);
   }
 
   document.querySelectorAll(".unit-row").forEach((row, index) => {
@@ -672,6 +709,7 @@ function goTo(route, options = {}) {
 
   activeRoute = resolvedRoute;
   appShell.classList.toggle("auth-mode", authRoutes.has(resolvedRoute));
+  setMobileNav(false);
 
   routeIds.forEach(id => {
     const page = document.getElementById(id);
@@ -743,6 +781,18 @@ function bindEvents() {
   document.getElementById("signupForm").addEventListener("submit", signup);
   surveyForm.addEventListener("submit", submitSurvey);
 
+  if (mobileNavToggle) {
+    mobileNavToggle.addEventListener("click", () => {
+      setMobileNav(!appShell.classList.contains("nav-open"));
+    });
+  }
+
+  if (typeof mobileNavMedia.addEventListener === "function") {
+    mobileNavMedia.addEventListener("change", syncMobileNavState);
+  } else if (typeof mobileNavMedia.addListener === "function") {
+    mobileNavMedia.addListener(syncMobileNavState);
+  }
+
   ratingOptions.addEventListener("change", event => {
     if (event.target.name === "comfort") {
       pendingSurveyValue = Number(event.target.value);
@@ -785,6 +835,7 @@ function init() {
   renderUnitList();
   renderRatingOptions();
   bindEvents();
+  syncMobileNavState();
   updateUI();
 
   const requestedRoute = routeFromHash();
