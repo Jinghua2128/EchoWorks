@@ -2133,10 +2133,38 @@ body.app-page .progress-track span {
   object-fit: cover;
 }
 
+.ar-mindar-surface {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.ar-mindar-surface:empty {
+  display: none;
+}
+
+.ar-mindar-surface video,
+.ar-mindar-surface canvas,
+.ar-mindar-surface > div {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.ar-mindar-surface video {
+  object-fit: cover;
+}
+
 .ar-camera-frame .camera-empty {
   position: relative;
   z-index: 1;
   max-width: 32ch;
+}
+
+.ar-camera-frame .camera-empty[hidden] {
+  display: none;
 }
 
 .ar-camera-frame .camera-empty strong {
@@ -2155,6 +2183,18 @@ body.app-page .progress-track span {
 
 .camera-active .ar-reticle {
   display: block;
+}
+
+.ar-camera-frame.target-detected .ar-reticle {
+  border-color: rgba(96, 218, 179, .92);
+  box-shadow: 0 0 0 1px rgba(19, 135, 105, .28), inset 0 0 24px rgba(19, 135, 105, .18);
+}
+
+.ar-camera-frame.target-detected .ar-reticle::before,
+.ar-camera-frame.target-detected .ar-reticle::after,
+.ar-camera-frame.target-detected .ar-reticle span::before,
+.ar-camera-frame.target-detected .ar-reticle span::after {
+  border-color: #60dab3;
 }
 
 .ar-reticle::before,
@@ -2984,5 +3024,234 @@ body.app-page .progress-track span {
 
   body.printing-ar-cards .print-ar-card img {
     width: 48mm;
+  }
+}
+
+/* Completion milestones and full-screen reward swipe. */
+.milestone-path {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.milestone-path li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  padding-top: 11px;
+  border-top: 3px solid var(--line);
+}
+
+.milestone-path li.active {
+  border-top-color: var(--red);
+}
+
+.milestone-path li.complete {
+  border-top-color: var(--teal);
+}
+
+.milestone-marker {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: transparent;
+}
+
+.milestone-marker svg,
+.achievement-icon svg,
+.completion-wipe-check svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.milestone-path li.active .milestone-marker {
+  border-color: var(--red);
+  background: var(--red-soft);
+  color: var(--red-dark);
+}
+
+.milestone-path li.complete .milestone-marker {
+  border-color: var(--teal);
+  background: var(--teal);
+  color: #fff;
+}
+
+.milestone-path strong,
+.milestone-path small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.milestone-path strong {
+  color: var(--charcoal);
+  font-size: .86rem;
+}
+
+.milestone-path small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: .72rem;
+  white-space: nowrap;
+}
+
+.path-achievement {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: 2px 0 18px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(20, 132, 116, .24);
+  border-bottom: 1px solid rgba(20, 132, 116, .24);
+  color: var(--teal);
+}
+
+.path-achievement[hidden],
+.completion-wipe[hidden] {
+  display: none;
+}
+
+.achievement-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--teal-soft);
+}
+
+.achievement-icon svg {
+  fill: currentColor;
+  stroke-width: 1.5;
+}
+
+.path-achievement small,
+.path-achievement strong {
+  display: block;
+}
+
+.path-achievement small {
+  font-size: .68rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.path-achievement strong {
+  color: var(--charcoal);
+  font-size: 1rem;
+}
+
+.unit-row.complete .unit-number {
+  background: var(--teal);
+  color: #fff;
+}
+
+.completion-wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.completion-wipe-surface {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  background: var(--red);
+  color: #fff;
+  transform: translateX(-105%);
+  will-change: transform;
+}
+
+.completion-wipe.is-active .completion-wipe-surface {
+  animation: completionSwipe .86s cubic-bezier(.76, 0, .24, 1) both;
+}
+
+.completion-wipe-check {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 2px solid rgba(255, 255, 255, .82);
+  border-radius: 50%;
+}
+
+.completion-wipe-check svg {
+  width: 28px;
+  height: 28px;
+}
+
+.completion-wipe-copy {
+  display: grid;
+  gap: 3px;
+}
+
+.completion-wipe-copy small {
+  color: rgba(255, 255, 255, .82);
+  font-size: .76rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.completion-wipe-copy strong {
+  max-width: min(560px, 70vw);
+  color: #fff;
+  font-size: clamp(1.35rem, 4vw, 2.4rem);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+@keyframes completionSwipe {
+  0% { transform: translateX(-105%); }
+  42%, 58% { transform: translateX(0); }
+  100% { transform: translateX(105%); }
+}
+
+@media (max-width: 620px) {
+  .milestone-path {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .milestone-path li {
+    min-height: 50px;
+    padding: 7px 0;
+    border-top-width: 1px;
+  }
+
+  .completion-wipe-surface {
+    gap: 12px;
+  }
+
+  .completion-wipe-check {
+    width: 46px;
+    height: 46px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .completion-wipe.is-active .completion-wipe-surface {
+    animation: none;
   }
 }

@@ -17,6 +17,11 @@
       "framework": "REAL",
       "letter": "R",
       "title": "Recognise",
+      "imageTarget": {
+        "src": "assets/ar/recognise.mind",
+        "sourceImage": "assets/ar/Recognise.png",
+        "targetIndex": 0
+      },
       "character": "Alex",
       "characterImage": "assets/manager.webp",
       "animation": "spotlight",

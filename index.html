@@ -18,8 +18,17 @@
   <title>Feedback Playbook | Singapore Red Cross</title>
   <link rel="preconnect" href="https://www.gstatic.com" />
   <link rel="preload" as="image" href="assets/office-vn.webp" />
-  <link rel="stylesheet" href="assets/css/app.css?v=20260718-full-script-ar" />
-  <script type="module" src="assets/js/app.js?v=20260718-full-script-ar"></script>
+  <link rel="stylesheet" href="assets/css/app.css?v=20260719-recognise-target" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./assets/vendor/mindar/three.module.js",
+        "three/addons/": "./assets/vendor/mindar/addons/",
+        "mindar-image-three": "./assets/vendor/mindar/mindar-image-three.prod.js"
+      }
+    }
+  </script>
+  <script type="module" src="assets/js/app.js?v=20260719-recognise-target"></script>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -211,6 +220,32 @@
               <span id="progressBar"></span>
             </div>
             <p id="progressText" class="muted">0 pulse responses and 0 scenarios completed</p>
+            <ol class="milestone-path" aria-label="Learning milestones">
+              <li data-learning-milestone="pre">
+                <span class="milestone-marker" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="m6 12 4 4 8-9" /></svg>
+                </span>
+                <span><strong>Pre-pulse</strong><small id="preMilestoneState">0 of 2 questions</small></span>
+              </li>
+              <li data-learning-milestone="scenario">
+                <span class="milestone-marker" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="m6 12 4 4 8-9" /></svg>
+                </span>
+                <span><strong>Scenario practice</strong><small id="scenarioMilestoneState">0 of 8 complete</small></span>
+              </li>
+              <li data-learning-milestone="post">
+                <span class="milestone-marker" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="m6 12 4 4 8-9" /></svg>
+                </span>
+                <span><strong>Post-pulse</strong><small id="postMilestoneState">0 of 2 questions</small></span>
+              </li>
+            </ol>
+            <div class="path-achievement" id="pathAchievement" hidden>
+              <span class="achievement-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 3 15 7.5l5.2 1.2-3.5 4 .5 5.3-5.2-2.1L6.8 18l.5-5.3-3.5-4L9 7.5 12 3Z" /></svg>
+              </span>
+              <span><small>Achievement unlocked</small><strong>Feedback Ready</strong></span>
+            </div>
             <div class="learner-stats" aria-label="Learning summary">
               <span><strong id="completedScenarios">0</strong>Completed scenarios</span>
               <span><strong id="remainingScenarios">8</strong>Remaining</span>
@@ -291,7 +326,7 @@
           </button>
           <div>
             <p class="section-label">Pulse survey</p>
-            <h1 id="surveyTitle">Employee pre-pulse</h1>
+            <h1 id="surveyTitle">Pre-pulse</h1>
             <p class="survey-progress" id="surveyProgressText">Question 1</p>
             <p class="lead" id="questionTitle">Select a pulse survey to begin.</p>
           </div>
@@ -318,19 +353,20 @@
           <div>
             <p class="section-label">Interactive workshop</p>
             <h1 id="arTitle">CARE and REAL AR cards</h1>
-            <p class="lead">Scan a printed framework card to reveal its animated coaching prompt, or choose a card for the same experience without camera access.</p>
+            <p class="lead">Scan the REAL Recognise card to reveal its coaching prompt, or choose any framework card for the same experience without camera access.</p>
           </div>
         </header>
 
         <div class="ar-experience-layout">
           <section class="panel ar-camera-panel" aria-labelledby="cameraTitle">
             <div class="camera-frame ar-camera-frame" id="arCameraFrame">
+              <div class="ar-mindar-surface" id="arMindarSurface" aria-hidden="true"></div>
               <video id="cameraPreview" autoplay playsinline muted hidden></video>
               <canvas id="arScanCanvas" hidden></canvas>
               <div class="camera-empty" id="cameraEmpty">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.4-2h7.2L17 8h3v11H4V8Zm8 8.2A3.2 3.2 0 1 0 12 9.8a3.2 3.2 0 0 0 0 6.4Z" /></svg>
                 <strong id="cameraTitle">AR card viewer</strong>
-                <span>Start the camera to scan a printed card.</span>
+                <span>Start the camera to scan the REAL Recognise card.</span>
               </div>
               <div class="ar-reticle" aria-hidden="true"><span></span></div>
               <article class="ar-overlay" id="arOverlay" aria-live="polite" hidden>
@@ -364,7 +400,7 @@
               </div>
             </div>
             <div class="ar-card-picker" id="arCardPicker" aria-label="Available AR cards"></div>
-            <p class="ar-fallback-note" id="arSupportNote">Card selection works even when camera scanning is unavailable.</p>
+            <p class="ar-fallback-note" id="arSupportNote">Recognise supports artwork scanning. Choose another card to preview it without the camera.</p>
           </aside>
         </div>
 
@@ -450,6 +486,17 @@
         </div>
       </section>
     </main>
+  </div>
+  <div class="completion-wipe" id="screenWipe" hidden aria-live="polite">
+    <div class="completion-wipe-surface">
+      <span class="completion-wipe-check" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg>
+      </span>
+      <span class="completion-wipe-copy">
+        <small id="screenWipeLabel">Milestone complete</small>
+        <strong id="screenWipeTitle">Pre-pulse completed</strong>
+      </span>
+    </div>
   </div>
 </body>
 </html>

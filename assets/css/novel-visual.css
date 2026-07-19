@@ -1131,3 +1131,251 @@ body.novel-page .progress-track span {
     transition: none !important;
   }
 }
+
+/* Visible artwork alignment and compact phone HUD. */
+.character.manager {
+  right: calc(5px - min(22.6vh, 210px));
+}
+
+.character.sarah {
+  left: calc(5px - min(44.6vh, 414px));
+}
+
+@media (max-width: 920px) {
+  .character.manager {
+    right: calc(5px - 19.3vh);
+  }
+
+  .character.sarah {
+    left: calc(5px - 38.1vh);
+  }
+}
+
+@media (max-width: 760px) {
+  .progress-panel {
+    top: 58px;
+    right: 10px;
+    left: auto;
+    width: 132px;
+    gap: 5px;
+    padding: 7px 8px;
+  }
+
+  .progress-copy {
+    gap: 5px;
+  }
+
+  #roleBadge {
+    overflow: hidden;
+    font-size: .62rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #frameworkBadge {
+    min-width: 36px;
+    padding: 3px 5px;
+    font-size: .7rem;
+  }
+
+  .progress-panel .score-breakdown,
+  #scenarioProgressText {
+    display: none !important;
+  }
+
+  .progress-track {
+    height: 4px;
+  }
+
+  .scene-cue {
+    top: 58px;
+    width: calc(100vw - 162px);
+    min-height: 47px;
+    gap: 7px;
+    padding: 7px;
+  }
+
+  .scene-cue-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .scene-cue-copy span {
+    display: none;
+  }
+
+  .character.manager {
+    right: calc(5px - 16vh);
+  }
+
+  .character.sarah {
+    left: calc(5px - 31.6vh);
+  }
+}
+
+/* Scenario achievement and completion swipe. */
+.scenario-achievement {
+  grid-column: 1 / -1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 0 12px;
+  border-bottom: 1px solid rgba(20, 132, 116, .24);
+}
+
+.scenario-achievement-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--teal-soft);
+  color: var(--teal);
+}
+
+.scenario-achievement-icon svg,
+.completion-wipe-check svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.scenario-achievement-icon svg {
+  fill: currentColor;
+  stroke-width: 1.4;
+}
+
+.scenario-achievement > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.scenario-achievement small {
+  color: var(--teal);
+  font-size: .66rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.scenario-achievement strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#scenarioRewardDetail {
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: var(--teal-soft);
+  color: var(--teal);
+  font-size: .72rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.completion-wipe[hidden] {
+  display: none;
+}
+
+.completion-wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.completion-wipe-surface {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  background: var(--red);
+  color: #fff;
+  transform: translateX(-105%);
+  will-change: transform;
+}
+
+.completion-wipe.is-active .completion-wipe-surface {
+  animation: scenarioCompletionSwipe .86s cubic-bezier(.76, 0, .24, 1) both;
+}
+
+.completion-wipe-check {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 2px solid rgba(255, 255, 255, .82);
+  border-radius: 50%;
+}
+
+.completion-wipe-check svg {
+  width: 28px;
+  height: 28px;
+}
+
+.completion-wipe-copy {
+  display: grid;
+  gap: 3px;
+}
+
+.completion-wipe-copy small {
+  color: rgba(255, 255, 255, .82);
+  font-size: .76rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.completion-wipe-copy strong {
+  max-width: min(560px, 70vw);
+  color: #fff;
+  font-size: clamp(1.35rem, 4vw, 2.4rem);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+@keyframes scenarioCompletionSwipe {
+  0% { transform: translateX(-105%); }
+  42%, 58% { transform: translateX(0); }
+  100% { transform: translateX(105%); }
+}
+
+@media (max-width: 760px) {
+  .scenario-achievement {
+    grid-template-columns: 38px minmax(0, 1fr);
+    padding-top: 5px;
+  }
+
+  #scenarioRewardDetail {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .completion-wipe-surface {
+    gap: 12px;
+  }
+
+  .completion-wipe-check {
+    width: 46px;
+    height: 46px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .completion-wipe.is-active .completion-wipe-surface {
+    animation: none;
+  }
+}

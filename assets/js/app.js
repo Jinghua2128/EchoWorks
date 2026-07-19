@@ -14,7 +14,7 @@ const storageKeys = {
 const protectedRoutes = new Set(["home", "survey", "ar", "settings"]);
 const authRoutes = new Set(["login", "signup"]);
 const routeIds = ["login", "signup", "home", "survey", "ar", "settings"];
-const storageVersion = "2026-07-mdc-pulse-v7";
+const storageVersion = "2026-07-four-question-pulse-v8";
 const bootstrapAdminEmail = "liuguangxuan1230@gmail.com";
 
 function notifyMotion(name, detail = {}) {
@@ -58,6 +58,14 @@ let arScanFrame = null;
 let arScanBusy = false;
 let lastArScanAt = 0;
 let lastArScanValue = "";
+let surveyTransitioning = false;
+let mindarTracker = null;
+let mindarRenderer = null;
+let mindarStarted = false;
+let mindarTargetVisible = false;
+let mindarLostTimer = null;
+let arCameraMode = null;
+let cameraStartToken = 0;
 
 const appShell = document.getElementById("appShell");
 const mobileNavToggle = document.getElementById("mobileNavToggle");
@@ -79,6 +87,7 @@ const sidebarProgressText = document.getElementById("sidebarProgressText");
 const cameraPreview = document.getElementById("cameraPreview");
 const cameraEmpty = document.getElementById("cameraEmpty");
 const arCameraFrame = document.getElementById("arCameraFrame");
+const arMindarSurface = document.getElementById("arMindarSurface");
 const arScanCanvas = document.getElementById("arScanCanvas");
 const arOverlay = document.getElementById("arOverlay");
 const arVisual = document.getElementById("arVisual");
@@ -104,6 +113,14 @@ const latestScoreSummaryEl = document.getElementById("latestScoreSummary");
 const scenarioStatusEl = document.getElementById("scenarioStatus");
 const latestScenarioScoreEl = document.getElementById("latestScenarioScore");
 const dashboardNavLink = document.getElementById("dashboardNavLink");
+const preMilestoneStateEl = document.getElementById("preMilestoneState");
+const scenarioMilestoneStateEl = document.getElementById("scenarioMilestoneState");
+const postMilestoneStateEl = document.getElementById("postMilestoneState");
+const pathAchievementEl = document.getElementById("pathAchievement");
+const screenWipeEl = document.getElementById("screenWipe");
+const screenWipeLabelEl = document.getElementById("screenWipeLabel");
+const screenWipeTitleEl = document.getElementById("screenWipeTitle");
+const completionMotionMedia = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 function isSignedIn() {
   return Boolean(currentUser || isGuest);
@@ -684,6 +701,74 @@ function renderRatingOptions() {
   });
 }
 
+
+function surveyStageProgress(stage) {
+  const survey = surveyDefinitions.find(item => item.stage === stage);
+  if (!survey) return { answered: 0, total: 0, complete: false };
+
+  const values = answers[survey.id] || [];
+  const answered = values.filter(answer => answer !== null).length;
+  return {
+    answered,
+    total: survey.questions.length,
+    complete: answered === survey.questions.length
+  };
+}
+
+function setMilestoneState(name, state, text, active) {
+  const item = document.querySelector(`[data-learning-milestone="${name}"]`);
+  if (!item) return;
+
+  item.classList.toggle("complete", state);
+  item.classList.toggle("active", !state && active);
+  item.setAttribute("aria-label", `${item.querySelector("strong")?.textContent || name}: ${text}`);
+}
+
+function renderLearningMilestones(completedScenarioCount) {
+  const pre = surveyStageProgress("pre");
+  const post = surveyStageProgress("post");
+  const scenariosComplete = completedScenarioCount >= scenarioTarget;
+
+  const preText = pre.complete ? "Completed" : `${pre.answered} of ${pre.total} questions`;
+  const scenarioText = scenariosComplete ? "Library completed" : `${completedScenarioCount} of ${scenarioTarget} complete`;
+  const postText = post.complete ? "Completed" : `${post.answered} of ${post.total} questions`;
+
+  if (preMilestoneStateEl) preMilestoneStateEl.textContent = preText;
+  if (scenarioMilestoneStateEl) scenarioMilestoneStateEl.textContent = scenarioText;
+  if (postMilestoneStateEl) postMilestoneStateEl.textContent = postText;
+
+  setMilestoneState("pre", pre.complete, preText, !pre.complete);
+  setMilestoneState("scenario", scenariosComplete, scenarioText, pre.complete);
+  setMilestoneState("post", post.complete, postText, pre.complete && scenariosComplete);
+
+  if (pathAchievementEl) {
+    pathAchievementEl.hidden = !(pre.complete && scenariosComplete && post.complete);
+  }
+}
+
+function runCompletionWipe(label, title, onCovered) {
+  if (!screenWipeEl || completionMotionMedia.matches) {
+    onCovered();
+    return Promise.resolve();
+  }
+
+  screenWipeLabelEl.textContent = label;
+  screenWipeTitleEl.textContent = title;
+  screenWipeEl.hidden = false;
+  screenWipeEl.classList.remove("is-active");
+  void screenWipeEl.offsetWidth;
+  screenWipeEl.classList.add("is-active");
+
+  return new Promise(resolve => {
+    window.setTimeout(onCovered, 360);
+    window.setTimeout(() => {
+      screenWipeEl.classList.remove("is-active");
+      screenWipeEl.hidden = true;
+      resolve();
+    }, 860);
+  });
+}
+
 function renderSurvey() {
   const survey = surveyDefinitions[currentSurvey];
   if (!survey) return;
@@ -714,6 +799,8 @@ function openSurvey(index) {
 
 async function submitSurvey(event) {
   event.preventDefault();
+  if (surveyTransitioning) return;
+
   const selected = surveyForm.querySelector('input[name="comfort"]:checked');
 
   if (!selected) {
@@ -732,8 +819,19 @@ async function submitSurvey(event) {
     return;
   }
 
-  setMessage("surveyMessage", "Pulse survey completed.", "success");
-  goTo("home");
+  surveyTransitioning = true;
+  const submitButton = surveyForm.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
+  setMessage("surveyMessage", "Completed. Saving your milestone...", "success");
+
+  await runCompletionWipe(
+    "Milestone complete",
+    `${survey.title} completed`,
+    () => goTo("home")
+  );
+
+  surveyTransitioning = false;
+  if (submitButton) submitButton.disabled = false;
 }
 
 function updateUI() {
@@ -758,6 +856,7 @@ function updateUI() {
   if (scenarioStatusEl) scenarioStatusEl.textContent = completedScenarioCount ? `${completedScenarioCount} of ${scenarioTarget} complete` : latestScenario ? "In progress" : "Not started";
   if (latestScenarioScoreEl) latestScenarioScoreEl.textContent = latestScenario?.scorePercent == null ? "-" : `${latestScenario.scorePercent}%`;
   sidebarProgressText.textContent = `${progress}% complete`;
+  renderLearningMilestones(completedScenarioCount);
 
   document.getElementById("userEmail").textContent = email;
   document.getElementById("accountMode").textContent = currentUser
@@ -986,16 +1085,18 @@ function renderPrintableArCards() {
     const prompt = document.createElement("strong");
     prompt.textContent = card.physicalText;
 
-    const qr = document.createElement("img");
-    qr.src = `assets/ar/${card.id}.svg`;
-    qr.alt = `Scan code for ${card.framework} ${card.title}`;
-    qr.loading = "lazy";
-    qr.width = 180;
-    qr.height = 180;
+    const scanImage = document.createElement("img");
+    scanImage.src = card.imageTarget?.sourceImage || `assets/ar/${card.id}.svg`;
+    scanImage.alt = card.imageTarget
+      ? `Physical ${card.framework} ${card.title} card artwork`
+      : `Scan code for ${card.framework} ${card.title}`;
+    scanImage.loading = "lazy";
+    scanImage.width = 180;
+    scanImage.height = 180;
 
     const watchOut = document.createElement("p");
     watchOut.textContent = card.watchOut;
-    article.append(header, prompt, qr, watchOut);
+    article.append(header, prompt, scanImage, watchOut);
     arPrintableCards.append(article);
   });
 }
@@ -1061,7 +1162,179 @@ function setCameraButtonBusy(busy) {
   button.textContent = busy ? button.dataset.busyLabel : "Start camera";
 }
 
+function imageTargetCard() {
+  return arCardData?.cards.find(card => card.imageTarget?.src);
+}
+
+function stopMindarTracking() {
+  if (mindarLostTimer) {
+    window.clearTimeout(mindarLostTimer);
+    mindarLostTimer = null;
+  }
+
+  mindarRenderer?.setAnimationLoop(null);
+  const tracker = mindarTracker;
+
+  if (tracker) {
+    try {
+      if (mindarStarted) {
+        tracker.stop();
+      } else {
+        tracker.controller?.stopProcessVideo?.();
+        tracker.video?.srcObject?.getTracks().forEach(track => track.stop());
+        tracker.video?.remove();
+      }
+    } catch (error) {
+      console.warn("Image tracker cleanup failed.", error);
+    }
+  }
+
+  mindarTracker = null;
+  mindarRenderer = null;
+  mindarStarted = false;
+  mindarTargetVisible = false;
+  arMindarSurface?.replaceChildren();
+  arCameraFrame?.classList.remove("target-detected", "image-tracking");
+}
+
+function handleImageTargetFound(card) {
+  if (mindarLostTimer) {
+    window.clearTimeout(mindarLostTimer);
+    mindarLostTimer = null;
+  }
+
+  mindarTargetVisible = true;
+  arCameraFrame?.classList.add("target-detected");
+  selectArCard(card.id, { scanned: true });
+}
+
+function handleImageTargetLost() {
+  mindarTargetVisible = false;
+  arCameraFrame?.classList.remove("target-detected");
+
+  if (mindarLostTimer) window.clearTimeout(mindarLostTimer);
+  mindarLostTimer = window.setTimeout(() => {
+    if (mindarTargetVisible || arCameraMode !== "image") return;
+    if (arOverlay) arOverlay.hidden = true;
+    setMessage("cameraMessage", "Card lost. Hold the Recognise artwork steady inside the frame.");
+  }, 700);
+}
+
+function cameraCancellationError() {
+  const error = new Error("Camera startup was cancelled.");
+  error.cameraCancelled = true;
+  return error;
+}
+
+async function startImageTargetCamera(card) {
+  const { MindARThree } = await import("mindar-image-three");
+  const targetIndex = Number.isInteger(card.imageTarget.targetIndex)
+    ? card.imageTarget.targetIndex
+    : 0;
+
+  const tracker = new MindARThree({
+    container: arMindarSurface,
+    imageTargetSrc: card.imageTarget.src,
+    maxTrack: 1,
+    uiLoading: "no",
+    uiScanning: "no",
+    uiError: "no",
+    warmupTolerance: 3,
+    missTolerance: 8
+  });
+  const renderer = tracker.renderer;
+  mindarTracker = tracker;
+  mindarRenderer = renderer;
+
+  const anchor = tracker.addAnchor(targetIndex);
+  anchor.onTargetFound = () => handleImageTargetFound(card);
+  anchor.onTargetLost = handleImageTargetLost;
+
+  if (arOverlay) arOverlay.hidden = true;
+  cameraPreview.hidden = true;
+  cameraEmpty.hidden = true;
+  arCameraMode = "image";
+  arCameraFrame.classList.add("camera-active", "image-tracking");
+  setMessage("cameraMessage", "Requesting camera access to scan the REAL Recognise card.");
+
+  try {
+    await tracker.start();
+  } catch (error) {
+    if (mindarTracker !== tracker) throw cameraCancellationError();
+
+    const wrappedError = new Error(
+      tracker.video?.srcObject
+        ? "The image target could not be loaded."
+        : "Camera access was unavailable."
+    );
+    wrappedError.cause = error;
+    wrappedError.cameraUnavailable = !tracker.video?.srcObject;
+    throw wrappedError;
+  }
+
+  if (mindarTracker !== tracker) {
+    try {
+      tracker.stop();
+    } catch {
+      tracker.video?.srcObject?.getTracks().forEach(track => track.stop());
+    }
+    throw cameraCancellationError();
+  }
+
+  mindarStarted = true;
+  renderer.setAnimationLoop(() => {
+    if (mindarTracker !== tracker) return;
+    renderer.render(tracker.scene, tracker.camera);
+  });
+
+  setMessage(
+    "cameraMessage",
+    "Camera is active. Hold the REAL Recognise artwork flat inside the frame.",
+    "success"
+  );
+}
+
+async function startQrCamera(startToken) {
+  const stream = await navigator.mediaDevices.getUserMedia({
+    audio: false,
+    video: {
+      facingMode: { ideal: "environment" },
+      width: { ideal: 1280 },
+      height: { ideal: 720 }
+    }
+  });
+
+  if (startToken !== cameraStartToken) {
+    stream.getTracks().forEach(track => track.stop());
+    throw cameraCancellationError();
+  }
+
+  cameraStream = stream;
+  cameraPreview.srcObject = stream;
+  cameraPreview.hidden = false;
+  cameraEmpty.hidden = true;
+  arCameraMode = "qr";
+  arCameraFrame.classList.add("camera-active");
+  await cameraPreview.play();
+
+  if (startToken !== cameraStartToken) throw cameraCancellationError();
+
+  barcodeDetector = await createBarcodeDetector();
+  lastArScanValue = "";
+  lastArScanAt = 0;
+  arScanFrame = window.requestAnimationFrame(scanArFrame);
+
+  setMessage(
+    "cameraMessage",
+    barcodeDetector
+      ? "QR fallback is active. Hold a printed card inside the frame."
+      : "Camera is active. Automatic scanning is not supported here, so choose a card to preview it.",
+    barcodeDetector ? "success" : ""
+  );
+}
+
 async function startCamera() {
+  const startToken = ++cameraStartToken;
   clearMessages();
 
   if (!navigator.mediaDevices?.getUserMedia || !window.isSecureContext) {
@@ -1071,45 +1344,44 @@ async function startCamera() {
 
   setCameraButtonBusy(true);
   try {
-    stopCamera();
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        facingMode: { ideal: "environment" },
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
+    stopCamera({ cancelPending: false });
+    const targetCard = imageTargetCard();
+
+    if (targetCard && "WebGLRenderingContext" in window) {
+      try {
+        await startImageTargetCamera(targetCard);
+        return;
+      } catch (error) {
+        if (error?.cameraCancelled || startToken !== cameraStartToken) throw error;
+
+        const cameraUnavailable = error?.cameraUnavailable;
+        console.warn("Image recognition could not start.", error);
+        stopCamera({ cancelPending: false });
+
+        if (cameraUnavailable) throw error;
       }
-    });
-    cameraPreview.srcObject = cameraStream;
-    cameraPreview.hidden = false;
-    cameraEmpty.hidden = true;
-    arCameraFrame.classList.add("camera-active");
-    await cameraPreview.play();
+    }
 
-    barcodeDetector = await createBarcodeDetector();
-    lastArScanValue = "";
-    lastArScanAt = 0;
-    arScanFrame = window.requestAnimationFrame(scanArFrame);
-
-    setMessage(
-      "cameraMessage",
-      barcodeDetector
-        ? "Camera is active. Hold a printed card inside the frame."
-        : "Camera is active. Automatic scanning is not supported here, so choose a card to preview it.",
-      barcodeDetector ? "success" : ""
-    );
+    await startQrCamera(startToken);
   } catch (error) {
-    const message = error?.name === "NotAllowedError"
+    if (error?.cameraCancelled || startToken !== cameraStartToken) return;
+
+    const message = error?.name === "NotAllowedError" || error?.cameraUnavailable
       ? "Camera permission was blocked. Allow camera access or choose a card below."
       : "Camera could not start on this device. Choose a card to continue.";
     setMessage("cameraMessage", message);
-    stopCamera();
+    stopCamera({ cancelPending: false });
   } finally {
-    setCameraButtonBusy(false);
+    if (startToken === cameraStartToken) setCameraButtonBusy(false);
   }
 }
 
-function stopCamera() {
+function stopCamera(options = {}) {
+  if (options.cancelPending !== false) {
+    cameraStartToken += 1;
+    setCameraButtonBusy(false);
+  }
+
   if (arScanFrame) {
     window.cancelAnimationFrame(arScanFrame);
     arScanFrame = null;
@@ -1120,8 +1392,10 @@ function stopCamera() {
     cameraStream = null;
   }
 
+  stopMindarTracking();
   barcodeDetector = null;
   arScanBusy = false;
+  arCameraMode = null;
 
   if (cameraPreview) {
     cameraPreview.pause();
@@ -1130,9 +1404,10 @@ function stopCamera() {
   }
 
   if (cameraEmpty) cameraEmpty.hidden = false;
-  arCameraFrame?.classList.remove("camera-active");
-}
+  arCameraFrame?.classList.remove("camera-active", "target-detected");
 
+  if (selectedArCard && arOverlay) renderArOverlay(selectedArCard);
+}
 function bindEvents() {
   document.getElementById("loginForm").addEventListener("submit", login);
   document.getElementById("signupForm").addEventListener("submit", signup);
@@ -1208,7 +1483,7 @@ function bindEvents() {
   });
 
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden && cameraStream) stopCamera();
+    if (document.hidden && (cameraStream || mindarTracker)) stopCamera();
   });
 }
 

@@ -44,6 +44,10 @@ const reflectionMessageEl = document.getElementById("reflectionMessage");
 const scoreRingEl = document.getElementById("scoreRing");
 const scoreRingValueEl = document.getElementById("scoreRingValue");
 const scenarioTitleEl = document.getElementById("scenarioTitle");
+const scenarioRewardTitleEl = document.getElementById("scenarioRewardTitle");
+const scenarioRewardDetailEl = document.getElementById("scenarioRewardDetail");
+const scenarioWipeEl = document.getElementById("scenarioWipe");
+const scenarioWipeTitleEl = document.getElementById("scenarioWipeTitle");
 
 let firebaseClient = null;
 let currentUser = null;
@@ -875,13 +879,7 @@ function renderReflectionFields() {
   });
 }
 
-function showCompletion() {
-  if (!scenario || completionShown) return;
-  completionShown = true;
-  completedAtIso = completedAtIso || new Date().toISOString();
-  updateScoreHud();
-
-  const percent = scorePercent();
+function revealScenarioCompletion(percent) {
   document.body.dataset.scenarioState = "complete";
   scoreHudEl.hidden = true;
   sceneCueEl.hidden = true;
@@ -890,11 +888,42 @@ function showCompletion() {
   reflectionTitleEl.textContent = scenario.framework.id + " result";
   reflectionSummaryEl.textContent = completionCopy();
   frameworkResultEl.textContent = totalScore + "/" + scenario.framework.maxScore + " / " + (needsFollowUp() ? "Follow-up suggested" : "On track");
+  scenarioRewardTitleEl.textContent = scenario.title;
+  scenarioRewardDetailEl.textContent = scenario.framework.id + " · " + String(percent) + "%";
   renderEvaluationDetails();
   renderReflectionFields();
   reflectionPanelEl.hidden = false;
   notifyMotion("motion:content-added", { element: reflectionPanelEl });
+}
+
+function runScenarioCompletionWipe(title, onCovered) {
+  if (!scenarioWipeEl || reducedMotion) {
+    onCovered();
+    return;
+  }
+
+  scenarioWipeTitleEl.textContent = title;
+  scenarioWipeEl.hidden = false;
+  scenarioWipeEl.classList.remove("is-active");
+  void scenarioWipeEl.offsetWidth;
+  scenarioWipeEl.classList.add("is-active");
+
+  window.setTimeout(onCovered, 360);
+  window.setTimeout(() => {
+    scenarioWipeEl.classList.remove("is-active");
+    scenarioWipeEl.hidden = true;
+  }, 860);
+}
+
+function showCompletion() {
+  if (!scenario || completionShown) return;
+  completionShown = true;
+  completedAtIso = completedAtIso || new Date().toISOString();
+  updateScoreHud();
+
+  const percent = scorePercent();
   saveScenarioRecord("completed");
+  runScenarioCompletionWipe(scenario.title, () => revealScenarioCompletion(percent));
 }
 function restartScenario() {
   clearTimers();
@@ -911,6 +940,8 @@ function restartScenario() {
   completionShown = false;
   hideChoices();
   reflectionPanelEl.hidden = true;
+  scenarioWipeEl.classList.remove("is-active");
+  scenarioWipeEl.hidden = true;
   resultEl.hidden = true;
   scoreHudEl.hidden = true;
   rolePanelEl.hidden = false;
