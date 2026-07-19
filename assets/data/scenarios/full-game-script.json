@@ -1,0 +1,1226 @@
+{
+  "version": "2026-07-18-mdc-full-script",
+  "source": {
+    "documentTitle": "MDC",
+    "documentId": "1oGnbsktUpmwYl7eKtUz7RdCh4wBEwORAPmTJfrYEJw0",
+    "tab": "FULL GAME SCRIPT",
+    "tabId": "t.48hlwn1nvtld"
+  },
+  "titleIntro": [
+    {
+      "speaker": "Scene",
+      "tone": "neutral",
+      "text": "[Red Cross logo fades in. Office ambience. A slow zoom on an empty meeting room.]"
+    },
+    {
+      "speaker": "Narrator",
+      "tone": "neutral",
+      "text": "In this building, words can build careers."
+    },
+    {
+      "speaker": "Narrator",
+      "tone": "neutral",
+      "text": "Or quietly break people."
+    },
+    {
+      "speaker": "Narrator",
+      "tone": "neutral",
+      "text": "Every day, someone has to speak. And someone has to listen."
+    },
+    {
+      "speaker": "Narrator",
+      "tone": "neutral",
+      "text": "Which side are you on?"
+    }
+  ],
+  "roleSelect": {
+    "manager": "I deliver the feedback.",
+    "employee": "I receive the feedback."
+  },
+  "roleIntros": {
+    "manager": [
+      {
+        "speaker": "Scene",
+        "tone": "neutral",
+        "text": "[Screen transition. Office hallway. Morning light.]"
+      },
+      {
+        "speaker": "Narrator",
+        "tone": "neutral",
+        "text": "Welcome, Manager. Your name is Alex."
+      },
+      {
+        "speaker": "Narrator",
+        "tone": "neutral",
+        "text": "You lead a team at the Singapore Red Cross."
+      },
+      {
+        "speaker": "Narrator",
+        "tone": "neutral",
+        "text": "Your people are passionate. But feedback conversations? Those are never easy."
+      },
+      {
+        "speaker": "Narrator",
+        "tone": "neutral",
+        "text": "Let's see how you handle them."
+      }
+    ],
+    "employee": [
+      {
+        "speaker": "Scene",
+        "tone": "neutral",
+        "text": "[Screen transition. Office corridor. Late afternoon.]"
+      },
+      {
+        "speaker": "Narrator",
+        "tone": "neutral",
+        "text": "Welcome. Your name is Jamie."
+      },
+      {
+        "speaker": "Narrator",
+        "tone": "neutral",
+        "text": "You're a coordinator at the Singapore Red Cross."
+      },
+      {
+        "speaker": "Narrator",
+        "tone": "neutral",
+        "text": "You care deeply about this work. But feedback? It doesn't always land the way it's meant to."
+      },
+      {
+        "speaker": "Narrator",
+        "tone": "neutral",
+        "text": "Let's see how you handle it."
+      }
+    ]
+  },
+  "gameEnd": [
+    {
+      "speaker": "Scene",
+      "tone": "neutral",
+      "text": "[Office fades. Both characters — Alex and Jamie — visible in the background, mid-conversation.]"
+    },
+    {
+      "speaker": "Narrator",
+      "tone": "neutral",
+      "text": "Every conversation at the Red Cross shapes the culture around you."
+    },
+    {
+      "speaker": "Narrator",
+      "tone": "neutral",
+      "text": "REAL or CARE — these aren't just frameworks."
+    },
+    {
+      "speaker": "Narrator",
+      "tone": "neutral",
+      "text": "They're choices. Made in small moments."
+    },
+    {
+      "speaker": "Narrator",
+      "tone": "neutral",
+      "text": "And they add up."
+    },
+    {
+      "speaker": "Scene",
+      "tone": "neutral",
+      "text": "[EchoWorks logo animates in.]"
+    },
+    {
+      "speaker": "Narrator",
+      "tone": "mentor",
+      "text": "Play again — try the other side."
+    }
+  ],
+  "scenarioOrder": [
+    "real-late-arrival",
+    "real-uneven-scale",
+    "real-quiet-one",
+    "real-star-stopped-caring",
+    "care-ambush",
+    "care-rating-stings",
+    "care-what-did-that-mean",
+    "care-three-weeks-one-goal"
+  ],
+  "scenarios": {
+    "real-late-arrival": {
+      "title": "The Late Arrival",
+      "frameworkId": "REAL",
+      "focusDimension": "R",
+      "intro": [
+        {
+          "speaker": "Scene",
+          "tone": "neutral",
+          "text": "[Scene: A small meeting room. Alex sits across from JAMIE, a dedicated but recently tardy team member.]"
+        },
+        {
+          "speaker": "Narrator",
+          "tone": "neutral",
+          "text": "Jamie has been arriving 15–20 minutes late almost every day this week."
+        },
+        {
+          "speaker": "Narrator",
+          "tone": "neutral",
+          "text": "But today, Jamie also submitted the best community outreach report your team has seen in months."
+        },
+        {
+          "speaker": "Narrator",
+          "tone": "neutral",
+          "text": "It's time for the feedback conversation. You take a breath."
+        },
+        {
+          "speaker": "Alex",
+          "tone": "neutral",
+          "text": "Jamie, thanks for coming in. I wanted to catch up on a few things.",
+          "focus": "manager",
+          "mood": "happy"
+        },
+        {
+          "speaker": "Jamie",
+          "tone": "neutral",
+          "text": "Sure. Is everything okay?",
+          "focus": "sarah"
+        },
+        {
+          "speaker": "Scene",
+          "tone": "neutral",
+          "text": "[What do you open with?]"
+        }
+      ],
+      "decisionPrompt": "What do you open with?",
+      "choices": {
+        "recognise-specific-work": {
+          "label": "A",
+          "sourceMarker": "IF A — BEST CHOICE",
+          "text": "\"Your report this week was genuinely impressive. The way you broke down the volunteer data — I want us to use that format going forward.\"",
+          "effect": "success",
+          "outcome": [
+            {
+              "speaker": "Jamie",
+              "tone": "success",
+              "text": "(visibly relaxing) Oh. Thank you. I put a lot of work into that.",
+              "focus": "sarah",
+              "mood": "happy"
+            },
+            {
+              "speaker": "Alex",
+              "tone": "success",
+              "text": "It shows. And because I value that kind of work, I also want to address something. You've been coming in late most days. I've noticed, and I want to understand what's going on.",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Jamie",
+              "tone": "success",
+              "text": "I'm sorry. The MRT's been delayed and I haven't sorted out an earlier route yet.",
+              "focus": "sarah"
+            },
+            {
+              "speaker": "Alex",
+              "tone": "success",
+              "text": "That's helpful to know. Let's figure out what we can do.",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Scene",
+              "tone": "success",
+              "text": "[Jamie nods. The air in the room is open — not tense.]"
+            }
+          ],
+          "feedback": {
+            "speaker": "REAL Coach",
+            "tone": "success",
+            "text": "★ FEEDBACK CARD — R: RECOGNISE You demonstrated RECOGNISE. By opening with specific, observable praise before raising the issue, you created psychological safety. Jamie felt seen — not ambushed. Key: Shine a spotlight on what was done well first. Be specific. Then address the gap."
+          }
+        },
+        "lead-with-lateness": {
+          "label": "B",
+          "sourceMarker": "IF B — WRONG CHOICE",
+          "text": "\"Let's get straight to it — you've been late every single day this week.\"",
+          "effect": "fail",
+          "outcome": [
+            {
+              "speaker": "Jamie",
+              "tone": "tense",
+              "text": "(stiffening) I — yes, I know. But I've had transport issues and I've still been getting my work done.",
+              "focus": "sarah",
+              "mood": "frustrated"
+            },
+            {
+              "speaker": "Alex",
+              "tone": "tense",
+              "text": "That's not the point. The lateness is a problem.",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Jamie",
+              "tone": "tense",
+              "text": "(flatly) Okay.",
+              "focus": "sarah",
+              "mood": "frustrated"
+            },
+            {
+              "speaker": "Scene",
+              "tone": "tense",
+              "text": "[The report on the table goes unmentioned. Jamie leaves only knowing what they did wrong — not what they did right.]"
+            }
+          ],
+          "feedback": {
+            "speaker": "REAL Coach",
+            "tone": "tense",
+            "text": "✗ FEEDBACK CARD — MISSED: R: RECOGNISE You skipped RECOGNISE. Jumping straight to the problem activated Jamie's identity trigger. They felt judged, not coached. And you missed a chance to build trust. What to try: Acknowledge specific strengths before raising concerns. It changes everything."
+          }
+        },
+        "vague-check-in": {
+          "label": "C",
+          "sourceMarker": "IF C — PARTIAL CHOICE",
+          "text": "\"I just wanted to check in generally. How are you feeling about your workload lately?\"",
+          "effect": "neutral",
+          "outcome": [
+            {
+              "speaker": "Jamie",
+              "tone": "mentor",
+              "text": "I'm okay. Just a bit stretched.",
+              "focus": "sarah"
+            },
+            {
+              "speaker": "Alex",
+              "tone": "mentor",
+              "text": "I see. I also wanted to bring up the punctuality — you've been late a lot this week.",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Jamie",
+              "tone": "mentor",
+              "text": "Yeah. I'll try to do better.",
+              "focus": "sarah"
+            },
+            {
+              "speaker": "Scene",
+              "tone": "mentor",
+              "text": "[The feedback was given. But it felt like a box was ticked, not a conversation.]"
+            }
+          ],
+          "feedback": {
+            "speaker": "REAL Coach",
+            "tone": "mentor",
+            "text": "△ FEEDBACK CARD — PARTIAL: R: RECOGNISE You were kind, but you missed RECOGNISE. Opening vaguely meant the conversation lost direction early. Jamie wasn't made to feel seen. Try: Shine a specific spotlight on a real achievement first. Vague check-ins don't build trust."
+          }
+        }
+      }
+    },
+    "real-uneven-scale": {
+      "title": "The Uneven Scale",
+      "frameworkId": "REAL",
+      "focusDimension": "E",
+      "intro": [
+        {
+          "speaker": "Scene",
+          "tone": "neutral",
+          "text": "[Scene: Alex reviews mid-year evaluations for two team coordinators — SAM and JORDAN. Both are strong performers, but in different ways.]"
+        },
+        {
+          "speaker": "Narrator",
+          "tone": "neutral",
+          "text": "Sam is methodical, quiet, and hits every KPI."
+        },
+        {
+          "speaker": "Narrator",
+          "tone": "neutral",
+          "text": "Jordan is energetic, deeply loved by the team — and missed two deadlines last month after going above and beyond at the relief drive."
+        },
+        {
+          "speaker": "Narrator",
+          "tone": "neutral",
+          "text": "You meet with Jordan first."
+        },
+        {
+          "speaker": "Alex",
+          "tone": "neutral",
+          "text": "Jordan, you were incredible during the relief drive. The team really rallied around you.",
+          "focus": "manager"
+        },
+        {
+          "speaker": "Jordan",
+          "tone": "neutral",
+          "text": "Thank you. That week meant a lot to me.",
+          "focus": "sarah",
+          "mood": "happy"
+        },
+        {
+          "speaker": "Alex",
+          "tone": "neutral",
+          "text": "There's also the matter of the two missed deadlines.",
+          "focus": "manager"
+        },
+        {
+          "speaker": "Jordan",
+          "tone": "neutral",
+          "text": "(pausing) I know. I got too caught up in the drive.",
+          "focus": "sarah"
+        }
+      ],
+      "decisionPrompt": "How do you evaluate both the relief-drive impact and the missed deadlines?",
+      "choices": {
+        "set-deadlines-aside": {
+          "label": "A",
+          "sourceMarker": "IF A — WRONG CHOICE",
+          "text": "\"Given what you achieved that week, I'm going to set those aside for this review. The impact was worth it.\"",
+          "effect": "fail",
+          "outcome": [
+            {
+              "speaker": "Scene",
+              "tone": "tense",
+              "text": "[You file the review with glowing remarks. The missed deadlines are barely a footnote.]"
+            },
+            {
+              "speaker": "Narrator",
+              "tone": "tense",
+              "text": "Weeks later, Sam hears through the team that Jordan's review was near-perfect."
+            },
+            {
+              "speaker": "Narrator",
+              "tone": "tense",
+              "text": "Sam says nothing. But something quietly shifts."
+            }
+          ],
+          "feedback": {
+            "speaker": "REAL Coach",
+            "tone": "tense",
+            "text": "✗ FEEDBACK CARD — MISSED: E: EVALUATE You skipped EVALUATE. Evaluating on enthusiasm over evidence isn't fair — to Jordan or to Sam. EVALUATE means: weigh contributions, behaviours, and outcomes. Not feelings about the person."
+          }
+        },
+        "balance-both-outcomes": {
+          "label": "B",
+          "sourceMarker": "IF B — BEST CHOICE",
+          "text": "\"I have to evaluate you on both. The energy was brilliant. The missed deadlines affected the team's planning cycle. Both things are real.\"",
+          "effect": "success",
+          "outcome": [
+            {
+              "speaker": "Jordan",
+              "tone": "success",
+              "text": "(nodding slowly) That's fair. I didn't think about how it affected the planning team downstream.",
+              "focus": "sarah",
+              "mood": "happy"
+            },
+            {
+              "speaker": "Alex",
+              "tone": "success",
+              "text": "That awareness matters. I want to see you grow in both — the drive you have and the structure the role needs.",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Jordan",
+              "tone": "success",
+              "text": "I appreciate the honesty.",
+              "focus": "sarah",
+              "mood": "happy"
+            }
+          ],
+          "feedback": {
+            "speaker": "REAL Coach",
+            "tone": "success",
+            "text": "★ FEEDBACK CARD — E: EVALUATE You demonstrated EVALUATE. You balanced recognition with accountability. That's how you build a consistent, fair team culture. Key: Weigh observable outcomes — not how much you like someone."
+          }
+        },
+        "label-admin-weakness": {
+          "label": "C",
+          "sourceMarker": "IF C — WRONG CHOICE",
+          "text": "\"You're a people person, Jordan. The admin side just might not be your strength.\"",
+          "effect": "fail",
+          "outcome": [
+            {
+              "speaker": "Jordan",
+              "tone": "tense",
+              "text": "(quietly) Oh. I didn't realise you saw it that way.",
+              "focus": "sarah"
+            },
+            {
+              "speaker": "Scene",
+              "tone": "tense",
+              "text": "[You meant it as insight. Jordan heard: \"I'm not capable of the full role.\"]"
+            }
+          ],
+          "feedback": {
+            "speaker": "REAL Coach",
+            "tone": "tense",
+            "text": "✗ FEEDBACK CARD — MISSED: E: EVALUATE You activated an identity trigger. Labelling someone's \"type\" shifts from behaviour to character. That shuts people down. EVALUATE means: assess what was done — not who you think they are."
+          }
+        }
+      }
+    },
+    "real-quiet-one": {
+      "title": "The Quiet One",
+      "frameworkId": "REAL",
+      "focusDimension": "A",
+      "intro": [
+        {
+          "speaker": "Scene",
+          "tone": "neutral",
+          "text": "[Scene: Weekly check-in. Alex meets with PRIYA, a newer staff member who produces good work but never speaks in team meetings.]"
+        },
+        {
+          "speaker": "Narrator",
+          "tone": "neutral",
+          "text": "Priya is solid individually. But in group settings, she disappears."
+        },
+        {
+          "speaker": "Narrator",
+          "tone": "neutral",
+          "text": "Other coordinators are starting to notice."
+        },
+        {
+          "speaker": "Alex",
+          "tone": "neutral",
+          "text": "Priya, you produce solid work — that's always been clear. But I've noticed you tend to stay quiet in our team meetings.",
+          "focus": "manager",
+          "mood": "happy"
+        },
+        {
+          "speaker": "Priya",
+          "tone": "neutral",
+          "text": "(tense) I don't always feel like I have something worth saying.",
+          "focus": "sarah",
+          "mood": "frustrated"
+        }
+      ],
+      "decisionPrompt": "How do you respond to Priya?",
+      "choices": {
+        "tell-priya-speak-up": {
+          "label": "A",
+          "sourceMarker": "IF A — WRONG CHOICE",
+          "text": "\"You need to speak up more. Other people are noticing the silence.\"",
+          "effect": "fail",
+          "outcome": [
+            {
+              "speaker": "Priya",
+              "tone": "tense",
+              "text": "(quietly) I'll try.",
+              "focus": "sarah"
+            },
+            {
+              "speaker": "Scene",
+              "tone": "tense",
+              "text": "[She nods. But that's not agreement — that's shutdown.]"
+            },
+            {
+              "speaker": "Narrator",
+              "tone": "tense",
+              "text": "You named the gap. But you gave her no path forward."
+            }
+          ],
+          "feedback": {
+            "speaker": "REAL Coach",
+            "tone": "tense",
+            "text": "✗ FEEDBACK CARD — MISSED: A: ADVICE You skipped ADVICE. Telling someone what to do without a how is pressure, not guidance. It increases anxiety, not confidence. Try: Act as a navigator. Ask first. Then offer practical, specific steps."
+          }
+        },
+        "ask-what-is-hard": {
+          "label": "B",
+          "sourceMarker": "IF B — BETTER CHOICE",
+          "text": "\"What makes it hard to share in those moments?\"",
+          "effect": "success",
+          "outcome": [
+            {
+              "speaker": "Priya",
+              "tone": "success",
+              "text": "(pausing) I guess... I worry my ideas aren't as polished as everyone else's.",
+              "focus": "sarah"
+            },
+            {
+              "speaker": "Alex",
+              "tone": "success",
+              "text": "That's really helpful to hear. Half-formed ideas are often where the best thinking starts. Can we try something? I'll give you a heads-up on one agenda item before each meeting.",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Priya",
+              "tone": "success",
+              "text": "I'd like that.",
+              "focus": "sarah"
+            }
+          ],
+          "feedback": {
+            "speaker": "REAL Coach",
+            "tone": "success",
+            "text": "★ FEEDBACK CARD — A: ADVICE You demonstrated ADVICE. You asked before you advised. Then you offered a practical, low-pressure next step. Key: Reflective questions + actionable suggestions = real navigation, not just direction."
+          }
+        },
+        "offer-one-idea-plan": {
+          "label": "C",
+          "sourceMarker": "IF C — ALSO STRONG CHOICE",
+          "text": "\"Here's a small idea — before each meeting, write down just one thing you want to say. I'll also make sure to create space for you.\"",
+          "effect": "success",
+          "outcome": [
+            {
+              "speaker": "Priya",
+              "tone": "success",
+              "text": "That... actually sounds manageable.",
+              "focus": "sarah"
+            },
+            {
+              "speaker": "Alex",
+              "tone": "success",
+              "text": "Let's try it for two weeks and check in.",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Scene",
+              "tone": "success",
+              "text": "[Priya leaves looking lighter.]"
+            }
+          ],
+          "feedback": {
+            "speaker": "REAL Coach",
+            "tone": "success",
+            "text": "★ FEEDBACK CARD — A: ADVICE You demonstrated ADVICE. Giving someone a small, specific action respects their pace. That's the difference between coaching and commanding. Key: Make the path forward concrete and kind."
+          }
+        }
+      }
+    },
+    "real-star-stopped-caring": {
+      "title": "The Star Who Stopped Caring",
+      "frameworkId": "REAL",
+      "focusDimension": "L",
+      "intro": [
+        {
+          "speaker": "Scene",
+          "tone": "neutral",
+          "text": "[Scene: Year-end review with MARCUS, your highest-performing community officer. His numbers are excellent — but lately, something is off.]"
+        },
+        {
+          "speaker": "Narrator",
+          "tone": "neutral",
+          "text": "Marcus has been here three years. Best numbers in the team."
+        },
+        {
+          "speaker": "Narrator",
+          "tone": "neutral",
+          "text": "But recently he's been quiet in planning sessions. And he turned down a chance to mentor a junior officer."
+        },
+        {
+          "speaker": "Alex",
+          "tone": "neutral",
+          "text": "Marcus, your work this year has been outstanding. Three major campaigns. Highest volunteer satisfaction scores on the team.",
+          "focus": "manager"
+        },
+        {
+          "speaker": "Marcus",
+          "tone": "neutral",
+          "text": "(flatly) Thanks.",
+          "focus": "sarah",
+          "mood": "frustrated"
+        },
+        {
+          "speaker": "Alex",
+          "tone": "neutral",
+          "text": "I also noticed you stepped back from the mentoring opportunity. I was a bit surprised.",
+          "focus": "manager"
+        },
+        {
+          "speaker": "Marcus",
+          "tone": "neutral",
+          "text": "I just didn't see the point.",
+          "focus": "sarah"
+        }
+      ],
+      "decisionPrompt": "How do you reconnect Marcus with purpose?",
+      "choices": {
+        "mentoring-is-expected": {
+          "label": "A",
+          "sourceMarker": "IF A — WRONG CHOICE",
+          "text": "\"That's disappointing. Mentoring is expected at your level.\"",
+          "effect": "fail",
+          "outcome": [
+            {
+              "speaker": "Marcus",
+              "tone": "tense",
+              "text": "(flatly) Okay.",
+              "focus": "sarah",
+              "mood": "frustrated"
+            },
+            {
+              "speaker": "Scene",
+              "tone": "tense",
+              "text": "[He agrees. But nothing changes. He doesn't know why it matters — only that you expect it.]"
+            }
+          ],
+          "feedback": {
+            "speaker": "REAL Coach",
+            "tone": "tense",
+            "text": "✗ FEEDBACK CARD — MISSED: L: LINK You skipped LINK. Compliance without meaning doesn't last. Marcus isn't resistant — he's disconnected. LINK means: show people how their actions today shape their future and the team's future."
+          }
+        },
+        "connect-to-leadership": {
+          "label": "B",
+          "sourceMarker": "IF B — BEST CHOICE",
+          "text": "\"I hear that. Can I share what I see when I think about where you could be heading?\"",
+          "effect": "success",
+          "outcome": [
+            {
+              "speaker": "Marcus",
+              "tone": "success",
+              "text": "(slightly curious) What do you mean?",
+              "focus": "sarah",
+              "mood": "happy"
+            },
+            {
+              "speaker": "Alex",
+              "tone": "success",
+              "text": "I think you have the instinct to lead at a higher level. When you mentor someone, you're not just helping one person — you're shaping how the next generation of this team thinks about the mission.",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Alex",
+              "tone": "success",
+              "text": "Your experience is rare here. I'd hate for it to stay in one lane.",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Marcus",
+              "tone": "success",
+              "text": "(quietly) I hadn't thought about it like that.",
+              "focus": "sarah"
+            }
+          ],
+          "feedback": {
+            "speaker": "REAL Coach",
+            "tone": "success",
+            "text": "★ FEEDBACK CARD — L: LINK You demonstrated LINK. You connected Marcus's behaviour to something bigger — his impact and future potential. That's what reignites purpose. Key: Build a bridge between today's choices and tomorrow's growth. Always."
+          }
+        },
+        "move-to-targets": {
+          "label": "C",
+          "sourceMarker": "IF C — WRONG CHOICE",
+          "text": "\"Understood. Let's move on to next year's targets.\"",
+          "effect": "fail",
+          "outcome": [
+            {
+              "speaker": "Scene",
+              "tone": "tense",
+              "text": "[You move on. The moment passes. Marcus leaves the review feeling exactly the same.]"
+            }
+          ],
+          "feedback": {
+            "speaker": "REAL Coach",
+            "tone": "tense",
+            "text": "✗ FEEDBACK CARD — MISSED: L: LINK You skipped LINK. Feedback that ends at correction doesn't move people. It just informs them. Try: Close every feedback conversation by connecting it to future impact and growth. That's what makes it stick."
+          }
+        }
+      }
+    },
+    "care-ambush": {
+      "title": "The Ambush",
+      "frameworkId": "CARE",
+      "focusDimension": "C",
+      "intro": [
+        {
+          "speaker": "Scene",
+          "tone": "neutral",
+          "text": "[Scene: End of a long, brutal week. Your manager Alex catches you in the corridor just before you leave.]"
+        },
+        {
+          "speaker": "Narrator",
+          "tone": "neutral",
+          "text": "Understaffed. Late nights. A volunteer event that almost fell apart. You are exhausted."
+        },
+        {
+          "speaker": "Alex",
+          "tone": "neutral",
+          "text": "Jamie, quick word. I've been hearing from a few team members that you've been a bit dismissive in the morning briefings. Some people feel their ideas aren't being heard.",
+          "focus": "manager"
+        },
+        {
+          "speaker": "Scene",
+          "tone": "neutral",
+          "text": "[Your chest tightens. You've been holding this team together all week.]"
+        }
+      ],
+      "decisionPrompt": "What do you say?",
+      "choices": {
+        "react-from-exhaustion": {
+          "label": "A",
+          "sourceMarker": "IF A — WRONG CHOICE",
+          "text": "(frustrated) \"Are you serious? I've been the only one holding things together this entire week.\"",
+          "effect": "fail",
+          "outcome": [
+            {
+              "speaker": "Alex",
+              "tone": "tense",
+              "text": "(taken aback) I understand you've been under pressure, but—",
+              "focus": "manager",
+              "mood": "frustrated"
+            },
+            {
+              "speaker": "Jamie",
+              "tone": "tense",
+              "text": "No. I don't think you do.",
+              "focus": "sarah"
+            },
+            {
+              "speaker": "Scene",
+              "tone": "tense",
+              "text": "[The conversation derails. Nothing gets resolved. You walk away feeling vindicated — and somehow, worse.]"
+            }
+          ],
+          "feedback": {
+            "speaker": "CARE Coach",
+            "tone": "tense",
+            "text": "✗ FEEDBACK CARD — MISSED: C: COMPOSE You skipped COMPOSE. Reacting from exhaustion hijacked the conversation. The feedback got buried under the emotional reaction. COMPOSE means: pause before responding. Treat feedback as a diagnostic report — not a personal verdict."
+          }
+        },
+        "ask-for-a-moment": {
+          "label": "B",
+          "sourceMarker": "IF B — BEST CHOICE",
+          "text": "(quietly) \"Okay. Can I have a moment? I want to make sure I actually hear this properly.\"",
+          "effect": "success",
+          "outcome": [
+            {
+              "speaker": "Alex",
+              "tone": "success",
+              "text": "Of course. Take your time.",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Scene",
+              "tone": "success",
+              "text": "[Jamie takes a breath. Internal monologue:]"
+            },
+            {
+              "speaker": "Jamie",
+              "tone": "success",
+              "text": "(to self) I'm tired. I might be hearing this wrong. This isn't an attack. Just... listen.",
+              "focus": "sarah"
+            },
+            {
+              "speaker": "Jamie",
+              "tone": "success",
+              "text": "Okay. I'm ready. Can you walk me through what was shared?",
+              "focus": "sarah"
+            },
+            {
+              "speaker": "Alex",
+              "tone": "success",
+              "text": "A few people said they raised ideas and felt you moved past them without acknowledging them.",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Jamie",
+              "tone": "success",
+              "text": "I wasn't aware it came across that way. Can we talk more tomorrow so I can sit with it tonight?",
+              "focus": "sarah"
+            }
+          ],
+          "feedback": {
+            "speaker": "CARE Coach",
+            "tone": "success",
+            "text": "★ FEEDBACK CARD — C: COMPOSE You demonstrated COMPOSE. You paused, reframed internally, and responded with calm curiosity — not defensiveness. That's emotional regulation in real time. Key: Pause. Breathe. The feedback is data, not a verdict."
+          }
+        },
+        "promise-quick-fix": {
+          "label": "C",
+          "sourceMarker": "IF C — PARTIAL CHOICE",
+          "text": "\"That's fine. I'll fix it.\" (turns to leave)",
+          "effect": "neutral",
+          "outcome": [
+            {
+              "speaker": "Scene",
+              "tone": "mentor",
+              "text": "[You leave quickly. The words echo in your head the whole way home.]"
+            },
+            {
+              "speaker": "Narrator",
+              "tone": "mentor",
+              "text": "Did you handle that well? Or did you just escape it?"
+            }
+          ],
+          "feedback": {
+            "speaker": "CARE Coach",
+            "tone": "mentor",
+            "text": "△ FEEDBACK CARD — PARTIAL: C: COMPOSE You stayed calm — but you deflected. Saying \"I'll fix it\" without understanding the feedback means nothing actually changes. COMPOSE isn't just staying quiet. It's being present enough to actually receive the message."
+          }
+        }
+      }
+    },
+    "care-rating-stings": {
+      "title": "The Rating That Stings",
+      "frameworkId": "CARE",
+      "focusDimension": "A",
+      "intro": [
+        {
+          "speaker": "Scene",
+          "tone": "neutral",
+          "text": "[Scene: Mid-year review. Alex shares your rating — Meets Expectations. You were certain it would be Exceeds.]"
+        },
+        {
+          "speaker": "Alex",
+          "tone": "neutral",
+          "text": "Overall, your performance this cycle is solid. Meets Expectations.",
+          "focus": "manager"
+        },
+        {
+          "speaker": "Scene",
+          "tone": "neutral",
+          "text": "[The words land hard. Late nights. Covered shifts. Delivered every project.]"
+        },
+        {
+          "speaker": "Narrator",
+          "tone": "neutral",
+          "text": "Your mind races: Is this because of that disagreement last month? Does Alex just not see my effort?"
+        }
+      ],
+      "decisionPrompt": "How do you respond to the rating?",
+      "choices": {
+        "ask-for-criteria": {
+          "label": "A",
+          "sourceMarker": "IF A — BEST CHOICE",
+          "text": "\"I'm honestly confused. I feel like I've exceeded expectations in a few areas. Can you walk me through the criteria?\"",
+          "effect": "success",
+          "outcome": [
+            {
+              "speaker": "Alex",
+              "tone": "success",
+              "text": "Of course. The rating reflects output consistency, stakeholder feedback, and project milestones. You hit most targets — the gap was in the stakeholder communications area.",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Jamie",
+              "tone": "success",
+              "text": "I wasn't aware that was weighted as heavily. Can I see the breakdown?",
+              "focus": "sarah"
+            },
+            {
+              "speaker": "Alex",
+              "tone": "success",
+              "text": "Absolutely.",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Scene",
+              "tone": "success",
+              "text": "[You leave with clarity, not just feelings.]"
+            }
+          ],
+          "feedback": {
+            "speaker": "CARE Coach",
+            "tone": "success",
+            "text": "★ FEEDBACK CARD — A: ANALYZE You demonstrated ANALYZE. You separated your emotional reaction from the actual content. You asked for evidence, not validation. Key: Focus on what was said, not who said it or why you think they said it."
+          }
+        },
+        "call-rating-personal": {
+          "label": "B",
+          "sourceMarker": "IF B — WRONG CHOICE",
+          "text": "\"I think this rating is unfair. It feels personal.\"",
+          "effect": "fail",
+          "outcome": [
+            {
+              "speaker": "Alex",
+              "tone": "tense",
+              "text": "It's not personal, Jamie. The criteria—",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Jamie",
+              "tone": "tense",
+              "text": "I know what the criteria say. This just doesn't feel right.",
+              "focus": "sarah"
+            },
+            {
+              "speaker": "Scene",
+              "tone": "tense",
+              "text": "[The conversation becomes about feelings, not facts. No clarity is reached.]"
+            }
+          ],
+          "feedback": {
+            "speaker": "CARE Coach",
+            "tone": "tense",
+            "text": "✗ FEEDBACK CARD — MISSED: A: ANALYZE You activated the Relationship Trigger. When feedback feels like it's about the relationship, you stop hearing the content. ANALYZE means: separate emotional reaction from intent. Focus on behaviours and outcomes — not assumed motivations."
+          }
+        },
+        "accept-in-silence": {
+          "label": "C",
+          "sourceMarker": "IF C — WRONG CHOICE",
+          "text": "(nods quietly) \"Okay.\" (internally: starts updating CV)",
+          "effect": "fail",
+          "outcome": [
+            {
+              "speaker": "Scene",
+              "tone": "tense",
+              "text": "[You accept it. The frustration quietly sits in you for weeks.]"
+            },
+            {
+              "speaker": "Narrator",
+              "tone": "tense",
+              "text": "You don't ask. You don't understand. And the same gaps stay invisible to you."
+            }
+          ],
+          "feedback": {
+            "speaker": "CARE Coach",
+            "tone": "tense",
+            "text": "✗ FEEDBACK CARD — MISSED: A: ANALYZE Silence isn't acceptance — it's avoidance. Not analyzing the feedback means you lose the only chance to grow from it. ANALYZE means: examine the content, separate fact from perspective, and stay curious."
+          }
+        }
+      }
+    },
+    "care-what-did-that-mean": {
+      "title": "What Did That Mean?",
+      "frameworkId": "CARE",
+      "focusDimension": "R",
+      "intro": [
+        {
+          "speaker": "Scene",
+          "tone": "neutral",
+          "text": "[Scene: Team debrief after a community health event. Alex gives general feedback to the group — but some of it clearly lands in your direction.]"
+        },
+        {
+          "speaker": "Alex",
+          "tone": "neutral",
+          "text": "Some of the communications during the event could have been clearer. We need to do better on coordination next time.",
+          "focus": "manager",
+          "mood": "happy"
+        },
+        {
+          "speaker": "Scene",
+          "tone": "neutral",
+          "text": "[You managed the volunteer communications. You're fairly sure that's about you — but you're not sure what exactly went wrong.]"
+        },
+        {
+          "speaker": "Narrator",
+          "tone": "neutral",
+          "text": "People start packing up. Do you say something?"
+        }
+      ],
+      "decisionPrompt": "People start packing up. Do you say something?",
+      "choices": {
+        "assume-and-work-harder": {
+          "label": "A",
+          "sourceMarker": "IF A — WRONG CHOICE",
+          "text": "(to yourself) \"That was definitely about me. I'll just work harder next time.\" \\",
+          "effect": "fail",
+          "outcome": [
+            {
+              "speaker": "Scene",
+              "tone": "tense",
+              "text": "[You go home. You replay every moment of the event. You still can't figure out what you did wrong.]"
+            },
+            {
+              "speaker": "Narrator",
+              "tone": "tense",
+              "text": "Next event. Same issue. Because nothing was ever clarified."
+            }
+          ],
+          "feedback": {
+            "speaker": "CARE Coach",
+            "tone": "tense",
+            "text": "✗ FEEDBACK CARD — MISSED: R: RESOLVE You skipped RESOLVE. Assuming without asking means you try to fix the wrong thing — or nothing at all. RESOLVE means: clarify respectfully. You can't improve what you don't understand."
+          }
+        },
+        "ask-privately": {
+          "label": "B",
+          "sourceMarker": "IF B — BEST CHOICE",
+          "text": "\"Alex, before we wrap up — can I check in privately? I want to make sure I understand the communications feedback.\"",
+          "effect": "success",
+          "outcome": [
+            {
+              "speaker": "Alex",
+              "tone": "success",
+              "text": "Of course. Thanks for asking.",
+              "focus": "manager",
+              "mood": "happy"
+            },
+            {
+              "speaker": "Scene",
+              "tone": "success",
+              "text": "[Later, in private:]"
+            },
+            {
+              "speaker": "Alex",
+              "tone": "success",
+              "text": "The volunteer check-in messages went out two hours late. A few people showed up to the wrong station.",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Jamie",
+              "tone": "success",
+              "text": "Oh. I didn't realise the timing caused that downstream. I thought the delay was absorbed on the other end.",
+              "focus": "sarah"
+            },
+            {
+              "speaker": "Alex",
+              "tone": "success",
+              "text": "Now you know. A quick confirmation message 30 minutes before the event would help a lot.",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Jamie",
+              "tone": "success",
+              "text": "That's really clear. Thank you.",
+              "focus": "sarah",
+              "mood": "happy"
+            }
+          ],
+          "feedback": {
+            "speaker": "CARE Coach",
+            "tone": "success",
+            "text": "★ FEEDBACK CARD — R: RESOLVE You demonstrated RESOLVE. Asking privately and specifically gave you what you needed to actually improve — not just a vague goal to \"do better.\" Key: Clarify without assuming negative intent. Questions build bridges."
+          }
+        },
+        "challenge-in-public": {
+          "label": "C",
+          "sourceMarker": "IF C — RISKY CHOICE",
+          "text": "(louder than intended) \"Was that directed at me? Because I think the issues came from the last-minute changes, not my end.\"",
+          "effect": "neutral",
+          "outcome": [
+            {
+              "speaker": "Alex",
+              "tone": "mentor",
+              "text": "(caught off guard) It wasn't only about you, Jamie—",
+              "focus": "manager",
+              "mood": "frustrated"
+            },
+            {
+              "speaker": "Scene",
+              "tone": "mentor",
+              "text": "[The room goes quiet. A few colleagues glance over.]"
+            },
+            {
+              "speaker": "Narrator",
+              "tone": "mentor",
+              "text": "You made your point. But the conversation is now uncomfortable for everyone."
+            }
+          ],
+          "feedback": {
+            "speaker": "CARE Coach",
+            "tone": "mentor",
+            "text": "△ FEEDBACK CARD — PARTIAL: R: RESOLVE You asked — but how you asked matters. Public defensiveness creates tension rather than resolution. RESOLVE works best when done privately and respectfully. The what and the how both count."
+          }
+        }
+      }
+    },
+    "care-three-weeks-one-goal": {
+      "title": "Three Weeks. One Goal.",
+      "frameworkId": "CARE",
+      "focusDimension": "E",
+      "intro": [
+        {
+          "speaker": "Scene",
+          "tone": "neutral",
+          "text": "[Scene: Two days after your review. Alex gave you clear feedback — your written reports are detailed but hard to skim. You have a report due in three weeks.]"
+        },
+        {
+          "speaker": "Narrator",
+          "tone": "neutral",
+          "text": "The feedback was fair. You know it."
+        },
+        {
+          "speaker": "Narrator",
+          "tone": "neutral",
+          "text": "Three weeks feels like forever — and also like no time at all."
+        },
+        {
+          "speaker": "Narrator",
+          "tone": "neutral",
+          "text": "What do you do?"
+        }
+      ],
+      "decisionPrompt": "What do you do?",
+      "choices": {
+        "overhaul-everything": {
+          "label": "A",
+          "sourceMarker": "IF A — WRONG CHOICE",
+          "text": "Spend the first week overhauling your writing style from scratch. New format. New structure. All of it.",
+          "effect": "fail",
+          "outcome": [
+            {
+              "speaker": "Scene",
+              "tone": "tense",
+              "text": "[Week one: articles on business writing. Week two: three new formats tested.]"
+            },
+            {
+              "speaker": "Narrator",
+              "tone": "tense",
+              "text": "The report comes together. But it feels forced. Not quite you."
+            },
+            {
+              "speaker": "Alex",
+              "tone": "tense",
+              "text": "Better — but not quite there yet.",
+              "focus": "manager"
+            }
+          ],
+          "feedback": {
+            "speaker": "CARE Coach",
+            "tone": "tense",
+            "text": "✗ FEEDBACK CARD — MISSED: E: EXECUTE Big leaps without structure rarely stick. Trying to change everything at once is overwhelming and rarely leads to real growth. EXECUTE means: break it down. Small, specific, trackable steps — not full transformations."
+          }
+        },
+        "example-two-changes-checkin": {
+          "label": "B",
+          "sourceMarker": "IF B — BEST CHOICE",
+          "text": "Ask Alex for one example of a well-structured report. Pick two specific things to change. Schedule a short check-in in week two.",
+          "effect": "success",
+          "outcome": [
+            {
+              "speaker": "Alex",
+              "tone": "success",
+              "text": "(sharing a report) Here's one that worked well. See how each section opens with the key point?",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Jamie",
+              "tone": "success",
+              "text": "Got it. I'll focus on leading with the main finding, and I'll cut my executive summaries down to three lines.",
+              "focus": "sarah"
+            },
+            {
+              "speaker": "Scene",
+              "tone": "success",
+              "text": "[Week two check-in.]"
+            },
+            {
+              "speaker": "Alex",
+              "tone": "success",
+              "text": "(reviewing the draft) This is noticeably cleaner. Good work.",
+              "focus": "manager"
+            },
+            {
+              "speaker": "Scene",
+              "tone": "success",
+              "text": "[You adjusted. You executed. And this time — it stuck.]"
+            }
+          ],
+          "feedback": {
+            "speaker": "CARE Coach",
+            "tone": "success",
+            "text": "★ FEEDBACK CARD — E: EXECUTE You demonstrated EXECUTE. You broke the feedback into manageable steps, got a reference point, and checked progress before the deadline. Key: Small steps, followed through. That's how feedback becomes real growth."
+          }
+        },
+        "adapt-on-the-fly": {
+          "label": "C",
+          "sourceMarker": "IF C — WRONG CHOICE",
+          "text": "Wait to see what the report needs to be, then adapt your style on the fly.",
+          "effect": "fail",
+          "outcome": [
+            {
+              "speaker": "Scene",
+              "tone": "tense",
+              "text": "[You adapt on the fly. The report turns out okay.]"
+            },
+            {
+              "speaker": "Narrator",
+              "tone": "tense",
+              "text": "Three months later, Alex raises the same feedback again."
+            },
+            {
+              "speaker": "Narrator",
+              "tone": "tense",
+              "text": "Because nothing was really changed. Just adjusted for one report."
+            }
+          ],
+          "feedback": {
+            "speaker": "CARE Coach",
+            "tone": "tense",
+            "text": "✗ FEEDBACK CARD — MISSED: E: EXECUTE Adapting for one moment isn't execution — it's survival. EXECUTE means making feedback part of how you work, not just how you perform under pressure. Try: Plan ahead. Reflect. Follow up. Build the habit, not just the output."
+          }
+        }
+      }
+    }
+  }
+}

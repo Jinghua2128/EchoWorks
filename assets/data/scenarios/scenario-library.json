@@ -1,0 +1,719 @@
+{
+  "version": "2026-07-17-mdc",
+  "source": "MDC Google Drive document / FULL GAME SCRIPT tab",
+  "assets": {
+    "backgrounds": {
+      "neutral": "assets/office-vn.webp",
+      "success": "assets/office-success.webp",
+      "tense": "assets/office-tense.webp",
+      "mentor": "assets/office-mentor.webp"
+    }
+  },
+  "frameworks": {
+    "REAL": {
+      "id": "REAL",
+      "name": "REAL feedback framework",
+      "dimensions": [
+        { "id": "R", "label": "Recognise" },
+        { "id": "E", "label": "Evaluate" },
+        { "id": "A", "label": "Advise" },
+        { "id": "L", "label": "Link" }
+      ],
+      "feedback": {
+        "R": {
+          "strong": "You named a specific contribution before raising the gap, helping the employee feel seen rather than ambushed.",
+          "developing": "You kept the opening kind, but recognition works best when it names a specific behaviour or contribution.",
+          "follow_up": "Recognise needs attention. Start with observable evidence of what the employee did well before discussing the concern."
+        },
+        "E": {
+          "strong": "You balanced positive contribution with evidence and accountability instead of rating the person by likeability.",
+          "developing": "You considered both sides, but the evaluation could be more clearly anchored to evidence and standards.",
+          "follow_up": "Evaluate needs attention. Weigh observable outcomes and behaviours, not feelings or personality labels."
+        },
+        "A": {
+          "strong": "You offered a practical, manageable path forward and treated advice as navigation rather than a command.",
+          "developing": "Your response moved toward support, but the next action could be more specific or collaborative.",
+          "follow_up": "Advise needs attention. Ask first, then agree on a small and concrete action the employee can practise."
+        },
+        "L": {
+          "strong": "You connected the present behaviour to future growth and wider team impact, giving the feedback meaning.",
+          "developing": "You hinted at why the feedback matters, but the future benefit could be made more visible.",
+          "follow_up": "Link needs attention. Explain how today's behaviour shapes future growth, purpose, or team outcomes."
+        }
+      }
+    },
+    "CARE": {
+      "id": "CARE",
+      "name": "CARE feedback response framework",
+      "dimensions": [
+        { "id": "C", "label": "Compose" },
+        { "id": "A", "label": "Analyze" },
+        { "id": "R", "label": "Resolve" },
+        { "id": "E", "label": "Execute" }
+      ],
+      "feedback": {
+        "C": {
+          "strong": "You paused, regulated the first reaction, and stayed present long enough to hear the feedback.",
+          "developing": "You stayed outwardly calm, but composing also means remaining present instead of escaping the message.",
+          "follow_up": "Compose needs attention. Pause and breathe before responding so emotion does not bury the feedback."
+        },
+        "A": {
+          "strong": "You separated the emotional reaction from the evidence and asked for the criteria behind the message.",
+          "developing": "You looked for clarity, but could focus more directly on evidence rather than assumed intent.",
+          "follow_up": "Analyze needs attention. Examine what was said and ask for evidence before deciding what it means."
+        },
+        "R": {
+          "strong": "You clarified the feedback privately and respectfully, turning a vague message into useful understanding.",
+          "developing": "You asked for clarity, but the timing or delivery introduced avoidable tension.",
+          "follow_up": "Resolve needs attention. Ask specific questions respectfully instead of assuming or staying silent."
+        },
+        "E": {
+          "strong": "You converted feedback into small, trackable actions and built in a follow-up point.",
+          "developing": "You took action, but the plan could be more specific, sustainable, or measurable.",
+          "follow_up": "Execute needs attention. Break the feedback into practical steps, a timeline, and a follow-up."
+        }
+      }
+    }
+  },
+  "roleSettings": {
+    "manager": {
+      "roleLabel": "Manager",
+      "frameworkId": "REAL",
+      "reflectionPrompts": [
+        { "id": "effective", "label": "What made your response effective or ineffective?" },
+        { "id": "next", "label": "What would you do in the next conversation?" }
+      ]
+    },
+    "employee": {
+      "roleLabel": "Employee",
+      "frameworkId": "CARE",
+      "reflectionPrompts": [
+        { "id": "learning", "label": "What part of the feedback became clearer?" },
+        { "id": "next", "label": "What will you practise next?" }
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "id": "real-late-arrival",
+      "title": "The Late Arrival",
+      "role": "manager",
+      "frameworkId": "REAL",
+      "focusDimension": "R",
+      "description": "Recognise a strong contribution before discussing a repeated punctuality concern.",
+      "profile": {
+        "name": "Jamie",
+        "headline": "Strong report / Repeated lateness",
+        "detail": "Recognition before correction",
+        "text": "Jamie has arrived 15-20 minutes late almost every day this week. Today, Jamie also submitted the strongest community outreach report the team has seen in months.",
+        "displayText": "Jamie produced an excellent report, but has been repeatedly late this week."
+      },
+      "prompt": {
+        "speaker": "Scene",
+        "tone": "neutral",
+        "text": "You sit down with Jamie to discuss both the excellent outreach report and the repeated lateness. Jamie asks whether everything is okay. What do you open with?",
+        "displayText": "Jamie delivered excellent work and has also been late all week. How will you open?"
+      },
+      "choices": [
+        {
+          "id": "recognise-specific-work",
+          "text": "Recognise the report specifically, then raise the lateness",
+          "effect": "success",
+          "points": 2,
+          "response": {
+            "speaker": "Alex",
+            "focus": "manager",
+            "tone": "success",
+            "text": "Your report was genuinely impressive, especially how you broke down the volunteer data. I want us to use that format again. Because I value that work, I also want to understand the lateness I have noticed this week.",
+            "displayText": "Your report was genuinely impressive. I also want to understand the lateness I noticed this week."
+          },
+          "feedback": {
+            "tone": "success",
+            "text": "You demonstrated Recognise. Specific praise created psychological safety before the concern was raised.",
+            "displayText": "Specific recognition helps Jamie feel seen, not ambushed."
+          }
+        },
+        {
+          "id": "lead-with-lateness",
+          "text": "Lead immediately with the repeated lateness",
+          "effect": "fail",
+          "points": 0,
+          "response": {
+            "speaker": "Jamie",
+            "focus": "sarah",
+            "mood": "frustrated",
+            "tone": "tense",
+            "text": "I know I have been late, but I have had transport problems and I am still getting my work done.",
+            "displayText": "I know I was late, but I still delivered the work."
+          },
+          "feedback": {
+            "tone": "tense",
+            "text": "You skipped Recognise. Jamie leaves knowing only what went wrong, while the excellent report goes unseen.",
+            "displayText": "The concern lands as judgement because the contribution was ignored."
+          }
+        },
+        {
+          "id": "vague-check-in",
+          "text": "Begin with a general workload check-in",
+          "effect": "neutral",
+          "points": 1,
+          "response": {
+            "speaker": "Jamie",
+            "focus": "sarah",
+            "tone": "neutral",
+            "text": "I am okay, just a little stretched. I will try to do better with the punctuality.",
+            "displayText": "I am a little stretched. I will try to do better."
+          },
+          "feedback": {
+            "tone": "mentor",
+            "text": "The opening was kind but vague. Recognition is stronger when it names a real contribution before the gap.",
+            "displayText": "Kindness helped, but vague recognition did not make Jamie feel seen."
+          }
+        }
+      ]
+    },
+    {
+      "id": "real-uneven-scale",
+      "title": "The Uneven Scale",
+      "role": "manager",
+      "frameworkId": "REAL",
+      "focusDimension": "E",
+      "description": "Evaluate a popular high performer using evidence rather than enthusiasm or labels.",
+      "profile": {
+        "name": "Jordan",
+        "headline": "Relief-drive leader / Two missed deadlines",
+        "detail": "Evidence over likeability",
+        "text": "Jordan is energetic and deeply valued by the team. Jordan went above and beyond at the relief drive, but missed two deadlines that affected the planning cycle.",
+        "displayText": "Jordan inspired the relief drive but missed two deadlines that affected planning."
+      },
+      "prompt": {
+        "speaker": "Scene",
+        "tone": "neutral",
+        "text": "Jordan acknowledges getting caught up in the relief drive. You now need to decide how the missed deadlines should affect the review.",
+        "displayText": "Jordan delivered exceptional energy and missed two deadlines. How will you evaluate both?"
+      },
+      "choices": [
+        {
+          "id": "set-deadlines-aside",
+          "text": "Set the deadlines aside because the relief-drive impact was worth it",
+          "effect": "fail",
+          "points": 0,
+          "response": {
+            "speaker": "Outcome",
+            "tone": "tense",
+            "text": "The review becomes almost entirely positive. When Sam hears about it, the team's sense of fairness quietly shifts.",
+            "displayText": "The near-perfect review weakens the team's sense of fairness."
+          },
+          "feedback": {
+            "tone": "tense",
+            "text": "You skipped Evaluate. Enthusiasm cannot replace evidence, and fairness matters to both Jordan and the wider team.",
+            "displayText": "Evaluate contributions and missed outcomes together."
+          }
+        },
+        {
+          "id": "balance-both-outcomes",
+          "text": "Recognise the energy and evaluate the missed deadlines too",
+          "effect": "success",
+          "points": 2,
+          "response": {
+            "speaker": "Jordan",
+            "focus": "sarah",
+            "tone": "success",
+            "text": "That is fair. I did not think about how the missed deadlines affected the planning team downstream.",
+            "displayText": "That is fair. I did not see the downstream planning impact."
+          },
+          "feedback": {
+            "tone": "success",
+            "text": "You demonstrated Evaluate by balancing recognition with accountability and observable outcomes.",
+            "displayText": "Evidence keeps the review honest, balanced, and fair."
+          }
+        },
+        {
+          "id": "label-admin-weakness",
+          "text": "Label Jordan as a people person who is weak at administration",
+          "effect": "fail",
+          "points": 0,
+          "response": {
+            "speaker": "Jordan",
+            "focus": "sarah",
+            "mood": "frustrated",
+            "tone": "tense",
+            "text": "I did not realise you saw me as someone who could not handle the full role.",
+            "displayText": "I did not realise you saw me as incapable of the full role."
+          },
+          "feedback": {
+            "tone": "tense",
+            "text": "A personality label activated an identity trigger. Evaluate what happened, not who you think the person is.",
+            "displayText": "Assess behaviour and outcomes, not identity."
+          }
+        }
+      ]
+    },
+    {
+      "id": "real-quiet-one",
+      "title": "The Quiet One",
+      "role": "manager",
+      "frameworkId": "REAL",
+      "focusDimension": "A",
+      "description": "Turn a participation gap into a practical and supportive next step.",
+      "profile": {
+        "name": "Priya",
+        "headline": "Strong individual work / Quiet in meetings",
+        "detail": "Navigate, do not command",
+        "text": "Priya is a newer staff member who produces strong individual work but rarely speaks in team meetings. Priya worries that her ideas are not polished enough.",
+        "displayText": "Priya produces strong work but disappears in group discussions."
+      },
+      "prompt": {
+        "speaker": "Priya",
+        "focus": "sarah",
+        "tone": "neutral",
+        "text": "I do not always feel like I have something worth saying in meetings.",
+        "displayText": "I do not always feel like my ideas are worth sharing."
+      },
+      "choices": [
+        {
+          "id": "tell-priya-speak-up",
+          "text": "Tell Priya to speak up because others notice the silence",
+          "effect": "fail",
+          "points": 0,
+          "response": {
+            "speaker": "Priya",
+            "focus": "sarah",
+            "tone": "tense",
+            "text": "I will try.",
+            "displayText": "I will try."
+          },
+          "feedback": {
+            "tone": "tense",
+            "text": "You named the gap but offered no path forward. Pressure without guidance increases anxiety.",
+            "displayText": "Direction without a practical path is pressure, not advice."
+          }
+        },
+        {
+          "id": "ask-what-is-hard",
+          "text": "Ask what makes it difficult to share in those moments",
+          "effect": "success",
+          "points": 2,
+          "response": {
+            "speaker": "Priya",
+            "focus": "sarah",
+            "tone": "success",
+            "text": "I worry my ideas are not as polished as everyone else's. A heads-up on one agenda item would help.",
+            "displayText": "I worry my ideas are not polished. A heads-up would help."
+          },
+          "feedback": {
+            "tone": "success",
+            "text": "You asked before advising and uncovered a practical, low-pressure next step.",
+            "displayText": "Reflective questions make advice collaborative and useful."
+          }
+        },
+        {
+          "id": "offer-one-idea-plan",
+          "text": "Suggest preparing one idea and promise to create space",
+          "effect": "success",
+          "points": 2,
+          "response": {
+            "speaker": "Priya",
+            "focus": "sarah",
+            "mood": "happy",
+            "tone": "success",
+            "text": "That actually sounds manageable. Let us try it for two weeks.",
+            "displayText": "That sounds manageable. I can try that."
+          },
+          "feedback": {
+            "tone": "success",
+            "text": "A small, specific action respected Priya's pace and made the path forward concrete.",
+            "displayText": "Small and specific steps turn advice into coaching."
+          }
+        }
+      ]
+    },
+    {
+      "id": "real-star-stopped-caring",
+      "title": "The Star Who Stopped Caring",
+      "role": "manager",
+      "frameworkId": "REAL",
+      "focusDimension": "L",
+      "description": "Reconnect a high performer with purpose and future leadership impact.",
+      "profile": {
+        "name": "Marcus",
+        "headline": "Top performer / Disengaged from mentoring",
+        "detail": "Connect today to tomorrow",
+        "text": "Marcus has the team's strongest results but has become quiet in planning sessions and declined an opportunity to mentor a junior officer.",
+        "displayText": "Marcus delivers the best results, but no longer sees the point of mentoring."
+      },
+      "prompt": {
+        "speaker": "Marcus",
+        "focus": "sarah",
+        "tone": "neutral",
+        "text": "I stepped back from mentoring because I just did not see the point.",
+        "displayText": "I did not see the point of mentoring someone."
+      },
+      "choices": [
+        {
+          "id": "mentoring-is-expected",
+          "text": "Say mentoring is expected at Marcus's level",
+          "effect": "fail",
+          "points": 0,
+          "response": {
+            "speaker": "Marcus",
+            "focus": "sarah",
+            "tone": "tense",
+            "text": "Okay. If it is expected, I will do it.",
+            "displayText": "Okay. I will do it because it is expected."
+          },
+          "feedback": {
+            "tone": "tense",
+            "text": "Compliance without meaning does not last. Marcus needs to understand why the action matters.",
+            "displayText": "Expectation alone creates compliance, not purpose."
+          }
+        },
+        {
+          "id": "connect-to-leadership",
+          "text": "Connect mentoring to Marcus's future leadership impact",
+          "effect": "success",
+          "points": 2,
+          "response": {
+            "speaker": "Marcus",
+            "focus": "sarah",
+            "mood": "happy",
+            "tone": "success",
+            "text": "I had not thought about mentoring as shaping the next generation of the team.",
+            "displayText": "I had not thought about mentoring as a leadership opportunity."
+          },
+          "feedback": {
+            "tone": "success",
+            "text": "You demonstrated Link by connecting today's choice to Marcus's future potential and the team's mission.",
+            "displayText": "Meaning reconnects Marcus with growth and wider impact."
+          }
+        },
+        {
+          "id": "move-to-targets",
+          "text": "Accept the decision and move on to next year's targets",
+          "effect": "fail",
+          "points": 0,
+          "response": {
+            "speaker": "Outcome",
+            "tone": "tense",
+            "text": "The moment passes. Marcus leaves the review feeling exactly as disconnected as before.",
+            "displayText": "The moment passes and Marcus remains disconnected."
+          },
+          "feedback": {
+            "tone": "tense",
+            "text": "Feedback that stops at information does not move people. Link it to future growth and impact.",
+            "displayText": "Without a future connection, the feedback does not stick."
+          }
+        }
+      ]
+    },
+    {
+      "id": "care-ambush",
+      "title": "The Ambush",
+      "role": "employee",
+      "frameworkId": "CARE",
+      "focusDimension": "C",
+      "description": "Regulate an exhausted first reaction and stay present for difficult feedback.",
+      "profile": {
+        "name": "Jamie",
+        "headline": "Exhausted / Feedback arrives unexpectedly",
+        "detail": "Pause before responding",
+        "text": "After a long understaffed week and a difficult volunteer event, Jamie is stopped in the corridor and told that teammates feel dismissed in morning briefings.",
+        "displayText": "You are exhausted when Alex raises unexpected feedback in the corridor."
+      },
+      "prompt": {
+        "speaker": "Alex",
+        "focus": "manager",
+        "tone": "neutral",
+        "text": "Jamie, a few team members feel their ideas are not being heard in the morning briefings.",
+        "displayText": "Some teammates feel their ideas are not being heard."
+      },
+      "choices": [
+        {
+          "id": "react-from-exhaustion",
+          "text": "Defend how much you have carried this week",
+          "effect": "fail",
+          "points": 0,
+          "response": {
+            "speaker": "Jamie",
+            "focus": "sarah",
+            "mood": "frustrated",
+            "tone": "tense",
+            "text": "Are you serious? I have been the only one holding everything together this week.",
+            "displayText": "Are you serious? I have been holding everything together."
+          },
+          "feedback": {
+            "tone": "tense",
+            "text": "Exhaustion hijacked the conversation and buried the feedback under the emotional reaction.",
+            "displayText": "Reacting immediately turns the conversation into a defence."
+          }
+        },
+        {
+          "id": "ask-for-a-moment",
+          "text": "Ask for a moment so you can hear the feedback properly",
+          "effect": "success",
+          "points": 2,
+          "response": {
+            "speaker": "Jamie",
+            "focus": "sarah",
+            "tone": "success",
+            "text": "Can I have a moment? I am tired and want to make sure I hear this properly. Then please walk me through what was shared.",
+            "displayText": "Can I pause for a moment? I want to hear this properly."
+          },
+          "feedback": {
+            "tone": "success",
+            "text": "You demonstrated Compose by pausing, reframing internally, and returning with calm curiosity.",
+            "displayText": "The pause keeps emotion from controlling the response."
+          }
+        },
+        {
+          "id": "promise-quick-fix",
+          "text": "Say you will fix it and leave immediately",
+          "effect": "neutral",
+          "points": 1,
+          "response": {
+            "speaker": "Jamie",
+            "focus": "sarah",
+            "tone": "mentor",
+            "text": "That is fine. I will fix it.",
+            "displayText": "That is fine. I will fix it."
+          },
+          "feedback": {
+            "tone": "mentor",
+            "text": "You stayed calm but escaped the message. Compose also means staying present enough to understand.",
+            "displayText": "Calm avoidance is still avoidance."
+          }
+        }
+      ]
+    },
+    {
+      "id": "care-rating-stings",
+      "title": "The Rating That Stings",
+      "role": "employee",
+      "frameworkId": "CARE",
+      "focusDimension": "A",
+      "description": "Separate disappointment from evidence when a performance rating feels unfair.",
+      "profile": {
+        "name": "Jamie",
+        "headline": "Expected Exceeds / Rated Meets",
+        "detail": "Evidence before assumptions",
+        "text": "Jamie covered shifts, worked late, and delivered every project. The mid-year rating is Meets Expectations, although Jamie expected Exceeds.",
+        "displayText": "You expected Exceeds, but Alex gives you a Meets Expectations rating."
+      },
+      "prompt": {
+        "speaker": "Alex",
+        "focus": "manager",
+        "tone": "neutral",
+        "text": "Overall, your performance this cycle is solid. The rating is Meets Expectations.",
+        "displayText": "Your performance is solid. The rating is Meets Expectations."
+      },
+      "choices": [
+        {
+          "id": "ask-for-criteria",
+          "text": "Ask Alex to walk through the rating criteria",
+          "effect": "success",
+          "points": 2,
+          "response": {
+            "speaker": "Jamie",
+            "focus": "sarah",
+            "tone": "success",
+            "text": "I am confused because I felt I exceeded expectations in some areas. Can you walk me through the criteria and the breakdown?",
+            "displayText": "Can you walk me through the criteria and evidence?"
+          },
+          "feedback": {
+            "tone": "success",
+            "text": "You demonstrated Analyze by asking for evidence rather than validation or assumed intent.",
+            "displayText": "Evidence replaces uncertainty with useful clarity."
+          }
+        },
+        {
+          "id": "call-rating-personal",
+          "text": "Say the rating feels unfair and personal",
+          "effect": "fail",
+          "points": 0,
+          "response": {
+            "speaker": "Jamie",
+            "focus": "sarah",
+            "mood": "frustrated",
+            "tone": "tense",
+            "text": "I think this rating is unfair. It feels personal.",
+            "displayText": "This rating feels unfair and personal."
+          },
+          "feedback": {
+            "tone": "tense",
+            "text": "The conversation shifts to assumed motivation instead of facts, so no clarity is reached.",
+            "displayText": "Assumed intent blocks the evidence you need."
+          }
+        },
+        {
+          "id": "accept-in-silence",
+          "text": "Accept the rating silently and disengage",
+          "effect": "fail",
+          "points": 0,
+          "response": {
+            "speaker": "Outcome",
+            "tone": "tense",
+            "text": "The frustration stays with you for weeks, while the performance gap remains invisible.",
+            "displayText": "You leave frustrated and still do not understand the gap."
+          },
+          "feedback": {
+            "tone": "tense",
+            "text": "Silence is avoidance, not analysis. Examine the content and remain curious.",
+            "displayText": "Without analysis, the feedback cannot support growth."
+          }
+        }
+      ]
+    },
+    {
+      "id": "care-what-did-that-mean",
+      "title": "What Did That Mean?",
+      "role": "employee",
+      "frameworkId": "CARE",
+      "focusDimension": "R",
+      "description": "Clarify vague group feedback privately and respectfully.",
+      "profile": {
+        "name": "Jamie",
+        "headline": "Vague group feedback / Possible personal impact",
+        "detail": "Curiosity over confrontation",
+        "text": "After a community health event, Alex says the team's communication and coordination need improvement. Jamie managed volunteer communications but does not know what went wrong.",
+        "displayText": "Alex gives vague group feedback that may refer to your volunteer communications."
+      },
+      "prompt": {
+        "speaker": "Alex",
+        "focus": "manager",
+        "tone": "neutral",
+        "text": "Some communications during the event could have been clearer. We need to coordinate better next time.",
+        "displayText": "Some event communications were unclear. We need better coordination next time."
+      },
+      "choices": [
+        {
+          "id": "assume-and-work-harder",
+          "text": "Assume it was about you and decide to work harder",
+          "effect": "fail",
+          "points": 0,
+          "response": {
+            "speaker": "Outcome",
+            "tone": "tense",
+            "text": "You replay the event at home but still cannot identify what needs to change. The same issue returns next time.",
+            "displayText": "You work harder without knowing what actually needs to change."
+          },
+          "feedback": {
+            "tone": "tense",
+            "text": "You skipped Resolve. Assuming without asking risks fixing the wrong thing or nothing at all.",
+            "displayText": "You cannot improve feedback you do not understand."
+          }
+        },
+        {
+          "id": "ask-privately",
+          "text": "Ask Alex privately for a specific example",
+          "effect": "success",
+          "points": 2,
+          "response": {
+            "speaker": "Jamie",
+            "focus": "sarah",
+            "tone": "success",
+            "text": "Before we wrap up, can we check in privately? I want to understand the communications feedback and what happened.",
+            "displayText": "Can we speak privately so I can understand the specific issue?"
+          },
+          "feedback": {
+            "tone": "success",
+            "text": "You demonstrated Resolve. The private question reveals that late check-in messages sent volunteers to the wrong station.",
+            "displayText": "A respectful question turns vague feedback into a clear action."
+          }
+        },
+        {
+          "id": "challenge-in-public",
+          "text": "Challenge the feedback publicly and defend your role",
+          "effect": "neutral",
+          "points": 1,
+          "response": {
+            "speaker": "Alex",
+            "focus": "manager",
+            "tone": "tense",
+            "text": "It was not only about you, Jamie. Let us discuss the details separately.",
+            "displayText": "It was not only about you. Let us discuss it separately."
+          },
+          "feedback": {
+            "tone": "mentor",
+            "text": "You asked for clarity, but public defensiveness created tension. The what and the how both count.",
+            "displayText": "The question was useful; the public delivery was not."
+          }
+        }
+      ]
+    },
+    {
+      "id": "care-three-weeks-one-goal",
+      "title": "Three Weeks. One Goal.",
+      "role": "employee",
+      "frameworkId": "CARE",
+      "focusDimension": "E",
+      "description": "Convert clear writing feedback into small, trackable improvement steps.",
+      "profile": {
+        "name": "Jamie",
+        "headline": "Detailed reports / Difficult to skim",
+        "detail": "Build the habit, not a quick fix",
+        "text": "Alex has explained that Jamie's reports are detailed but hard to skim. A new report is due in three weeks.",
+        "displayText": "Your reports are detailed but difficult to skim. The next one is due in three weeks."
+      },
+      "prompt": {
+        "speaker": "Scene",
+        "tone": "neutral",
+        "text": "The feedback is fair. You have three weeks before the next report is due. What do you do?",
+        "displayText": "You have three weeks to act on the writing feedback. What is your plan?"
+      },
+      "choices": [
+        {
+          "id": "overhaul-everything",
+          "text": "Overhaul your entire writing style in the first week",
+          "effect": "fail",
+          "points": 0,
+          "response": {
+            "speaker": "Outcome",
+            "tone": "tense",
+            "text": "You test several formats and the report feels forced. Alex sees improvement, but the change is not yet sustainable.",
+            "displayText": "Changing everything at once feels forced and does not stick."
+          },
+          "feedback": {
+            "tone": "tense",
+            "text": "Big leaps without structure rarely last. Execute through small, specific, trackable steps.",
+            "displayText": "A complete overhaul is too broad to become a habit."
+          }
+        },
+        {
+          "id": "example-two-changes-checkin",
+          "text": "Request an example, choose two changes, and schedule a check-in",
+          "effect": "success",
+          "points": 2,
+          "response": {
+            "speaker": "Jamie",
+            "focus": "sarah",
+            "tone": "success",
+            "text": "I will lead each section with the main finding, shorten the executive summary to three lines, and check the draft with Alex in week two.",
+            "displayText": "I will make two specific changes and review the draft in week two."
+          },
+          "feedback": {
+            "tone": "success",
+            "text": "You demonstrated Execute by using a reference, manageable actions, and a progress check before the deadline.",
+            "displayText": "Small steps and follow-up turn feedback into real growth."
+          }
+        },
+        {
+          "id": "adapt-on-the-fly",
+          "text": "Wait and adapt the report on the fly",
+          "effect": "fail",
+          "points": 0,
+          "response": {
+            "speaker": "Outcome",
+            "tone": "tense",
+            "text": "The report is acceptable, but the same feedback returns three months later because no lasting habit was built.",
+            "displayText": "The report passes, but the same feedback returns later."
+          },
+          "feedback": {
+            "tone": "tense",
+            "text": "Adapting once is survival, not execution. Plan ahead and make the improvement part of how you work.",
+            "displayText": "A one-time adjustment does not create lasting change."
+          }
+        }
+      ]
+    }
+  ]
+}

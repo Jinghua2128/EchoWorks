@@ -97,18 +97,21 @@
       "focus": "sarah",
       "tone": "neutral",
       "text": "You are Sarah Tan, a Marketing Executive with strong results and visible influence in team discussions.\n\nYou recently received peer feedback that some teammates hesitate to challenge your ideas. Your goal is to respond professionally, understand the concern, and decide what support you need.",
+      "displayText": "You are Sarah: a high performer whose teammates sometimes hesitate to challenge her.",
       "next": "intro"
     },
     "intro": {
       "speaker": "Scene",
       "tone": "neutral",
       "text": "Your manager has scheduled a feedback conversation. You know your performance is strong, but you also want to show that you can receive feedback constructively. How will you respond when the feedback is raised?",
+      "displayText": "Your manager raises feedback about team discussions. How will you respond?",
       "next": "manager_feedback"
     },
     "manager_feedback": {
       "speaker": "Manager",
       "tone": "mentor",
       "text": "Sarah, your results this quarter have been excellent. I also want to discuss peer feedback about team conversations. Some teammates shared that they sometimes hold back ideas when discussions move quickly. I would like to understand your view and explore how we can keep your strong drive while making space for others.",
+      "displayText": "Your results are excellent. Some teammates hold back when discussions move quickly. How can we keep your drive while making space for others?",
       "choices": [
         {
           "id": "employee-clarify-acknowledge",
@@ -153,6 +156,7 @@
       "mood": "happy",
       "tone": "success",
       "text": "Thank you for explaining that. Could you share one or two examples so I can understand when it happens? I do not want teammates to feel shut out, even when I am trying to move work forward.",
+      "displayText": "Could you share an example? I do not want teammates to feel shut out when I move work forward.",
       "next": "care_outcome"
     },
     "employee_defend": {
@@ -160,18 +164,21 @@
       "mood": "frustrated",
       "tone": "tense",
       "text": "I am direct because the team needs to move quickly. If people have ideas, they should just speak up. I do not think I am stopping anyone from contributing.",
+      "displayText": "I am direct because the team needs to move quickly. People should speak up if they have ideas.",
       "next": "defend_outcome"
     },
     "employee_withdraw": {
       "speaker": "Sarah",
       "tone": "tense",
       "text": "Okay. I hear you.",
+      "displayText": "Okay. I hear you.",
       "next": "withdraw_outcome"
     },
     "care_outcome": {
       "speaker": "Outcome",
       "tone": "success",
       "text": "Your response keeps the conversation open. You clarify the feedback, acknowledge the impact, and invite a practical next step.",
+      "displayText": "You clarify the feedback, acknowledge the impact, and keep the conversation open.",
       "effect": "success",
       "next": "mentor"
     },
@@ -179,6 +186,7 @@
       "speaker": "Outcome",
       "tone": "tense",
       "text": "The conversation becomes defensive. Your manager now has to spend more time reducing tension before you can work on the feedback itself.",
+      "displayText": "Defence raises the tension and delays learning.",
       "effect": "fail",
       "next": "mentor"
     },
@@ -186,6 +194,7 @@
       "speaker": "Outcome",
       "tone": "tense",
       "text": "The conversation stays polite, but very little learning happens. Silence can make it hard for your manager to understand what support you need.",
+      "displayText": "The conversation stays polite, but your manager cannot see what support you need.",
       "effect": "fail",
       "next": "mentor"
     },
@@ -193,12 +202,14 @@
       "speaker": "HR Mentor",
       "tone": "mentor",
       "text": "Receiving feedback well does not mean agreeing with every point immediately. A strong response creates room to clarify the message, listen actively, respond respectfully, and engage on support or next steps. Your full CARE evaluation will appear after the scenario finishes.",
+      "displayText": "CARE helps you clarify, listen, respond respectfully, and ask for support.",
       "next": "revisit"
     },
     "revisit": {
       "speaker": "Manager",
       "tone": "mentor",
       "text": "For the next team planning meeting, I would like you to try pausing before decisions and inviting two other perspectives before closing the discussion. What would you commit to?",
+      "displayText": "At the next meeting, pause and invite two other perspectives. What will you commit to?",
       "choices": [
         {
           "id": "employee-final-commit",
@@ -243,12 +254,14 @@
       "mood": "happy",
       "tone": "success",
       "text": "I can do that. In the next planning meeting, I will pause before we decide and invite at least two people to share alternate ideas. It would help if you could observe once and let me know whether it changes the discussion.",
+      "displayText": "I will pause, invite two perspectives, and ask you to observe whether it changes the discussion.",
       "next": "end"
     },
     "final_vague": {
       "speaker": "Sarah",
       "tone": "tense",
       "text": "Sure, I will try to be more mindful in the next meeting.",
+      "displayText": "I will try to be more mindful in the next meeting.",
       "next": "end"
     },
     "final_reject": {
@@ -256,12 +269,14 @@
       "mood": "frustrated",
       "tone": "tense",
       "text": "I do not think that is needed. The team already knows they can speak up if they want to.",
+      "displayText": "I do not think that is needed. The team already knows it can speak up.",
       "next": "end"
     },
     "end": {
       "speaker": "HR Mentor",
       "tone": "success",
       "text": "You have completed the CARE practice route. Review your evaluation, reflect on what you learned, and note what support would help you act on the feedback.",
+      "displayText": "CARE route complete. Review your result and reflection.",
       "ending": true
     }
   },

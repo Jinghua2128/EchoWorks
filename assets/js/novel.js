@@ -1,10 +1,8 @@
-﻿import { loadFirebaseClient } from "./firebase-client.js";
+import { loadFirebaseClient } from "./firebase-client.js";
 
-const scenarioFiles = {
-  manager: "assets/data/scenarios/sarah-manager.json",
-  employee: "assets/data/scenarios/sarah-employee.json"
-};
-
+const scenarioLibraryFile = "assets/data/scenarios/scenario-library.json";
+const fullGameScriptFile = "assets/data/scenarios/full-game-script.json";
+const lastScenarioKey = "feedbackPlaybook.lastScenarioByRole";
 const localResultsKey = "feedbackPlaybook.scenarioResults";
 const textSpeed = 16;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -25,8 +23,14 @@ const scenarioProgressTextEl = document.getElementById("scenarioProgressText");
 const speakerNameEl = document.getElementById("speakerName");
 const sceneCountEl = document.getElementById("sceneCount");
 const textEl = document.getElementById("dialogueText");
+const dialoguePanelEl = document.querySelector(".dialogue-panel");
 const resultEl = document.getElementById("result");
 const advanceButton = document.querySelector('[data-action="advance"]');
+const advanceLabelEl = document.getElementById("advanceLabel");
+const sceneCueEl = document.getElementById("sceneCue");
+const sceneCueLabelEl = document.getElementById("sceneCueLabel");
+const sceneCueTitleEl = document.getElementById("sceneCueTitle");
+const sceneCueDetailEl = document.getElementById("sceneCueDetail");
 const reflectionPanelEl = document.getElementById("reflectionPanel");
 const reflectionTitleEl = document.getElementById("reflectionTitle");
 const reflectionSummaryEl = document.getElementById("reflectionSummary");
@@ -37,9 +41,14 @@ const improvementListEl = document.getElementById("improvementList");
 const reflectionFieldsEl = document.getElementById("reflectionFields");
 const reflectionFormEl = document.getElementById("reflectionForm");
 const reflectionMessageEl = document.getElementById("reflectionMessage");
+const scoreRingEl = document.getElementById("scoreRing");
+const scoreRingValueEl = document.getElementById("scoreRingValue");
+const scenarioTitleEl = document.getElementById("scenarioTitle");
 
 let firebaseClient = null;
 let currentUser = null;
+let scenarioLibrary = null;
+let fullGameScript = null;
 let scenario = null;
 let scenes = {};
 let sceneOrder = [];
@@ -129,11 +138,12 @@ function dimensionMax(dimensionId) {
     return sum + bestChoice;
   }, 0);
 
-  return Math.max(1, maxFromChoices);
+  return maxFromChoices;
 }
 
 function dimensionPercent(dimensionId) {
-  return Math.round(((scoreState[dimensionId] || 0) / dimensionMax(dimensionId)) * 100);
+  const maxScore = dimensionMax(dimensionId);
+  return maxScore ? Math.round(((scoreState[dimensionId] || 0) / maxScore) * 100) : 0;
 }
 
 function dimensionTone(percent) {
@@ -160,17 +170,18 @@ function buildFrameworkDetails() {
   if (!scenario) return [];
 
   return scenario.framework.dimensions.map(dimension => {
+    const maxScore = dimensionMax(dimension.id);
     const percent = dimensionPercent(dimension.id);
     return {
       id: dimension.id,
       label: dimension.label,
       score: scoreState[dimension.id] || 0,
-      maxScore: dimensionMax(dimension.id),
+      maxScore,
       percent,
       tone: dimensionTone(percent),
       explanation: feedbackForDimension(dimension)
     };
-  });
+  }).filter(detail => detail.maxScore > 0);
 }
 
 function buildScenarioRecord(status = "in_progress") {
@@ -244,13 +255,162 @@ function setRoleMessage(message, tone = "neutral") {
   roleMessageEl.dataset.tone = tone;
 }
 
-async function loadScenario(role) {
-  const file = scenarioFiles[role];
-  if (!file) throw new Error("Choose a valid role.");
+function randomIndex(length) {
+  if (length <= 1) return 0;
+  if (window.crypto?.getRandomValues) {
+    const values = new Uint32Array(1);
+    window.crypto.getRandomValues(values);
+    return values[0] % length;
+  }
+  return Math.floor(Math.random() * length);
+}
 
-  const response = await fetch(file, { cache: "no-store" });
-  if (!response.ok) throw new Error("Scenario data could not be loaded.");
-  return await response.json();
+function chooseRandomScenario(pool, role) {
+  const recent = safeJsonParse(localStorage.getItem(lastScenarioKey), {});
+  const candidates = pool.length > 1
+    ? pool.filter(entry => entry.id !== recent[role])
+    : pool;
+  const selected = candidates[randomIndex(candidates.length)];
+
+  recent[role] = selected.id;
+  localStorage.setItem(lastScenarioKey, JSON.stringify(recent));
+  return selected;
+}
+
+function addSceneSequence(target, prefix, lines, nextId) {
+  let next = nextId;
+  for (let index = lines.length - 1; index >= 0; index -= 1) {
+    const id = `${prefix}-${index + 1}`;
+    target[id] = {
+      ...lines[index],
+      next
+    };
+    next = id;
+  }
+  return next;
+}
+
+function buildRuntimeScenario(entry, library, scriptLibrary) {
+  const roleSettings = library.roleSettings?.[entry.role];
+  const frameworkDefinition = library.frameworks?.[entry.frameworkId];
+  const scriptEntry = scriptLibrary?.scenarios?.[entry.id];
+  if (!roleSettings || !frameworkDefinition || !entry.focusDimension || !scriptEntry) {
+    throw new Error("Scenario configuration is incomplete.");
+  }
+
+  const scenes = {};
+  const endingLines = Array.isArray(scriptLibrary.gameEnd) && scriptLibrary.gameEnd.length
+    ? scriptLibrary.gameEnd
+    : [{
+      speaker: "EchoWorks",
+      tone: "mentor",
+      text: "Play again — try the other side."
+    }];
+  const endingStart = addSceneSequence(scenes, "game-end", endingLines, null);
+  scenes[`game-end-${endingLines.length}`].ending = true;
+
+  const decisionChoices = entry.choices.map(choice => {
+    const scriptedChoice = scriptEntry.choices?.[choice.id];
+    if (!scriptedChoice) {
+      throw new Error(`The FULL GAME SCRIPT is missing choice ${choice.id}.`);
+    }
+
+    const feedbackId = `feedback-${choice.id}`;
+    scenes[feedbackId] = {
+      ...scriptedChoice.feedback,
+      effect: scriptedChoice.effect || choice.effect,
+      next: endingStart
+    };
+
+    const outcomeLines = Array.isArray(scriptedChoice.outcome) && scriptedChoice.outcome.length
+      ? scriptedChoice.outcome
+      : [choice.response];
+    const outcomeStart = addSceneSequence(
+      scenes,
+      `outcome-${choice.id}`,
+      outcomeLines,
+      feedbackId
+    );
+
+    return {
+      id: choice.id,
+      label: scriptedChoice.label,
+      text: scriptedChoice.text,
+      next: outcomeStart,
+      effect: scriptedChoice.effect || choice.effect,
+      score: { [entry.focusDimension]: Number(choice.points || 0) }
+    };
+  });
+
+  scenes.decision = {
+    speaker: "Decision",
+    tone: "neutral",
+    text: scriptEntry.decisionPrompt || entry.prompt.text,
+    choices: decisionChoices
+  };
+
+  const scenarioIntro = (scriptEntry.intro || []).map(line => ({ ...line }));
+  if (scenarioIntro[0]) {
+    scenarioIntro[0].cue = {
+      tone: "neutral",
+      label: entry.profile.name || "Scenario profile",
+      title: entry.profile.headline || entry.title,
+      detail: entry.profile.detail || "Observe / Decide / Reflect"
+    };
+  }
+
+  const introLines = [
+    ...(scriptLibrary.titleIntro || []),
+    ...(scriptLibrary.roleIntros?.[entry.role] || []),
+    ...scenarioIntro
+  ];
+  const startScene = addSceneSequence(scenes, "intro", introLines, "decision");
+
+  return {
+    id: entry.id,
+    title: entry.title,
+    role: entry.role,
+    roleLabel: roleSettings.roleLabel,
+    framework: {
+      ...frameworkDefinition,
+      maxScore: 2
+    },
+    focusDimension: entry.focusDimension,
+    profile: entry.profile,
+    characters: {
+      manager: { name: "Alex" },
+      employee: { name: entry.profile.name || "Jamie" }
+    },
+    decisionCount: 1,
+    followUpThreshold: 50,
+    startScene,
+    assets: library.assets,
+    reflectionPrompts: roleSettings.reflectionPrompts,
+    sceneOrder: Object.keys(scenes),
+    scenes,
+    estimatedDuration: "8-10 minutes",
+    difficulty: "Foundational",
+    description: entry.description
+  };
+}
+
+async function loadScenario(role) {
+  if (!scenarioLibrary || !fullGameScript) {
+    const [libraryResponse, scriptResponse] = await Promise.all([
+      fetch(scenarioLibraryFile, { cache: "no-store" }),
+      fetch(fullGameScriptFile, { cache: "no-store" })
+    ]);
+    if (!libraryResponse.ok) throw new Error("Scenario library could not be loaded.");
+    if (!scriptResponse.ok) throw new Error("The FULL GAME SCRIPT could not be loaded.");
+    [scenarioLibrary, fullGameScript] = await Promise.all([
+      libraryResponse.json(),
+      scriptResponse.json()
+    ]);
+  }
+
+  const pool = scenarioLibrary.scenarios?.filter(entry => entry.role === role) || [];
+  if (!pool.length) throw new Error("No scenarios are available for this role.");
+  return buildRuntimeScenario(chooseRandomScenario(pool, role), scenarioLibrary, fullGameScript);
 }
 
 function preloadImage(src) {
@@ -283,7 +443,8 @@ function preloadSceneAssets(sceneId) {
 function setSceneEnvironment(scene) {
   const tone = sceneToneFor(scene);
   const background = backgroundForScene(scene);
-  const nextBackground = `url("${background}")`;
+  const backgroundUrl = new URL(background, document.baseURI).href;
+  const nextBackground = `url("${backgroundUrl}")`;
 
   document.body.dataset.sceneTone = tone;
 
@@ -293,6 +454,107 @@ function setSceneEnvironment(scene) {
   void sceneBackdropEl.offsetWidth;
   sceneBackdropEl.style.setProperty("--scene-bg", nextBackground);
   sceneBackdropEl.classList.add("is-changing");
+}
+
+function sceneCueFor(scene) {
+  if (scene?.cue) return scene.cue;
+
+  const dimensions = scenario?.framework?.dimensions?.map(dimension => dimension.id).join(" / ") || "";
+  const hasChoices = Array.isArray(scene?.choices) && scene.choices.length > 0;
+
+  if (scene?.speaker === "Profile") {
+    return {
+      tone: "neutral",
+      label: scenario?.profile?.name || "Scenario profile",
+      title: scenario?.profile?.headline || scenario?.title || "Workplace scenario",
+      detail: scenario?.profile?.detail || "Observe / Decide / Reflect"
+    };
+  }
+
+  if (hasChoices) {
+    return {
+      tone: "neutral",
+      label: "Decision " + Math.min(choiceHistory.length + 1, scenario?.decisionCount || 1),
+      title: "Choose your response",
+      detail: (scenario?.framework?.id || "Framework") + " lens: " + (scenario?.focusDimension || dimensions)
+    };
+  }
+
+  if (scene?.speaker === "Outcome") {
+    return sceneToneFor(scene) === "success"
+      ? { tone: "success", label: "Impact", title: "Conversation opens", detail: "Trust / Clarity / Action" }
+      : { tone: "tense", label: "Impact", title: "Conversation narrows", detail: "Defence / Low reflection" };
+  }
+
+  if (scene?.speaker === "Lesson") {
+    return {
+      tone: "mentor",
+      label: "Coach's note",
+      title: "Use behaviour, not labels",
+      detail: "Specific / Observable / Fair"
+    };
+  }
+
+  if (scene?.speaker === "HR Mentor" || / Coach$/.test(scene?.speaker || "")) {
+    return {
+      tone: "mentor",
+      label: "Framework lens",
+      title: (scenario?.framework?.id || "Framework") + " coaching",
+      detail: dimensions
+    };
+  }
+
+  const tone = sceneToneFor(scene);
+  if (tone === "success") {
+    return { tone, label: "Conversation signal", title: "Trust stays open", detail: "Recognition / Clarity / Action" };
+  }
+  if (tone === "tense") {
+    return { tone, label: "Conversation signal", title: "Defence rises", detail: "Intent is overtaking impact" };
+  }
+  if (tone === "mentor") {
+    return { tone, label: "Practice", title: "Pause and apply", detail: dimensions };
+  }
+
+  return {
+    tone: "neutral",
+    label: scene?.speaker || "Scene",
+    title: "Performance + impact",
+    detail: "Balance both"
+  };
+}
+
+function setSceneCue(scene) {
+  const cue = sceneCueFor(scene);
+  sceneCueEl.hidden = false;
+  sceneCueEl.dataset.tone = cue.tone;
+  sceneCueLabelEl.textContent = cue.label;
+  sceneCueTitleEl.textContent = cue.title;
+  sceneCueDetailEl.textContent = cue.detail;
+}
+
+function renderFrameworkStrip() {
+  scoreBreakdownEl.textContent = "";
+  if (!scenario?.framework?.dimensions?.length) {
+    scoreBreakdownEl.hidden = true;
+    return;
+  }
+
+  scenario.framework.dimensions.forEach(dimension => {
+    const chip = document.createElement("span");
+    chip.className = "framework-chip";
+    chip.setAttribute("aria-label", dimension.label);
+
+    const letter = document.createElement("strong");
+    letter.textContent = dimension.id;
+
+    const name = document.createElement("small");
+    name.textContent = dimension.label;
+
+    chip.append(letter, name);
+    scoreBreakdownEl.append(chip);
+  });
+
+  scoreBreakdownEl.hidden = false;
 }
 
 function clearTimers() {
@@ -310,7 +572,7 @@ function speakerToCharacter(speaker, focus) {
 }
 
 function resetCharacter(element) {
-  element.classList.remove("active", "inactive", "visible", "happy", "frustrated");
+  element.classList.remove("active", "inactive", "visible", "happy", "frustrated", "decision-ready");
   element.src = element.dataset.idle;
 }
 
@@ -325,6 +587,9 @@ function setCharacters(scene) {
   } else if (activeCharacter === "sarah") {
     sarahEl.classList.add("visible", "active");
     managerEl.classList.add("visible", "inactive");
+  } else if (Array.isArray(scene.choices) && scene.choices.length) {
+    managerEl.classList.add("visible", "decision-ready");
+    sarahEl.classList.add("visible", "decision-ready");
   } else {
     managerEl.classList.add("visible", "inactive");
     sarahEl.classList.add("visible", "inactive");
@@ -345,6 +610,7 @@ function startTalking() {
   const activeElement = getActiveCharacterElement();
   if (!activeElement) return;
 
+  dialoguePanelEl.classList.add("is-speaking");
   let talking = false;
   talkingTimer = window.setInterval(() => {
     talking = !talking;
@@ -355,6 +621,7 @@ function startTalking() {
 function stopTalking() {
   window.clearInterval(talkingTimer);
   talkingTimer = null;
+  dialoguePanelEl.classList.remove("is-speaking");
   [managerEl, sarahEl].forEach(element => {
     element.src = element.dataset.idle;
   });
@@ -365,13 +632,12 @@ function setText(value) {
 }
 
 function decisionProgressLabel() {
-  if (!scenario) return "Choose a role to start.";
-  if (completedAtIso) return "Scenario complete. Review your reflection below.";
+  if (!scenario) return "Choose a role";
+  if (completedAtIso) return "Complete";
 
   const decisions = scenario.decisionCount || 1;
   const completed = Math.min(choiceHistory.length, decisions);
-  const nextDecision = Math.min(completed + 1, decisions);
-  return `${completed} of ${decisions} decisions completed. Decision ${nextDecision} is ${completed >= decisions ? "complete" : "next"}.`;
+  return completed + " / " + decisions + " decisions";
 }
 
 function updateScoreHud() {
@@ -382,17 +648,15 @@ function updateScoreHud() {
 
   const progress = progressPercent();
   scoreHudEl.hidden = false;
-  roleBadgeEl.textContent = `${scenario.roleLabel} route`;
-  frameworkBadgeEl.textContent = `${scenario.framework.id} framework`;
-  scoreProgressEl.style.width = `${progress}%`;
+  roleBadgeEl.textContent = scenario.roleLabel;
+  frameworkBadgeEl.textContent = scenario.framework.id;
+  scoreProgressEl.style.width = String(progress) + "%";
   scoreProgressEl.parentElement.setAttribute("aria-valuenow", String(progress));
   scenarioProgressTextEl.textContent = decisionProgressLabel();
-  scoreTotalEl.textContent = completedAtIso
-    ? `Final result: ${scorePercent()}%`
-    : "Scoring is evaluated quietly and shown at the end.";
-  scoreBreakdownEl.hidden = true;
+  scoreTotalEl.hidden = !completedAtIso;
+  scoreTotalEl.textContent = completedAtIso ? String(scorePercent()) + "%" : "";
+  renderFrameworkStrip();
 }
-
 function finishTyping() {
   window.clearTimeout(typingTimer);
   setText(fullText);
@@ -400,11 +664,11 @@ function finishTyping() {
   stopTalking();
   const scene = scenes[currentSceneId];
   if (scene.choices) {
-    advanceButton.textContent = "Choose a response";
+    advanceLabelEl.textContent = "Choose a response";
     advanceButton.disabled = true;
     renderChoices(scene.choices);
   } else {
-    advanceButton.textContent = pendingNext ? "Continue" : "Restart";
+    advanceLabelEl.textContent = pendingNext ? "Continue" : "Restart";
     advanceButton.disabled = false;
   }
   if (scene.ending) showCompletion();
@@ -417,7 +681,7 @@ function typeText(text) {
   isTyping = true;
   setText("");
   advanceButton.disabled = false;
-  advanceButton.textContent = "Reveal text";
+  advanceLabelEl.textContent = "Reveal";
   startTalking();
 
   if (reducedMotion) {
@@ -463,11 +727,28 @@ function renderChoices(choices) {
   choicesEl.textContent = "";
   choicesEl.hidden = false;
 
-  choices.forEach(choice => {
+  choices.forEach((choice, index) => {
     const button = document.createElement("button");
     button.className = "choice-button";
     button.type = "button";
-    button.textContent = choice.text;
+    button.setAttribute("aria-label", "Choice " + (choice.label || index + 1) + ": " + choice.text);
+
+    const key = document.createElement("span");
+    key.className = "choice-key";
+    key.textContent = choice.label || String(index + 1);
+
+    const copy = document.createElement("span");
+    copy.className = "choice-copy";
+    copy.textContent = choice.text;
+
+    const arrow = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    arrow.setAttribute("viewBox", "0 0 24 24");
+    arrow.setAttribute("aria-hidden", "true");
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", "M5 12h13m-5-5 5 5-5 5");
+    arrow.append(path);
+
+    button.append(key, copy, arrow);
     button.addEventListener("click", () => {
       applyChoiceScore(choice);
       renderScene(choice.next);
@@ -500,12 +781,14 @@ function renderScene(id) {
     sceneCountEl.textContent = scenario?.estimatedDuration ? scenario.estimatedDuration : "Interactive scenario";
   }
 
+  document.body.dataset.scenarioState = "playing";
   setSceneEnvironment(scene);
+  setSceneCue(scene);
   preloadSceneAssets(scene.next);
   if (Array.isArray(scene.choices)) scene.choices.forEach(choice => preloadSceneAssets(choice.next));
   setCharacters(scene);
   updateScoreHud();
-  typeText(scene.text);
+  typeText(scene.displayText || scene.text);
 }
 
 function completionCopy() {
@@ -538,9 +821,20 @@ function renderEvaluationDetails() {
     score.textContent = `${detail.score}/${detail.maxScore}`;
     header.append(heading, score);
 
+    const meter = document.createElement("div");
+    meter.className = "evaluation-meter";
+    meter.setAttribute("role", "progressbar");
+    meter.setAttribute("aria-label", detail.label);
+    meter.setAttribute("aria-valuemin", "0");
+    meter.setAttribute("aria-valuemax", "100");
+    meter.setAttribute("aria-valuenow", String(detail.percent));
+    const meterFill = document.createElement("span");
+    meterFill.style.width = String(detail.percent) + "%";
+    meter.append(meterFill);
+
     const explanation = document.createElement("p");
     explanation.textContent = detail.explanation;
-    card.append(header, explanation);
+    card.append(header, meter, explanation);
     scoreDetailsEl.append(card);
 
     if (detail.percent >= 70) {
@@ -587,18 +881,26 @@ function showCompletion() {
   completedAtIso = completedAtIso || new Date().toISOString();
   updateScoreHud();
 
-  reflectionTitleEl.textContent = `${scenario.framework.id} result: ${scorePercent()}%`;
+  const percent = scorePercent();
+  document.body.dataset.scenarioState = "complete";
+  scoreHudEl.hidden = true;
+  sceneCueEl.hidden = true;
+  scoreRingValueEl.textContent = String(percent) + "%";
+  scoreRingEl.style.setProperty("--score-angle", String(percent * 3.6) + "deg");
+  reflectionTitleEl.textContent = scenario.framework.id + " result";
   reflectionSummaryEl.textContent = completionCopy();
-  frameworkResultEl.textContent = `${totalScore}/${scenario.framework.maxScore} points | ${needsFollowUp() ? "Follow-up suggested" : "On track"}`;
+  frameworkResultEl.textContent = totalScore + "/" + scenario.framework.maxScore + " / " + (needsFollowUp() ? "Follow-up suggested" : "On track");
   renderEvaluationDetails();
   renderReflectionFields();
   reflectionPanelEl.hidden = false;
   notifyMotion("motion:content-added", { element: reflectionPanelEl });
   saveScenarioRecord("completed");
 }
-
 function restartScenario() {
   clearTimers();
+  document.body.dataset.scenarioState = "role";
+  dialoguePanelEl.classList.remove("is-speaking");
+  sceneCueEl.hidden = true;
   scenario = null;
   scenes = {};
   sceneOrder = [];
@@ -612,15 +914,19 @@ function restartScenario() {
   resultEl.hidden = true;
   scoreHudEl.hidden = true;
   rolePanelEl.hidden = false;
+  scenarioTitleEl.textContent = "EchoWorks";
+  managerEl.alt = "Manager character";
+  sarahEl.alt = "Employee character";
   speakerNameEl.textContent = "Role";
   sceneCountEl.textContent = "";
-  setText("Choose Manager or Employee to begin the workplace learning scenario.");
+  setText("Every day, someone has to speak. And someone has to listen.");
   setSceneEnvironment({ tone: "neutral" });
   setCharacters({ speaker: "Scene" });
 }
 
 async function selectRole(role) {
   setRoleMessage("Loading your scenario...", "neutral");
+  rolePanelEl.setAttribute("aria-busy", "true");
   rolePanelEl.querySelectorAll("button").forEach(button => { button.disabled = true; });
 
   try {
@@ -628,7 +934,11 @@ async function selectRole(role) {
     scenario = nextScenario;
     scenes = nextScenario.scenes;
     sceneOrder = nextScenario.sceneOrder || Object.keys(scenes);
+    scenarioTitleEl.textContent = nextScenario.title;
+    managerEl.alt = `${nextScenario.characters?.manager?.name || "Manager"} character`;
+    sarahEl.alt = `${nextScenario.characters?.employee?.name || "Employee"} character`;
     initialiseScoreState(nextScenario);
+    document.body.dataset.scenarioState = "playing";
     rolePanelEl.hidden = true;
     setRoleMessage(currentUser ? "Cloud sync is ready." : "Signed out: this scenario saves on this device only.", currentUser ? "success" : "neutral");
     updateScoreHud();
@@ -638,6 +948,7 @@ async function selectRole(role) {
   } catch (error) {
     setRoleMessage(error.message || "Scenario could not be loaded.", "error");
   } finally {
+    rolePanelEl.setAttribute("aria-busy", "false");
     rolePanelEl.querySelectorAll("button").forEach(button => { button.disabled = false; });
   }
 }
@@ -718,6 +1029,15 @@ function bindEvents() {
     const isButton = target instanceof HTMLButtonElement || target instanceof HTMLAnchorElement;
     if (isTypingField || isButton || !scenario) return;
 
+    if (!choicesEl.hidden && /^[1-3a-c]$/i.test(event.key)) {
+      event.preventDefault();
+      const index = /^[a-c]$/i.test(event.key)
+        ? event.key.toLowerCase().charCodeAt(0) - 97
+        : Number(event.key) - 1;
+      choicesEl.querySelectorAll("button")[index]?.click();
+      return;
+    }
+
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       advanceScene();
@@ -728,5 +1048,3 @@ function bindEvents() {
 bindEvents();
 restartScenario();
 window.setTimeout(() => { initFirebase(); }, 1200);
-
-

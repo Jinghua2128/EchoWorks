@@ -760,3 +760,115 @@ tbody tr:hover td {
   }
 }
 
+
+/* Clean interaction pass: denser metrics, flatter charts, clearer loading. */
+body.admin-page {
+  background: #f3f5f7;
+}
+
+body.admin-page .admin-hero h1 {
+  font-size: 2.55rem;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+body.admin-page .admin-hero p {
+  max-width: 68ch;
+  text-wrap: pretty;
+}
+
+body.admin-page .panel,
+body.admin-page .chart-card,
+body.admin-page .insight-card {
+  border-color: #dbe1e8;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .05);
+}
+
+body.admin-page .access-panel {
+  border: 1px solid #e2c2c5;
+  background: #fff7f7;
+}
+
+body.admin-page .admin-metric {
+  min-height: 150px;
+  padding: 18px;
+}
+
+body.admin-page .metric-orb {
+  display: none;
+}
+
+body.admin-page .admin-metric::after {
+  right: 18px;
+  bottom: 15px;
+  left: 18px;
+  height: 4px;
+}
+
+body.admin-page .chart-card {
+  min-width: 0;
+  padding: 4px 16px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.admin-page .chart-card + .chart-card {
+  border-left: 1px solid #dbe1e8;
+}
+
+body.admin-page .filter-button {
+  min-height: 44px;
+}
+
+body.admin-page .filter-button.active,
+body.admin-page .filter-button:hover {
+  border-color: rgba(215, 25, 32, .32);
+  background: var(--red-soft);
+  color: var(--red-dark);
+  box-shadow: none;
+}
+
+body.admin-page .table-wrap:focus-visible {
+  outline: 3px solid rgba(215, 25, 32, .28);
+  outline-offset: 4px;
+}
+
+body.admin-page #dashboardContent[aria-busy="true"] {
+  opacity: .72;
+  transition: opacity var(--motion-base) var(--motion-ease);
+}
+
+@media (max-width: 1040px) {
+  body.admin-page .chart-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.admin-page .chart-card:nth-child(odd) {
+    border-left: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  body.admin-page .admin-hero h1 {
+    font-size: 2rem;
+  }
+
+  body.admin-page .chart-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.admin-page .chart-card,
+  body.admin-page .chart-card + .chart-card {
+    padding: 14px 0;
+    border-left: 0;
+    border-top: 1px solid #dbe1e8;
+  }
+
+  body.admin-page .chart-card:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+}

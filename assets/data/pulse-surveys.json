@@ -1,0 +1,90 @@
+{
+  "version": "2026-07-17-mdc",
+  "source": "MDC Google Drive document / Pulse survey tab",
+  "scale": {
+    "min": 1,
+    "max": 5,
+    "labels": [
+      "Strongly disagree",
+      "Disagree",
+      "Neutral",
+      "Agree",
+      "Strongly agree"
+    ]
+  },
+  "surveys": [
+    {
+      "id": "employee-pre",
+      "role": "employee",
+      "stage": "pre",
+      "frameworkId": "CARE",
+      "title": "Employee pre-pulse",
+      "description": "Baseline reflection before practising the CARE framework.",
+      "questions": [
+        { "id": "employee-pre-c1", "dimension": "C", "text": "I feel comfortable discussing feedback with my manager." },
+        { "id": "employee-pre-c2", "dimension": "C", "text": "I feel safe sharing my thoughts during feedback conversations." },
+        { "id": "employee-pre-c3", "dimension": "C", "reverseScored": true, "text": "I sometimes feel defensive when receiving feedback." },
+        { "id": "employee-pre-a1", "dimension": "A", "text": "I clearly understand feedback given to me." },
+        { "id": "employee-pre-a2", "dimension": "A", "text": "Feedback I receive is specific and actionable." },
+        { "id": "employee-pre-r1", "dimension": "R", "text": "I understand how to improve after receiving feedback." },
+        { "id": "employee-pre-r2", "dimension": "R", "text": "I can reflect on feedback without confusion or misinterpretation." },
+        { "id": "employee-pre-e1", "dimension": "E", "text": "I apply feedback to improve my work performance." },
+        { "id": "employee-pre-e2", "dimension": "E", "text": "Feedback helps me improve my performance over time." },
+        { "id": "employee-pre-overall", "dimension": "overall", "text": "Overall, I am satisfied with the feedback culture in my workplace." }
+      ]
+    },
+    {
+      "id": "employee-post",
+      "role": "employee",
+      "stage": "post",
+      "frameworkId": "CARE",
+      "title": "Employee post-pulse",
+      "description": "Reflection after practising the CARE framework.",
+      "questions": [
+        { "id": "employee-post-c1", "dimension": "C", "text": "I feel more comfortable discussing feedback with my manager after the CARE framework." },
+        { "id": "employee-post-c2", "dimension": "C", "text": "I feel safer sharing my thoughts during feedback conversations." },
+        { "id": "employee-post-c3", "dimension": "C", "sourceNote": "Marked reverse in the source, but phrased positively.", "text": "I feel less defensive when receiving feedback." },
+        { "id": "employee-post-a1", "dimension": "A", "text": "I understand feedback more clearly after the CARE framework." },
+        { "id": "employee-post-a2", "dimension": "A", "text": "Feedback I receive is more specific and actionable now." },
+        { "id": "employee-post-r1", "dimension": "R", "text": "I can reflect on feedback more effectively." },
+        { "id": "employee-post-r2", "dimension": "R", "text": "I better understand how to improve after feedback." },
+        { "id": "employee-post-e1", "dimension": "E", "text": "I apply feedback more effectively in my work." },
+        { "id": "employee-post-e2", "dimension": "E", "text": "Feedback has a stronger impact on my performance now." },
+        { "id": "employee-post-overall", "dimension": "overall", "text": "Overall, the CARE framework improved my feedback experience." }
+      ]
+    },
+    {
+      "id": "manager-pre",
+      "role": "manager",
+      "stage": "pre",
+      "frameworkId": "REAL",
+      "title": "Manager pre-pulse",
+      "description": "Baseline reflection before practising the REAL framework.",
+      "questions": [
+        { "id": "manager-pre-r1", "dimension": "R", "text": "I identify specific employee behaviours when giving feedback." },
+        { "id": "manager-pre-e1", "dimension": "E", "text": "I link feedback to clear performance standards or expectations." },
+        { "id": "manager-pre-a1", "dimension": "A", "text": "I provide clear and actionable improvement steps." },
+        { "id": "manager-pre-l1", "dimension": "L", "text": "I connect feedback to employee growth or long-term development." },
+        { "id": "manager-pre-delivery", "dimension": "delivery", "reverseScored": true, "text": "I sometimes avoid giving feedback due to discomfort or fear of reaction." },
+        { "id": "manager-pre-overall", "dimension": "overall", "text": "Overall, I am satisfied with the current feedback culture." }
+      ]
+    },
+    {
+      "id": "manager-post",
+      "role": "manager",
+      "stage": "post",
+      "frameworkId": "REAL",
+      "title": "Manager post-pulse",
+      "description": "Reflection after practising the REAL framework.",
+      "questions": [
+        { "id": "manager-post-r1", "dimension": "R", "text": "I now identify employee behaviours more clearly when giving feedback." },
+        { "id": "manager-post-e1", "dimension": "E", "text": "I better link feedback to performance standards." },
+        { "id": "manager-post-a1", "dimension": "A", "text": "I provide more actionable improvement steps." },
+        { "id": "manager-post-l1", "dimension": "L", "text": "I connect feedback more clearly to employee growth and development." },
+        { "id": "manager-post-delivery", "dimension": "delivery", "sourceNote": "Marked reverse in the source, but phrased positively.", "text": "I feel less avoidant when giving feedback." },
+        { "id": "manager-post-framework", "dimension": "overall", "text": "The REAL framework improved my feedback delivery." },
+        { "id": "manager-post-overall", "dimension": "overall", "text": "Overall, my feedback conversations are more effective now." }
+      ]
+    }
+  ]
+}

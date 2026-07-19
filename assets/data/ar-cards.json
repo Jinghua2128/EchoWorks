@@ -1,0 +1,220 @@
+{
+  "version": "2026-07-18-mdc-ar",
+  "source": {
+    "documentTitle": "MDC",
+    "documentId": "1oGnbsktUpmwYl7eKtUz7RdCh4wBEwORAPmTJfrYEJw0",
+    "contentTab": "AR Content",
+    "contentTabId": "t.ymc1fam3dyb6",
+    "workshopTab": "AR workshop Lesson Plan",
+    "workshopTabId": "t.abjha85ig5tf"
+  },
+  "scanPrefix": "echoworks://card/",
+  "cards": [
+    {
+      "id": "real-r",
+      "qrValue": "echoworks://card/real-r",
+      "role": "manager",
+      "framework": "REAL",
+      "letter": "R",
+      "title": "Recognise",
+      "character": "Alex",
+      "characterImage": "assets/manager.webp",
+      "animation": "spotlight",
+      "visual": "Alex holding a torch. The beam sweeps across and lights up a glowing figure.",
+      "physicalText": "Name what they did. Specifically.",
+      "speechBubble": "Shine the spotlight before raising anything.",
+      "checklist": [
+        "Did I name a real behaviour?",
+        "Did I make them feel seen?",
+        "Did I avoid vague praise?"
+      ],
+      "watchOut": "Don't open with the problem."
+    },
+    {
+      "id": "real-e",
+      "qrValue": "echoworks://card/real-e",
+      "role": "manager",
+      "framework": "REAL",
+      "letter": "E",
+      "title": "Evaluate",
+      "character": "Alex",
+      "characterImage": "assets/manager.webp",
+      "animation": "balance",
+      "visual": "Alex holding a scale. It tips left, tips right, then slowly balances in the centre.",
+      "physicalText": "Weigh evidence. Not feelings.",
+      "speechBubble": "Balance the scale with what actually happened.",
+      "checklist": [
+        "Behaviour or person?",
+        "Consistent with others?",
+        "Both sides covered?"
+      ],
+      "watchOut": "Don't let likeability tip the scale."
+    },
+    {
+      "id": "real-a",
+      "qrValue": "echoworks://card/real-a",
+      "role": "manager",
+      "framework": "REAL",
+      "letter": "A",
+      "title": "Advice",
+      "character": "Alex",
+      "characterImage": "assets/manager.webp",
+      "animation": "compass",
+      "visual": "Alex holding a compass. The needle spins then settles, Alex points forward.",
+      "physicalText": "Ask first. Then guide.",
+      "speechBubble": "Navigate — don't just direct.",
+      "checklist": [
+        "Did I ask before advising?",
+        "Is the next step specific?",
+        "Does it feel doable?"
+      ],
+      "watchOut": "Don't tell before you ask."
+    },
+    {
+      "id": "real-l",
+      "qrValue": "echoworks://card/real-l",
+      "role": "manager",
+      "framework": "REAL",
+      "letter": "L",
+      "title": "Link",
+      "character": "Alex",
+      "characterImage": "assets/manager.webp",
+      "animation": "bridge",
+      "visual": "Alex standing on one side of a gap. A bridge extends forward and connects to the other side.",
+      "physicalText": "Connect today to tomorrow.",
+      "speechBubble": "Show them why this matters.",
+      "checklist": [
+        "Did I explain why?",
+        "Connected to team impact?",
+        "Did I leave room for growth?"
+      ],
+      "watchOut": "Feedback without meaning won't stick."
+    },
+    {
+      "id": "care-c",
+      "qrValue": "echoworks://card/care-c",
+      "role": "employee",
+      "framework": "CARE",
+      "letter": "C",
+      "title": "Compose",
+      "character": "Jamie",
+      "characterImage": "assets/sarah.webp",
+      "animation": "breathe",
+      "visual": "Jamie seated, eyes closed. A slow visible breath in and out. Small ripple radiates outward.",
+      "physicalText": "Pause. Breathe. Receive.",
+      "speechBubble": "This is data. Not a verdict.",
+      "checklist": [
+        "Am I breathing?",
+        "Reacting or receiving?",
+        "Feeling or fact?"
+      ],
+      "watchOut": "Don't respond while triggered."
+    },
+    {
+      "id": "care-a",
+      "qrValue": "echoworks://card/care-a",
+      "role": "employee",
+      "framework": "CARE",
+      "letter": "A",
+      "title": "Analyze",
+      "character": "Jamie",
+      "characterImage": "assets/sarah.webp",
+      "animation": "magnify",
+      "visual": "Jamie holding a magnifying glass over blurry text. It slowly sharpens into focus.",
+      "physicalText": "Focus on what. Not who.",
+      "speechBubble": "Zoom in on the evidence.",
+      "checklist": [
+        "What specifically was said?",
+        "Assuming intent?",
+        "Separating relationship from content?"
+      ],
+      "watchOut": "Don't let the relationship blur the message."
+    },
+    {
+      "id": "care-r",
+      "qrValue": "echoworks://card/care-r",
+      "role": "employee",
+      "framework": "CARE",
+      "letter": "R",
+      "title": "Resolve",
+      "character": "Jamie",
+      "characterImage": "assets/sarah.webp",
+      "animation": "question",
+      "visual": "Jamie with hand raised. A glowing question mark appears above them.",
+      "physicalText": "Unclear? Ask. Privately.",
+      "speechBubble": "Curiosity over confrontation.",
+      "checklist": [
+        "Still confused about anything?",
+        "Asked for a specific example?",
+        "Asked privately?"
+      ],
+      "watchOut": "Silence leads to unchanged behaviour."
+    },
+    {
+      "id": "care-e",
+      "qrValue": "echoworks://card/care-e",
+      "role": "employee",
+      "framework": "CARE",
+      "letter": "E",
+      "title": "Execute",
+      "character": "Jamie",
+      "characterImage": "assets/sarah.webp",
+      "animation": "steps",
+      "visual": "Jamie at the bottom of a staircase. Steps light up one by one as Jamie climbs.",
+      "physicalText": "Small steps. Real change.",
+      "speechBubble": "Build the habit. Not just the output.",
+      "checklist": [
+        "Broken into small actions?",
+        "Timeline in place?",
+        "Habit or one-time fix?"
+      ],
+      "watchOut": "Don't wait for the next deadline to start."
+    }
+  ],
+  "workshop": {
+    "objectives": [
+      "Identify how the REAL and CARE frameworks are applied in workplace feedback scenarios",
+      "Reflect on different approaches to giving and receiving feedback through interactive AR-based simulations",
+      "Apply constructive feedback and response techniques during workplace discussions and scenarios",
+      "Discuss feedback situations collaboratively to develop greater empathy, understanding, and confidence in handling feedback conversations"
+    ],
+    "agenda": [
+      {
+        "stage": "Introduction",
+        "activity": "Facilitator briefly introduces Sarah’s workplace situation and learning objectives",
+        "duration": "5 min",
+        "purpose": "Establish framework understanding"
+      },
+      {
+        "stage": "Scenario demonstration",
+        "activity": "Facilitator demonstrates how AR cards work",
+        "duration": "5 min",
+        "purpose": "Familiarise participants with AR interaction"
+      },
+      {
+        "stage": "AR scenario exploration",
+        "activity": "Participants scan cards to view animated feedback scenarios",
+        "duration": "10 min",
+        "purpose": "Observe framework application through immersive examples"
+      },
+      {
+        "stage": "Group discussion",
+        "activity": "Managers/employees discuss scenario decisions, reactions, and alternative approaches",
+        "duration": "15 min",
+        "purpose": "Encourage reflection, peer learning, and perspective-taking"
+      },
+      {
+        "stage": "Reflection activity",
+        "activity": "Participants identify key learning points and workplace application",
+        "duration": "5 min",
+        "purpose": "Reinforce practical transfer of learning"
+      },
+      {
+        "stage": "Wrap-up",
+        "activity": "Summary and quick feedback collection",
+        "duration": "5 min",
+        "purpose": "Consolidate learning and gather responses"
+      }
+    ]
+  }
+}

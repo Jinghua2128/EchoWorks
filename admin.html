@@ -1,19 +1,21 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Protected manager dashboard for Feedback Playbook completion, CARE / REAL scoring, and reflection follow-up." />
   <meta name="theme-color" content="#d71920" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
   <title>Manager Dashboard | Feedback Playbook</title>
-  <link rel="stylesheet" href="assets/css/app.css?v=20260715-mobile-menu" />
-  <link rel="stylesheet" href="assets/css/admin.css?v=20260715-bars" />
-  <script type="module" src="assets/js/admin.js?v=20260708-dashboard"></script>
+  <link rel="stylesheet" href="assets/css/app.css?v=20260718-clean-interactive" />
+  <link rel="stylesheet" href="assets/css/admin.css?v=20260718-clean-interactive" />
+  <script type="module" src="assets/js/admin.js?v=20260718-clean-interactive"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-  <script defer src="assets/js/motion.js?v=20260708-vn-tune"></script>
+  <script defer src="assets/js/motion.js?v=20260718-clean-interactive"></script>
 </head>
-<body>
-  <main class="admin-shell">
+<body class="admin-page">
+  <a class="skip-link" href="#adminMain">Skip to dashboard</a>
+  <main class="admin-shell" id="adminMain" tabindex="-1">
     <header class="admin-hero">
       <a class="button subtle fit" href="index.html#home">Back to learning dashboard</a>
       <div class="admin-title-block">
@@ -23,7 +25,7 @@
       </div>
       <div class="hero-actions">
         <span class="live-chip" id="dashboardSyncStatus">Secure view</span>
-        <button class="button secondary fit" type="button" id="refreshButton">Refresh</button>
+        <button class="button secondary fit" type="button" id="refreshButton" data-busy-label="Refreshing...">Refresh</button>
       </div>
     </header>
 
@@ -129,7 +131,7 @@
             <button class="filter-button" type="button" data-filter="needs_follow_up">Needs follow-up</button>
           </div>
         </div>
-        <div class="table-wrap">
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Learner progress table">
           <table>
             <thead>
               <tr>
@@ -166,7 +168,7 @@
             <h2 id="resultsTitle">CARE / REAL result records</h2>
           </div>
         </div>
-        <div class="table-wrap">
+        <div class="table-wrap" tabindex="0" role="region" aria-label="CARE and REAL result table">
           <table>
             <thead>
               <tr>
@@ -193,7 +195,7 @@
         <form class="admin-form" id="adminForm">
           <label class="field" for="adminEmail">
             <span>Add viewer email</span>
-            <input id="adminEmail" name="email" type="email" placeholder="name@example.com" required />
+            <input id="adminEmail" name="email" type="email" placeholder="name@example.com" aria-describedby="adminMessage" required />
           </label>
           <button class="button primary fit" type="submit">Add viewer</button>
         </form>

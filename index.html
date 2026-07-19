@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -8,6 +8,7 @@
     content="Feedback Playbook is a Singapore Red Cross workplace learning platform for practising feedback conversations with CARE and REAL frameworks."
   />
   <meta name="theme-color" content="#d71920" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
   <meta property="og:title" content="Feedback Playbook" />
   <meta
     property="og:description"
@@ -16,8 +17,9 @@
   <meta property="og:type" content="website" />
   <title>Feedback Playbook | Singapore Red Cross</title>
   <link rel="preconnect" href="https://www.gstatic.com" />
-  <link rel="stylesheet" href="assets/css/app.css?v=20260715-mobile-menu" />
-  <script type="module" src="assets/js/app.js?v=20260715-mobile-menu"></script>
+  <link rel="preload" as="image" href="assets/office-vn.webp" />
+  <link rel="stylesheet" href="assets/css/app.css?v=20260718-full-script-ar" />
+  <script type="module" src="assets/js/app.js?v=20260718-full-script-ar"></script>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -32,10 +34,11 @@
     }
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-  <script defer src="assets/js/motion.js?v=20260708-vn-tune"></script>
+  <script defer src="assets/js/motion.js?v=20260718-full-script-ar"></script>
 </head>
 
-<body>
+<body class="app-page">
+  <a class="skip-link" href="#mainContent">Skip to content</a>
   <noscript>
     <div class="noscript">
       Feedback Playbook needs JavaScript enabled to save progress and run the interactive scenario.
@@ -80,7 +83,7 @@
           <span class="icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M4 8h3l1.4-2h7.2L17 8h3v11H4V8Zm8 8.2A3.2 3.2 0 1 0 12 9.8a3.2 3.2 0 0 0 0 6.4Z" /></svg>
           </span>
-          Reference
+          AR cards
         </button>
         <button class="nav-button" type="button" data-route="settings">
           <span class="icon" aria-hidden="true">
@@ -105,7 +108,7 @@
       </div>
     </aside>
 
-    <main class="workspace">
+    <main class="workspace" id="mainContent" tabindex="-1">
       <section class="auth-view page active" id="login" aria-labelledby="loginTitle">
         <div class="auth-panel">
           <div class="auth-copy">
@@ -116,7 +119,7 @@
             </span>
             <h1 id="loginTitle">Feedback Playbook</h1>
             <p>
-              Practice feedback conversations, save your progress, and revisit the Sarah scenario when you need a quick coaching refresh.
+              Practise realistic feedback conversations, save your progress, and revisit key CARE and REAL habits whenever you need a coaching refresh.
             </p>
           </div>
 
@@ -128,18 +131,18 @@
 
             <label class="field" for="loginEmail">
               <span>Email</span>
-              <input id="loginEmail" name="email" type="email" autocomplete="email" required />
+              <input id="loginEmail" name="email" type="email" autocomplete="email" aria-describedby="loginMessage" required />
             </label>
 
             <label class="field" for="loginPassword">
               <span>Password</span>
-              <input id="loginPassword" name="password" type="password" autocomplete="current-password" minlength="6" required />
+              <input id="loginPassword" name="password" type="password" autocomplete="current-password" aria-describedby="loginMessage" minlength="6" required />
             </label>
 
             <p class="form-message" id="loginMessage" aria-live="polite"></p>
 
             <div class="button-stack">
-              <button class="button primary" type="submit">Log in</button>
+              <button class="button primary" type="submit" data-busy-label="Logging in...">Log in</button>
               <button class="button ghost" type="button" data-action="guest">Continue as guest</button>
             </div>
 
@@ -165,17 +168,17 @@
 
             <label class="field" for="signupEmail">
               <span>Email</span>
-              <input id="signupEmail" name="email" type="email" autocomplete="email" required />
+              <input id="signupEmail" name="email" type="email" autocomplete="email" aria-describedby="signupMessage" required />
             </label>
 
             <label class="field" for="signupPassword">
               <span>Password</span>
-              <input id="signupPassword" name="password" type="password" autocomplete="new-password" minlength="6" required />
+              <input id="signupPassword" name="password" type="password" autocomplete="new-password" aria-describedby="signupMessage" minlength="6" required />
             </label>
 
             <p class="form-message" id="signupMessage" aria-live="polite"></p>
 
-            <button class="button primary" type="submit">Create account</button>
+            <button class="button primary" type="submit" data-busy-label="Creating account...">Create account</button>
           </form>
         </div>
       </section>
@@ -186,7 +189,7 @@
             <p class="section-label">Workplace learning</p>
             <h1 id="homeTitle">Feedback Playbook</h1>
             <p class="lead">
-              A 10-15 minute interactive learning experience for practising respectful feedback conversations using the CARE and REAL frameworks.
+              Practise randomized workplace conversations with the CARE and REAL frameworks, then compare your pre- and post-pulse reflections.
             </p>
           </div>
           <a class="button primary fit" href="test3.html">
@@ -207,10 +210,10 @@
             <div class="progress-track" aria-hidden="true">
               <span id="progressBar"></span>
             </div>
-            <p id="progressText" class="muted">0 of 4 units completed</p>
+            <p id="progressText" class="muted">0 pulse responses and 0 scenarios completed</p>
             <div class="learner-stats" aria-label="Learning summary">
               <span><strong id="completedScenarios">0</strong>Completed scenarios</span>
-              <span><strong id="remainingScenarios">1</strong>Remaining</span>
+              <span><strong id="remainingScenarios">8</strong>Remaining</span>
               <span><strong id="latestScoreSummary">-</strong>Latest score</span>
             </div>
           </section>
@@ -219,32 +222,32 @@
             <div class="panel-heading">
               <div>
                 <p class="section-label">Next action</p>
-                <h2 id="nextTitle">Practice the Sarah conversation</h2>
+                <h2 id="nextTitle">Practise a randomized case</h2>
               </div>
               <span class="status-dot" aria-hidden="true"></span>
             </div>
             <div class="scenario-card compact">
               <div>
-                <strong>Giving Constructive Feedback</strong>
-                <span>Practise a workplace conversation with Sarah Tan from either the manager or employee role.</span>
+                <strong>CARE and REAL scenario library</strong>
+                <span>Choose Manager or Employee and receive one of four role-specific workplace cases.</span>
               </div>
               <dl class="scenario-meta">
-                <div><dt>Duration</dt><dd>10-15 min</dd></div>
+                <div><dt>Duration</dt><dd>4-6 min each</dd></div>
                 <div><dt>Status</dt><dd id="scenarioStatus">Not started</dd></div>
                 <div><dt>Latest score</dt><dd id="latestScenarioScore">-</dd></div>
               </dl>
             </div>
             <div class="split-actions">
               <a class="button secondary fit" href="test3.html">Start interactive scenario</a>
-              <button class="button subtle fit" type="button" data-route="survey">Take confidence check</button>
+              <button class="button subtle fit" type="button" data-route="survey">Open pulse surveys</button>
             </div>
           </section>
 
           <section class="panel units-panel" aria-labelledby="unitsTitle">
             <div class="panel-heading">
               <div>
-                <p class="section-label">Confidence checks</p>
-                <h2 id="unitsTitle">Choose a reflection topic</h2>
+                <p class="section-label">Pulse surveys</p>
+                <h2 id="unitsTitle">Choose a pre- or post-pulse</h2>
               </div>
             </div>
             <div class="unit-list" id="unitList"></div>
@@ -263,8 +266,8 @@
                   <svg viewBox="0 0 24 24"><path d="M4 8h3l1.4-2h7.2L17 8h3v11H4V8Zm8 8.2A3.2 3.2 0 1 0 12 9.8a3.2 3.2 0 0 0 0 6.4Z" /></svg>
                 </span>
                 <span>
-                  <strong>Reference scanner</strong>
-                  <small>Open a camera preview for printed training cards.</small>
+                  <strong>AR card workshop</strong>
+                  <small>Scan CARE and REAL cards to reveal animated coaching prompts.</small>
                 </span>
               </button>
               <button class="tool-card" type="button" data-route="settings">
@@ -287,20 +290,21 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7" /></svg>
           </button>
           <div>
-            <p class="section-label">Reflection survey</p>
-            <h1 id="surveyTitle">Confidence check</h1>
-            <p class="lead" id="questionTitle">Select a learning unit to begin.</p>
+            <p class="section-label">Pulse survey</p>
+            <h1 id="surveyTitle">Employee pre-pulse</h1>
+            <p class="survey-progress" id="surveyProgressText">Question 1</p>
+            <p class="lead" id="questionTitle">Select a pulse survey to begin.</p>
           </div>
         </header>
 
         <form class="panel survey-card" id="surveyForm" novalidate>
-          <fieldset>
-            <legend>How comfortable are you with this skill?</legend>
+          <fieldset tabindex="-1">
+            <legend id="surveyLegend">How strongly do you agree?</legend>
             <div class="rating-options" id="ratingOptions"></div>
           </fieldset>
           <p class="form-message" id="surveyMessage" aria-live="polite"></p>
           <div class="split-actions">
-            <button class="button primary fit" type="submit">Save response</button>
+            <button class="button primary fit" type="submit"><span id="surveySubmitLabel">Save and continue</span></button>
             <button class="button subtle fit" type="button" data-route="home">Cancel</button>
           </div>
         </form>
@@ -312,39 +316,100 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7" /></svg>
           </button>
           <div>
-            <p class="section-label">Quick reference</p>
-            <h1 id="arTitle">Reference scanner</h1>
-            <p class="lead">Open a camera preview when a facilitator asks you to scan a printed training card.</p>
+            <p class="section-label">Interactive workshop</p>
+            <h1 id="arTitle">CARE and REAL AR cards</h1>
+            <p class="lead">Scan a printed framework card to reveal its animated coaching prompt, or choose a card for the same experience without camera access.</p>
           </div>
         </header>
 
-        <div class="scanner-layout">
-          <section class="panel camera-panel" aria-labelledby="cameraTitle">
-            <div class="camera-frame">
+        <div class="ar-experience-layout">
+          <section class="panel ar-camera-panel" aria-labelledby="cameraTitle">
+            <div class="camera-frame ar-camera-frame" id="arCameraFrame">
               <video id="cameraPreview" autoplay playsinline muted hidden></video>
+              <canvas id="arScanCanvas" hidden></canvas>
               <div class="camera-empty" id="cameraEmpty">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.4-2h7.2L17 8h3v11H4V8Zm8 8.2A3.2 3.2 0 1 0 12 9.8a3.2 3.2 0 0 0 0 6.4Z" /></svg>
-                <strong id="cameraTitle">Camera preview</strong>
-                <span>Camera access starts only when you press the button.</span>
+                <strong id="cameraTitle">AR card viewer</strong>
+                <span>Start the camera to scan a printed card.</span>
               </div>
+              <div class="ar-reticle" aria-hidden="true"><span></span></div>
+              <article class="ar-overlay" id="arOverlay" aria-live="polite" hidden>
+                <div class="ar-visual" id="arVisual">
+                  <img id="arCharacterImage" src="assets/manager.webp" alt="" />
+                  <span class="ar-effect" id="arEffect" aria-hidden="true"></span>
+                </div>
+                <div class="ar-overlay-copy">
+                  <span id="arOverlayFramework">REAL · R</span>
+                  <strong id="arOverlayTitle">Recognise</strong>
+                  <p id="arOverlaySpeech">Shine the spotlight before raising anything.</p>
+                </div>
+              </article>
             </div>
             <p class="form-message" id="cameraMessage" aria-live="polite"></p>
             <div class="split-actions">
-              <button class="button primary fit" type="button" data-action="start-camera">Start camera</button>
+              <button class="button primary fit" type="button" data-action="start-camera" data-busy-label="Starting camera...">Start camera</button>
               <button class="button subtle fit" type="button" data-action="stop-camera">Stop camera</button>
             </div>
           </section>
 
-          <aside class="panel checklist-panel" aria-labelledby="scanTipsTitle">
-            <p class="section-label">Scan tips</p>
-            <h2 id="scanTipsTitle">Reliable capture</h2>
-            <ul class="clean-list">
-              <li>Keep the card inside the frame.</li>
-              <li>Use steady light and avoid glare.</li>
-              <li>Stop the camera when you are done.</li>
-            </ul>
+          <aside class="panel ar-card-browser" aria-labelledby="arCardsTitle">
+            <div class="panel-heading">
+              <div>
+                <p class="section-label">Framework cards</p>
+                <h2 id="arCardsTitle">Choose a card</h2>
+              </div>
+              <div class="segmented-control" aria-label="Filter framework cards">
+                <button type="button" data-ar-role="manager" aria-pressed="true">REAL</button>
+                <button type="button" data-ar-role="employee" aria-pressed="false">CARE</button>
+              </div>
+            </div>
+            <div class="ar-card-picker" id="arCardPicker" aria-label="Available AR cards"></div>
+            <p class="ar-fallback-note" id="arSupportNote">Card selection works even when camera scanning is unavailable.</p>
           </aside>
         </div>
+
+        <section class="panel ar-learning-panel" id="arLearningPanel" aria-labelledby="arLearningTitle">
+          <header class="ar-learning-header">
+            <span class="ar-learning-letter" id="arLearningLetter">R</span>
+            <span>
+              <p class="section-label" id="arLearningFramework">REAL framework</p>
+              <h2 id="arLearningTitle">Recognise</h2>
+              <strong id="arPhysicalText">Name what they did. Specifically.</strong>
+            </span>
+          </header>
+          <div class="ar-learning-grid">
+            <blockquote id="arSpeechBubble">Shine the spotlight before raising anything.</blockquote>
+            <section aria-labelledby="arChecklistTitle">
+              <h3 id="arChecklistTitle">Check yourself</h3>
+              <ul class="ar-checklist" id="arChecklist"></ul>
+            </section>
+            <aside class="ar-watchout">
+              <span>Watch out</span>
+              <strong id="arWatchOut">Don't open with the problem.</strong>
+            </aside>
+          </div>
+        </section>
+
+        <section class="panel ar-workshop-panel" aria-labelledby="arWorkshopTitle">
+          <div class="panel-heading">
+            <div>
+              <p class="section-label">Facilitator flow</p>
+              <h2 id="arWorkshopTitle">45-minute AR workshop</h2>
+            </div>
+          </div>
+          <div class="ar-workshop-timeline" id="arWorkshopTimeline"></div>
+        </section>
+
+        <section class="panel ar-print-panel" aria-labelledby="arPrintTitle">
+          <div class="panel-heading">
+            <div>
+              <p class="section-label">Workshop materials</p>
+              <h2 id="arPrintTitle">Printable scan cards</h2>
+            </div>
+            <button class="button subtle fit" type="button" data-action="print-ar-cards">Print cards</button>
+          </div>
+          <div class="ar-print-grid" id="arPrintableCards"></div>
+        </section>
       </section>
 
       <section class="page app-view" id="settings" aria-labelledby="settingsTitle">
@@ -388,9 +453,4 @@
   </div>
 </body>
 </html>
-
-
-
-
-
 

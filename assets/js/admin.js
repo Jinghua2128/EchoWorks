@@ -1,4 +1,4 @@
-﻿import { loadFirebaseClient, normalizeEmail, rootAdminEmail } from "./firebase-client.js";
+import { loadFirebaseClient, normalizeEmail, rootAdminEmail } from "./firebase-client.js";
 
 const accessPanel = document.getElementById("accessPanel");
 const accessMessage = document.getElementById("accessMessage");
@@ -50,6 +50,20 @@ function setAccess(title, message, allowed = false, options = {}) {
   if (dashboardSyncStatus) {
     dashboardSyncStatus.textContent = allowed ? "Secure view" : "Access locked";
   }
+}
+
+function setDashboardBusy(busy) {
+  dashboardContent.setAttribute("aria-busy", String(busy));
+  refreshButton.disabled = busy || !dashboardAllowed;
+  if (!refreshButton.dataset.idleLabel) refreshButton.dataset.idleLabel = refreshButton.textContent.trim();
+  refreshButton.textContent = busy ? refreshButton.dataset.busyLabel : refreshButton.dataset.idleLabel;
+}
+
+function setAdminFormBusy(busy) {
+  adminForm.setAttribute("aria-busy", String(busy));
+  const submit = adminForm.querySelector('button[type="submit"]');
+  submit.disabled = busy;
+  submit.textContent = busy ? "Adding..." : "Add viewer";
 }
 
 function setAdminMessage(message, tone = "error") {
@@ -578,25 +592,30 @@ async function loadDashboard() {
   if (!dashboardAllowed) return;
 
   setAccess("Loading dashboard", "Fetching user progress and scenario scoring records...", true);
+  setDashboardBusy(true);
 
-  const [usersSnap, resultsSnap, adminsSnap] = await Promise.all([
-    firebaseClient.getDocs(firebaseClient.collection(firebaseClient.db, "users")),
-    firebaseClient.getDocs(firebaseClient.collection(firebaseClient.db, "scenarioResults")),
-    firebaseClient.getDocs(firebaseClient.collection(firebaseClient.db, "dashboardAdminEmails"))
-  ]);
+  try {
+    const [usersSnap, resultsSnap, adminsSnap] = await Promise.all([
+      firebaseClient.getDocs(firebaseClient.collection(firebaseClient.db, "users")),
+      firebaseClient.getDocs(firebaseClient.collection(firebaseClient.db, "scenarioResults")),
+      firebaseClient.getDocs(firebaseClient.collection(firebaseClient.db, "dashboardAdminEmails"))
+    ]);
 
-  cachedUsers = usersSnap.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
-  cachedResults = resultsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  cachedAdmins = adminsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    cachedUsers = usersSnap.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+    cachedResults = resultsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    cachedAdmins = adminsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-  renderMetrics(cachedUsers, cachedResults);
-  renderCharts(cachedUsers, cachedResults);
-  renderInsights(cachedUsers, cachedResults);
-  renderUsers(cachedUsers, cachedResults);
-  renderResults(cachedResults);
-  renderAdmins(cachedAdmins);
-  if (dashboardSyncStatus) {
-    dashboardSyncStatus.textContent = "Updated " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    renderMetrics(cachedUsers, cachedResults);
+    renderCharts(cachedUsers, cachedResults);
+    renderInsights(cachedUsers, cachedResults);
+    renderUsers(cachedUsers, cachedResults);
+    renderResults(cachedResults);
+    renderAdmins(cachedAdmins);
+    if (dashboardSyncStatus) {
+      dashboardSyncStatus.textContent = "Updated " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+  } finally {
+    setDashboardBusy(false);
   }
 }
 
@@ -608,15 +627,20 @@ async function addAdmin(event) {
     return;
   }
 
-  await firebaseClient.setDoc(firebaseClient.doc(firebaseClient.db, "dashboardAdminEmails", email), {
-    email,
-    addedBy: currentUser?.email || "",
-    addedAt: firebaseClient.serverTimestamp()
-  }, { merge: true });
+  setAdminFormBusy(true);
+  try {
+    await firebaseClient.setDoc(firebaseClient.doc(firebaseClient.db, "dashboardAdminEmails", email), {
+      email,
+      addedBy: currentUser?.email || "",
+      addedAt: firebaseClient.serverTimestamp()
+    }, { merge: true });
 
-  adminEmail.value = "";
-  setAdminMessage("Dashboard viewer added.", "success");
-  await loadDashboard();
+    adminEmail.value = "";
+    setAdminMessage("Dashboard viewer added.", "success");
+    await loadDashboard();
+  } finally {
+    setAdminFormBusy(false);
+  }
 }
 
 async function removeAdmin(email) {
