@@ -30,7 +30,13 @@ service cloud.firestore {
       return signedIn()
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.scenarioId is string
-        && resultId == request.auth.uid + "_" + request.resource.data.scenarioId;
+        && request.resource.data.attemptNumber is int
+        && request.resource.data.attemptNumber >= 1
+        && request.resource.data.anonymousPlayerId is string
+        && (request.resource.data.optionScore == null
+          || (request.resource.data.optionScore is number
+            && request.resource.data.optionScore >= 0
+            && request.resource.data.optionScore <= 2));
     }
 
     match /users/{uid} {
@@ -43,7 +49,9 @@ service cloud.firestore {
     }
 
     match /scenarioResults/{resultId} {
-      allow create, update: if writesOwnScenarioResult(resultId) || isDashboardAdmin();
+      allow create: if writesOwnScenarioResult(resultId) || isDashboardAdmin();
+      allow update: if isDashboardAdmin()
+        || (writesOwnScenarioResult(resultId) && resource.data.uid == request.auth.uid);
       allow read: if (signedIn() && resource.data.uid == request.auth.uid) || isDashboardAdmin();
       allow list: if isDashboardAdmin();
       allow delete: if (signedIn() && resource.data.uid == request.auth.uid) || isDashboardAdmin();

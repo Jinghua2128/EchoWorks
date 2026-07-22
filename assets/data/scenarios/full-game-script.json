@@ -509,7 +509,7 @@
           "feedback": {
             "speaker": "REAL Coach",
             "tone": "tense",
-            "text": "✗ FEEDBACK CARD — MISSED: A: ADVICE You skipped ADVICE. Telling someone what to do without a how is pressure, not guidance. It increases anxiety, not confidence. Try: Act as a navigator. Ask first. Then offer practical, specific steps."
+            "text": "✗ FEEDBACK CARD — MISSED: A: ADVISE You skipped ADVISE. Telling someone what to do without a how is pressure, not guidance. It increases anxiety, not confidence. Try: Act as a navigator. Ask first. Then offer practical, specific steps."
           }
         },
         "ask-what-is-hard": {
@@ -540,7 +540,7 @@
           "feedback": {
             "speaker": "REAL Coach",
             "tone": "success",
-            "text": "★ FEEDBACK CARD — A: ADVICE You demonstrated ADVICE. You asked before you advised. Then you offered a practical, low-pressure next step. Key: Reflective questions + actionable suggestions = real navigation, not just direction."
+            "text": "★ FEEDBACK CARD — A: ADVISE You demonstrated ADVISE. You asked before you advised. Then you offered a practical, low-pressure next step. Key: Reflective questions + actionable suggestions = real navigation, not just direction."
           }
         },
         "offer-one-idea-plan": {
@@ -570,7 +570,7 @@
           "feedback": {
             "speaker": "REAL Coach",
             "tone": "success",
-            "text": "★ FEEDBACK CARD — A: ADVICE You demonstrated ADVICE. Giving someone a small, specific action respects their pace. That's the difference between coaching and commanding. Key: Make the path forward concrete and kind."
+            "text": "★ FEEDBACK CARD — A: ADVISE You demonstrated ADVISE. Giving someone a small, specific action respects their pace. That's the difference between coaching and commanding. Key: Make the path forward concrete and kind."
           }
         }
       }

@@ -377,13 +377,19 @@ async function refreshDashboardAccess(user = currentUser) {
   try {
     const email = normalizeEmail(user.email);
 
-    if (email === bootstrapAdminEmail) {
-      dashboardProfileAllowed = true;
-      updateUI();
-      return true;
+    const profileRef = firebaseSdk.doc(firebaseSdk.db, "dashboardAdminEmails", email);
+    let snapshot = await firebaseSdk.getDoc(profileRef);
+
+    if (email === bootstrapAdminEmail && !snapshot.exists()) {
+      await firebaseSdk.setDoc(profileRef, {
+        email,
+        role: "owner",
+        addedBy: email,
+        addedAt: firebaseSdk.serverTimestamp()
+      }, { merge: true });
+      snapshot = await firebaseSdk.getDoc(profileRef);
     }
 
-    const snapshot = await firebaseSdk.getDoc(firebaseSdk.doc(firebaseSdk.db, "dashboardAdminEmails", email));
     dashboardProfileAllowed = snapshot.exists();
   } catch {
     dashboardProfileAllowed = false;
@@ -617,14 +623,19 @@ async function clearCloudScenarioProgress(user = currentUser) {
     "sarah-feedback-manager",
     "sarah-feedback-employee"
   ];
-  const deletes = storedScenarioIds.flatMap(scenarioId => [
-    firebaseSdk.deleteDoc(firebaseSdk.doc(firebaseSdk.db, "users", user.uid, "scenarioProgress", scenarioId)),
-    firebaseSdk.deleteDoc(firebaseSdk.doc(firebaseSdk.db, "scenarioResults", `${user.uid}_${scenarioId}`))
-  ]);
+  const progressDeletes = storedScenarioIds.map(scenarioId => {
+    return firebaseSdk.deleteDoc(firebaseSdk.doc(firebaseSdk.db, "users", user.uid, "scenarioProgress", scenarioId));
+  });
 
-  await Promise.all(deletes.map(task => task.catch(() => {})));
+  const ownAttemptsQuery = firebaseSdk.query(
+    firebaseSdk.collection(firebaseSdk.db, "scenarioResults"),
+    firebaseSdk.where("uid", "==", user.uid)
+  );
+  const attemptSnapshot = await firebaseSdk.getDocs(ownAttemptsQuery);
+  const attemptDeletes = attemptSnapshot.docs.map(snapshot => firebaseSdk.deleteDoc(snapshot.ref));
+
+  await Promise.all([...progressDeletes, ...attemptDeletes]);
 }
-
 async function resetProgress() {
   const confirmed = window.confirm("Delete your saved learning progress?");
   if (!confirmed) return;

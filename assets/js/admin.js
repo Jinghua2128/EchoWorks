@@ -22,9 +22,38 @@ const adminEmail = document.getElementById("adminEmail");
 const adminMessage = document.getElementById("adminMessage");
 const adminList = document.getElementById("adminList");
 const setupAdminButton = document.getElementById("setupAdminButton");
+const adminSignInLink = document.getElementById("adminSignInLink");
 const dashboardSyncStatus = document.getElementById("dashboardSyncStatus");
 const supportQueue = document.getElementById("supportQueue");
 const recentActivity = document.getElementById("recentActivity");
+const refreshButtonLabel = document.getElementById("refreshButtonLabel");
+const frameworkView = document.getElementById("frameworkView");
+const attemptView = document.getElementById("attemptView");
+const scenarioView = document.getElementById("scenarioView");
+const overviewSyncText = document.getElementById("overviewSyncText");
+const dashboardNotice = document.getElementById("dashboardNotice");
+const scoreMetricLabel = document.getElementById("scoreMetricLabel");
+const selectedFrameworkScore = document.getElementById("selectedFrameworkScore");
+const scoreTrend = document.getElementById("scoreTrend");
+const selectedScoreContext = document.getElementById("selectedScoreContext");
+const responseRateMetric = document.getElementById("responseRateMetric");
+const responseCountMetric = document.getElementById("responseCountMetric");
+const priorityAreaValue = document.getElementById("priorityAreaValue");
+const priorityAreaDetail = document.getElementById("priorityAreaDetail");
+const pulseComparisonChart = document.getElementById("pulseComparisonChart");
+const pulseBreakdownTitle = document.getElementById("pulseBreakdownTitle");
+const pulseDistribution = document.getElementById("pulseDistribution");
+const pulseDistributionSummary = document.getElementById("pulseDistributionSummary");
+const recommendationTitle = document.getElementById("recommendationTitle");
+const recommendationCopy = document.getElementById("recommendationCopy");
+const strongChoiceRate = document.getElementById("strongChoiceRate");
+const partialChoiceRate = document.getElementById("partialChoiceRate");
+const missedChoiceRate = document.getElementById("missedChoiceRate");
+const bothPathsRate = document.getElementById("bothPathsRate");
+const improvementValue = document.getElementById("improvementValue");
+const dropOffValue = document.getElementById("dropOffValue");
+
+const scenarioLibraryFile = "assets/data/scenarios/scenario-library.json";
 
 let firebaseClient = null;
 let currentUser = null;
@@ -34,17 +63,20 @@ let cachedUsers = [];
 let cachedResults = [];
 let cachedAdmins = [];
 let canBootstrapAdmin = false;
+let scenarioDefinitions = [];
+let frameworkDefinitions = {};
 
 function notifyMotion(name, detail = {}) {
   window.dispatchEvent(new CustomEvent(name, { detail }));
 }
 
 function setAccess(title, message, allowed = false, options = {}) {
-  accessPanel.querySelector("h2").textContent = title;
+  accessPanel.querySelector("h1").textContent = title;
   accessMessage.textContent = message;
   accessPanel.hidden = allowed;
   dashboardContent.hidden = !allowed;
   setupAdminButton.hidden = allowed || !options.canBootstrapAdmin;
+  adminSignInLink.hidden = allowed || !options.needsSignIn;
   refreshButton.disabled = !allowed;
 
   if (dashboardSyncStatus) {
@@ -55,8 +87,10 @@ function setAccess(title, message, allowed = false, options = {}) {
 function setDashboardBusy(busy) {
   dashboardContent.setAttribute("aria-busy", String(busy));
   refreshButton.disabled = busy || !dashboardAllowed;
-  if (!refreshButton.dataset.idleLabel) refreshButton.dataset.idleLabel = refreshButton.textContent.trim();
-  refreshButton.textContent = busy ? refreshButton.dataset.busyLabel : refreshButton.dataset.idleLabel;
+  if (!refreshButton.dataset.idleLabel) refreshButton.dataset.idleLabel = refreshButtonLabel?.textContent.trim() || "Refresh";
+  if (refreshButtonLabel) {
+    refreshButtonLabel.textContent = busy ? refreshButton.dataset.busyLabel : refreshButton.dataset.idleLabel;
+  }
 }
 
 function setAdminFormBusy(busy) {
@@ -108,10 +142,6 @@ function latestResult(results) {
   return [...results].sort((a, b) => String(b.updatedAtIso || b.completedAtIso || "").localeCompare(String(a.updatedAtIso || a.completedAtIso || "")))[0];
 }
 
-function latestByFramework(results, frameworkId) {
-  return latestResult(results.filter(result => result.frameworkId === frameworkId));
-}
-
 function allTrackedUsers(users, results) {
   const map = new Map();
   users.forEach(user => {
@@ -138,11 +168,13 @@ function resultsForUser(user, results = cachedResults) {
   });
 }
 
-function userStatus(user) {
-  const results = resultsForUser(user);
-  if (!results.length) return "not_started";
-  if (results.some(result => result.needsFollowUp)) return "needs_follow_up";
-  if (results.some(result => result.completed)) return "completed";
+function userStatus(user, results = cachedResults) {
+  const userResults = resultsForUser(user, results);
+  if (!userResults.length) return "not_started";
+
+  const formalResults = selectAttemptResults(userResults, "first");
+  if (formalResults.some(result => resultClassification(result) === "missed")) return "needs_follow_up";
+  if (["CARE", "REAL"].some(frameworkId => userCompletedPath(user, results, frameworkId))) return "completed";
   return "in_progress";
 }
 
@@ -160,17 +192,12 @@ function statusTone(status) {
   return "";
 }
 
-function setMetricProgress(element, value) {
-  const metric = element?.closest(".admin-metric");
-  if (!metric) return;
-  metric.style.setProperty("--metric-progress", Math.max(0, Math.min(100, Number(value) || 0)) + "%");
-}
 
 function barTone(label) {
   const normalized = String(label || "").toLowerCase();
-  if (normalized.includes("completed") || normalized.includes("care")) return "success";
-  if (normalized.includes("needs") || normalized.includes("follow")) return "danger";
-  if (normalized.includes("progress") || normalized.includes("real")) return "warning";
+  if (normalized.includes("completed") || normalized.includes("strong")) return "success";
+  if (normalized.includes("needs") || normalized.includes("follow") || normalized.includes("missed") || normalized.includes("drop-off")) return "danger";
+  if (normalized.includes("progress") || normalized.includes("partial")) return "warning";
   return "neutral";
 }
 
@@ -190,34 +217,432 @@ function resultTimestamp(result) {
   );
 }
 
-function averageFor(results, frameworkId) {
-  const completed = results.filter(result => result.completed && result.frameworkId === frameworkId && result.scorePercent != null);
-  if (!completed.length) return 0;
-  return Math.round(completed.reduce((sum, result) => sum + Number(result.scorePercent || 0), 0) / completed.length);
+async function loadScenarioDefinitions() {
+  const response = await fetch(scenarioLibraryFile, { cache: "no-store" });
+  if (!response.ok) throw new Error("Scenario scoring definitions could not be loaded.");
+
+  const data = await response.json();
+  scenarioDefinitions = Array.isArray(data.scenarios) ? data.scenarios : [];
+  frameworkDefinitions = data.frameworks || {};
+  syncScenarioOptions();
 }
 
+function average(values) {
+  if (!values.length) return null;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function resultPlayerKey(result) {
+  return result.uid || result.anonymousPlayerId || normalizeEmail(result.email) || result.id;
+}
+
+function scenarioDefinition(scenarioId) {
+  return scenarioDefinitions.find(item => item.id === scenarioId) || null;
+}
+
+function expectedScenarios(frameworkId) {
+  return scenarioDefinitions.filter(item => item.frameworkId === frameworkId);
+}
+
+function resultOptionScore(result) {
+  if (result?.optionScore !== null && result?.optionScore !== undefined) {
+    return Number(result.optionScore);
+  }
+
+  const selectedChoice = Array.isArray(result?.choices) ? result.choices.at(-1) : null;
+  if (selectedChoice?.optionScore !== null && selectedChoice?.optionScore !== undefined) {
+    return Number(selectedChoice.optionScore);
+  }
+
+  if (result?.completed && Number(result?.maxScore) === 2 && result?.score !== null && result?.score !== undefined) {
+    return Number(result.score);
+  }
+
+  return null;
+}
+
+function resultOptionLabel(result) {
+  if (result?.optionSelected) return String(result.optionSelected).toUpperCase();
+  const selectedChoice = Array.isArray(result?.choices) ? result.choices.at(-1) : null;
+  if (selectedChoice?.optionLabel) return String(selectedChoice.optionLabel).toUpperCase();
+
+  const choiceId = result?.optionId || selectedChoice?.choiceId;
+  const definition = scenarioDefinition(result?.scenarioId);
+  const index = definition?.choices?.findIndex(choice => choice.id === choiceId) ?? -1;
+  return index >= 0 ? String.fromCharCode(65 + index) : null;
+}
+
+function resultClassification(result) {
+  const supplied = String(result?.choiceClassification || "").toLowerCase();
+  if (["strong", "partial", "missed"].includes(supplied)) return supplied;
+
+  const score = resultOptionScore(result);
+  if (score === null) return null;
+  if (score >= 2) return "strong";
+  if (score === 1) return "partial";
+  return "missed";
+}
+
+function resultAttemptNumber(result) {
+  return Math.max(1, Number(result?.attemptNumber || 1));
+}
+
+function compareAttempts(a, b) {
+  const attemptDifference = resultAttemptNumber(a) - resultAttemptNumber(b);
+  return attemptDifference || resultTimestamp(a) - resultTimestamp(b);
+}
+
+function selectAttemptResults(results, mode = "first") {
+  const scored = results.filter(result => result.completed && resultOptionScore(result) !== null);
+  if (mode === "all") return scored;
+
+  const grouped = new Map();
+  scored.forEach(result => {
+    const key = `${resultPlayerKey(result)}::${result.scenarioId}`;
+    const existing = grouped.get(key);
+    if (!existing) {
+      grouped.set(key, result);
+      return;
+    }
+
+    const comparison = compareAttempts(result, existing);
+    if ((mode === "first" && comparison < 0) || (mode === "latest" && comparison > 0)) {
+      grouped.set(key, result);
+    }
+  });
+  return Array.from(grouped.values());
+}
+
+function syncScenarioOptions() {
+  if (!scenarioView) return;
+  const frameworkId = frameworkView?.value || "CARE";
+  const previous = scenarioView.value;
+  scenarioView.textContent = "";
+
+  const allOption = document.createElement("option");
+  allOption.value = "all";
+  allOption.textContent = "All scenarios";
+  scenarioView.append(allOption);
+
+  expectedScenarios(frameworkId).forEach(scenarioItem => {
+    const option = document.createElement("option");
+    option.value = scenarioItem.id;
+    option.textContent = scenarioItem.title;
+    scenarioView.append(option);
+  });
+
+  scenarioView.value = Array.from(scenarioView.options).some(option => option.value === previous) ? previous : "all";
+}
+
+function userRole(user, results = cachedResults) {
+  const latest = latestResult(resultsForUser(user, results));
+  return String(latest?.selectedRole || user?.selectedRole || "").toLowerCase();
+}
+
+function dashboardScope(users, results) {
+  const framework = frameworkView?.value || "CARE";
+  const attemptMode = attemptView?.value || "first";
+  const scenarioId = scenarioView?.value || "all";
+  const tracked = allTrackedUsers(users, results);
+  const frameworkRole = framework === "CARE" ? "employee" : "manager";
+
+  const scopedUsers = tracked.filter(user => {
+    const userResults = resultsForUser(user, results);
+    return userResults.some(result => result.frameworkId === framework) || userRole(user, results) === frameworkRole;
+  });
+  const scopedResults = results.filter(result => {
+    if (result.frameworkId !== framework) return false;
+    return scopedUsers.some(user => resultsForUser(user, [result]).length > 0);
+  });
+
+  return { framework, attemptMode, scenarioId, users: scopedUsers, results: scopedResults };
+}
+
+function pathScoreForResults(results, frameworkId, mode = "first") {
+  const selected = selectAttemptResults(results.filter(result => result.frameworkId === frameworkId), mode);
+  if (mode === "all") {
+    const scores = selected.map(resultOptionScore).filter(score => score !== null);
+    return scores.length ? Math.round((average(scores) / 2) * 100) : null;
+  }
+
+  const expectedIds = expectedScenarios(frameworkId).map(item => item.id);
+  const scoreByScenario = new Map(selected.map(result => [result.scenarioId, resultOptionScore(result)]));
+  if (!expectedIds.length || expectedIds.some(id => !scoreByScenario.has(id))) return null;
+
+  const totalPoints = expectedIds.reduce((sum, id) => sum + Number(scoreByScenario.get(id) || 0), 0);
+  return Math.round((totalPoints / 8) * 100);
+}
+
+function pathScoreSummary(users, results, frameworkId, mode) {
+  const values = users
+    .map(user => pathScoreForResults(resultsForUser(user, results), frameworkId, mode))
+    .filter(value => value !== null);
+  return { average: values.length ? Math.round(average(values)) : null, count: values.length };
+}
+
+function userCompletedPath(user, results, frameworkId) {
+  const completedIds = new Set(
+    resultsForUser(user, results)
+      .filter(result => result.frameworkId === frameworkId && result.completed)
+      .map(result => result.scenarioId)
+  );
+  const expectedIds = expectedScenarios(frameworkId).map(item => item.id);
+  return expectedIds.length > 0 && expectedIds.every(id => completedIds.has(id));
+}
+
+function pathCompletionStats(users, results, frameworkId) {
+  const started = users.filter(user => resultsForUser(user, results).some(result => result.frameworkId === frameworkId));
+  const completed = started.filter(user => userCompletedPath(user, results, frameworkId));
+  return {
+    started: started.length,
+    completed: completed.length,
+    rate: started.length ? Math.round((completed.length / started.length) * 100) : 0
+  };
+}
+
+function choiceRates(results) {
+  const total = results.length;
+  const count = classification => results.filter(result => resultClassification(result) === classification).length;
+  return {
+    total,
+    strong: total ? Math.round((count("strong") / total) * 100) : 0,
+    partial: total ? Math.round((count("partial") / total) * 100) : 0,
+    missed: total ? Math.round((count("missed") / total) * 100) : 0
+  };
+}
+
+function dimensionDetails(frameworkId, results) {
+  const dimensions = frameworkDefinitions?.[frameworkId]?.dimensions || [];
+  const firstResults = selectAttemptResults(results, "first");
+  const latestResults = selectAttemptResults(results, "latest");
+
+  return dimensions.map(dimension => {
+    const scenarios = expectedScenarios(frameworkId)
+      .filter(item => item.focusDimension === dimension.id)
+      .map(item => item.id);
+    const firstScores = firstResults.filter(result => scenarios.includes(result.scenarioId)).map(resultOptionScore);
+    const latestScores = latestResults.filter(result => scenarios.includes(result.scenarioId)).map(resultOptionScore);
+    return {
+      id: dimension.id,
+      label: dimension.label,
+      firstAverage: average(firstScores),
+      latestAverage: average(latestScores)
+    };
+  });
+}
+
+function formatDimensionScore(value) {
+  if (value === null || value === undefined) return "-";
+  return Number(value).toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1");
+}
+
+function createPerformanceTrack(label, value, tone) {
+  const track = document.createElement("div");
+  track.className = "pulse-track " + tone;
+  const percent = value == null ? 0 : Math.max(0, Math.min(100, (value / 2) * 100));
+  track.style.setProperty("--pulse-value", percent + "%");
+
+  if (value == null) {
+    track.classList.add("is-empty");
+    track.setAttribute("aria-label", label + ": no scored attempts");
+  } else {
+    track.setAttribute("role", "progressbar");
+    track.setAttribute("aria-label", label);
+    track.setAttribute("aria-valuemin", "0");
+    track.setAttribute("aria-valuemax", "2");
+    track.setAttribute("aria-valuenow", Number(value).toFixed(2));
+  }
+
+  const fill = document.createElement("span");
+  fill.className = "pulse-fill";
+  fill.setAttribute("aria-hidden", "true");
+  const amount = document.createElement("span");
+  amount.className = "pulse-value";
+  amount.textContent = formatDimensionScore(value);
+  track.append(fill, amount);
+  return track;
+}
+
+function renderDimensionComparison(dimensions) {
+  pulseComparisonChart.textContent = "";
+  if (!dimensions.some(item => item.firstAverage !== null || item.latestAverage !== null)) {
+    const empty = document.createElement("p");
+    empty.className = "pulse-empty";
+    empty.textContent = "Dimension performance will appear after learners complete scenarios.";
+    pulseComparisonChart.append(empty);
+    return;
+  }
+
+  dimensions.forEach(dimension => {
+    const row = document.createElement("article");
+    row.className = "pulse-row";
+    const label = document.createElement("strong");
+    label.className = "pulse-row-label";
+    label.textContent = dimension.label;
+    const bars = document.createElement("div");
+    bars.className = "pulse-bars";
+    bars.append(
+      createPerformanceTrack(dimension.label + " first attempt", dimension.firstAverage, "pre"),
+      createPerformanceTrack(dimension.label + " latest attempt", dimension.latestAverage, "post")
+    );
+    row.append(label, bars);
+    pulseComparisonChart.append(row);
+  });
+}
+
+function renderOptionDistribution(results) {
+  pulseDistribution.textContent = "";
+  pulseDistribution.classList.remove("is-empty");
+  const counts = Object.fromEntries(["A", "B", "C"].map(option => [option, results.filter(result => resultOptionLabel(result) === option).length]));
+  const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+
+  if (!total) {
+    pulseDistribution.classList.add("is-empty");
+    pulseDistribution.textContent = "No scored choices";
+    pulseDistribution.removeAttribute("role");
+    pulseDistribution.removeAttribute("aria-label");
+    pulseDistributionSummary.textContent = "No A, B, or C selection distribution is available.";
+    return;
+  }
+
+  const parts = ["A", "B", "C"].map(option => ({
+    option,
+    count: counts[option],
+    percent: Math.round((counts[option] / total) * 100)
+  }));
+  parts.forEach(part => {
+    if (!part.count) return;
+    const segment = document.createElement("span");
+    segment.className = "distribution-segment";
+    segment.dataset.option = part.option;
+    segment.style.flexBasis = part.percent + "%";
+    segment.title = `Option ${part.option}: ${part.percent}% (${part.count})`;
+    if (part.percent >= 16) segment.textContent = `${part.option} ${part.percent}%`;
+    pulseDistribution.append(segment);
+  });
+
+  const summary = parts.map(part => `option ${part.option}: ${part.percent}%`).join(", ");
+  pulseDistribution.setAttribute("role", "img");
+  pulseDistribution.setAttribute("aria-label", summary);
+  pulseDistributionSummary.textContent = "Choice selection distribution: " + summary + ".";
+}
+
+function mostSelectedIneffective(results) {
+  const groups = new Map();
+  results.filter(result => resultOptionScore(result) === 0).forEach(result => {
+    const option = resultOptionLabel(result) || "?";
+    const key = `${result.scenarioId}::${option}`;
+    const current = groups.get(key) || { count: 0, option, title: result.scenarioTitle || scenarioDefinition(result.scenarioId)?.title || result.scenarioId };
+    current.count += 1;
+    groups.set(key, current);
+  });
+  return Array.from(groups.values()).sort((a, b) => b.count - a.count)[0] || null;
+}
+
+function bothPathsCompletion(users, results) {
+  if (!users.length) return 0;
+  const completed = users.filter(user => userCompletedPath(user, results, "CARE") && userCompletedPath(user, results, "REAL")).length;
+  return Math.round((completed / users.length) * 100);
+}
+
+function learningImprovement(users, results, frameworkId) {
+  const deltas = users.map(user => {
+    const userResults = resultsForUser(user, results).filter(result => result.frameworkId === frameworkId);
+    const replayed = userResults.some(result => resultAttemptNumber(result) > 1);
+    if (!replayed) return null;
+    const first = pathScoreForResults(userResults, frameworkId, "first");
+    const latest = pathScoreForResults(userResults, frameworkId, "latest");
+    return first === null || latest === null ? null : latest - first;
+  }).filter(value => value !== null);
+  return deltas.length ? Math.round(average(deltas)) : null;
+}
+
+function highestDropOff(results) {
+  const groups = new Map();
+  results.forEach(result => {
+    const key = result.scenarioId || "unknown";
+    const current = groups.get(key) || { started: 0, incomplete: 0, title: result.scenarioTitle || scenarioDefinition(key)?.title || key };
+    current.started += 1;
+    if (!result.completed) current.incomplete += 1;
+    groups.set(key, current);
+  });
+
+  return Array.from(groups.values())
+    .filter(item => item.incomplete > 0)
+    .map(item => ({ ...item, rate: Math.round((item.incomplete / item.started) * 100) }))
+    .sort((a, b) => b.rate - a.rate || b.incomplete - a.incomplete)[0] || null;
+}
+
+function renderPrimaryAnalytics(users, results, framework) {
+  const attemptMode = attemptView?.value || "first";
+  const selectedScenarioId = scenarioView?.value || "all";
+  const selectedAttempts = selectAttemptResults(results, attemptMode);
+  const scenarioAttempts = selectedScenarioId === "all"
+    ? selectedAttempts
+    : selectedAttempts.filter(result => result.scenarioId === selectedScenarioId);
+  const scoreSummary = pathScoreSummary(users, results, framework, attemptMode);
+  const completion = pathCompletionStats(users, results, framework);
+  const rates = choiceRates(scenarioAttempts);
+  const improvement = learningImprovement(users, results, framework);
+  const dropOff = highestDropOff(results);
+  const ineffective = mostSelectedIneffective(scenarioAttempts);
+  const selectedScenario = scenarioDefinition(selectedScenarioId);
+
+  scoreMetricLabel.textContent = attemptMode === "all" ? framework + " all-attempt average" : framework + " path score";
+  selectedFrameworkScore.textContent = scoreSummary.average == null ? "-" : scoreSummary.average + "%";
+  selectedScoreContext.textContent = scoreSummary.count
+    ? scoreSummary.count + (attemptMode === "all" ? " learner average" : " completed path") + (scoreSummary.count === 1 ? "" : "s")
+    : "No completed " + framework + " paths";
+
+  scoreTrend.classList.toggle("negative", improvement !== null && improvement < 0);
+  if (attemptMode === "first") scoreTrend.textContent = "Formal evaluation score";
+  else if (attemptMode === "latest" && improvement !== null) scoreTrend.textContent = (improvement >= 0 ? "+" : "") + improvement + " points from first attempt";
+  else if (attemptMode === "all") scoreTrend.textContent = "Across every scored attempt";
+  else scoreTrend.textContent = "No replay comparison yet";
+
+  responseRateMetric.textContent = completion.rate + "%";
+  responseCountMetric.textContent = completion.completed + " of " + completion.started + " learners completed all four scenarios";
+  priorityAreaValue.textContent = rates.strong + "%";
+  priorityAreaDetail.textContent = rates.total + " scored choice" + (rates.total === 1 ? "" : "s") + " in this view";
+
+  pulseBreakdownTitle.textContent = (selectedScenario?.title || framework + " path") + " option selection";
+  renderDimensionComparison(dimensionDetails(framework, results));
+  renderOptionDistribution(scenarioAttempts);
+
+  if (ineffective) {
+    recommendationTitle.textContent = `${ineffective.title} - Option ${ineffective.option}`;
+    recommendationCopy.textContent = ineffective.count + " missed selection" + (ineffective.count === 1 ? "" : "s") + ". Review this choice during follow-up support.";
+  } else {
+    recommendationTitle.textContent = "No missed choices in this view";
+    recommendationCopy.textContent = "Missed choices score 0 and will appear here when follow-up may be useful.";
+  }
+
+  strongChoiceRate.textContent = rates.strong + "%";
+  partialChoiceRate.textContent = rates.partial + "%";
+  missedChoiceRate.textContent = rates.missed + "%";
+  bothPathsRate.textContent = bothPathsCompletion(allTrackedUsers(cachedUsers, cachedResults), cachedResults) + "%";
+  improvementValue.textContent = improvement === null ? "No replay data" : (improvement >= 0 ? "+" : "") + improvement + " pts";
+  dropOffValue.textContent = dropOff ? dropOff.title + " (" + dropOff.rate + "%)" : "No drop-off";
+}
 function renderMetrics(users, results) {
   const tracked = allTrackedUsers(users, results);
-  const completedUsers = tracked.filter(user => resultsForUser(user, results).some(result => result.completed)).length;
-  const followUps = tracked.filter(user => resultsForUser(user, results).some(result => result.needsFollowUp)).length;
+  const completedUsers = tracked.filter(user => {
+    return userCompletedPath(user, results, "CARE") || userCompletedPath(user, results, "REAL");
+  }).length;
+  const formalResults = selectAttemptResults(results, "first");
+  const followUps = tracked.filter(user => {
+    return resultsForUser(user, formalResults).some(result => resultClassification(result) === "missed");
+  }).length;
   const rate = tracked.length ? Math.round((completedUsers / tracked.length) * 100) : 0;
-  const careAverage = averageFor(results, "CARE");
-  const realAverage = averageFor(results, "REAL");
-  const followUpRate = tracked.length ? Math.round((followUps / tracked.length) * 100) : 0;
+  const careSummary = pathScoreSummary(tracked, results, "CARE", "first");
+  const realSummary = pathScoreSummary(tracked, results, "REAL", "first");
 
   userCount.textContent = String(tracked.length);
   completionRate.textContent = rate + "%";
-  averageCareScore.textContent = careAverage + "%";
-  averageRealScore.textContent = realAverage + "%";
+  averageCareScore.textContent = careSummary.average == null ? "-" : careSummary.average + "%";
+  averageRealScore.textContent = realSummary.average == null ? "-" : realSummary.average + "%";
   followUpCount.textContent = String(followUps);
-
-  setMetricProgress(userCount, tracked.length ? 100 : 0);
-  setMetricProgress(completionRate, rate);
-  setMetricProgress(averageCareScore, careAverage);
-  setMetricProgress(averageRealScore, realAverage);
-  setMetricProgress(followUpCount, followUpRate);
 }
-
 function renderBar(container, label, value, max = 100) {
   const percent = max ? Math.min(100, Math.round((value / max) * 100)) : 0;
   const row = document.createElement("div");
@@ -251,38 +676,43 @@ function renderCharts(users, results) {
   frameworkChart.textContent = "";
   scenarioChart.textContent = "";
 
-  const tracked = allTrackedUsers(users, results);
-  const total = Math.max(1, tracked.length);
-  const completed = tracked.filter(user => userStatus(user) === "completed").length;
-  const inProgress = tracked.filter(user => userStatus(user) === "in_progress").length;
-  const notStarted = tracked.filter(user => userStatus(user) === "not_started").length;
-  const followUp = tracked.filter(user => userStatus(user) === "needs_follow_up").length;
+  const frameworkId = frameworkView?.value || "CARE";
+  const attemptMode = attemptView?.value || "first";
+  const selectedScenarioId = scenarioView?.value || "all";
+  const completion = pathCompletionStats(users, results, frameworkId);
+  const total = Math.max(1, users.length);
+  const inProgress = Math.max(0, completion.started - completion.completed);
+  const notStarted = Math.max(0, users.length - completion.started);
 
-  renderBar(completionChart, "Completed", Math.round((completed / total) * 100));
+  renderBar(completionChart, "Completed path", Math.round((completion.completed / total) * 100));
   renderBar(completionChart, "In progress", Math.round((inProgress / total) * 100));
   renderBar(completionChart, "Not started", Math.round((notStarted / total) * 100));
-  renderBar(completionChart, "Needs follow-up", Math.round((followUp / total) * 100));
 
-  renderBar(frameworkChart, "CARE average", averageFor(results, "CARE"));
-  renderBar(frameworkChart, "REAL average", averageFor(results, "REAL"));
+  const selectedAttempts = selectAttemptResults(results, attemptMode)
+    .filter(result => selectedScenarioId === "all" || result.scenarioId === selectedScenarioId);
+  const rates = choiceRates(selectedAttempts);
+  renderBar(frameworkChart, "Strong choices", rates.strong);
+  renderBar(frameworkChart, "Partial / risky", rates.partial);
+  renderBar(frameworkChart, "Missed choices", rates.missed);
 
-  const byScenario = new Map();
-  results.filter(result => result.completed).forEach(result => {
-    const title = result.scenarioTitle || result.scenarioId || "Scenario";
-    byScenario.set(title, (byScenario.get(title) || 0) + 1);
+  expectedScenarios(frameworkId).forEach(definition => {
+    const scenarioResults = results.filter(result => result.scenarioId === definition.id);
+    const playerKeys = new Set(scenarioResults.map(resultPlayerKey));
+    const completedKeys = new Set(scenarioResults.filter(result => result.completed).map(resultPlayerKey));
+    const started = playerKeys.size;
+    const completionPercent = started ? Math.round((completedKeys.size / started) * 100) : 0;
+    const dropOffPercent = started ? 100 - completionPercent : 0;
+    renderBar(scenarioChart, definition.title + " complete", completionPercent);
+    if (dropOffPercent > 0) renderBar(scenarioChart, definition.title + " drop-off", dropOffPercent);
   });
 
-  if (!byScenario.size) {
+  if (!expectedScenarios(frameworkId).length) {
     const note = document.createElement("p");
     note.className = "empty-note";
-    note.textContent = "No completed scenarios yet.";
+    note.textContent = "Scenario definitions are unavailable.";
     scenarioChart.append(note);
-    return;
   }
-
-  byScenario.forEach((count, title) => renderBar(scenarioChart, title, count, Math.max(1, tracked.length)));
 }
-
 function renderInsightItem(container, title, meta, tone = "") {
   const item = document.createElement("article");
   item.className = "insight-item";
@@ -307,7 +737,7 @@ function renderInsights(users, results) {
   recentActivity.textContent = "";
 
   const followUpUsers = allTrackedUsers(users, results)
-    .filter(user => userStatus(user) === "needs_follow_up")
+    .filter(user => userStatus(user, results) === "needs_follow_up")
     .slice(0, 5);
 
   if (!followUpUsers.length) {
@@ -345,7 +775,7 @@ function renderInsights(users, results) {
       recentActivity,
       result.email || result.uid || "Unknown learner",
       (result.scenarioTitle || result.scenarioId || "Scenario") + " - " + (result.frameworkId || "Framework") + " - " + scoreLabel(result),
-      result.needsFollowUp ? "danger" : statusTone(result.completed ? "completed" : "in_progress")
+      resultClassification(result) === "missed" ? "danger" : statusTone(result.completed ? "completed" : "in_progress")
     );
   });
 }
@@ -382,7 +812,7 @@ function createScoreMeter(result) {
 function renderUsers(users, results) {
   usersTable.textContent = "";
   const tracked = allTrackedUsers(users, results);
-  const filtered = currentFilter === "all" ? tracked : tracked.filter(user => userStatus(user) === currentFilter);
+  const filtered = currentFilter === "all" ? tracked : tracked.filter(user => userStatus(user, results) === currentFilter);
 
   if (!filtered.length) {
     const row = document.createElement("tr");
@@ -397,10 +827,10 @@ function renderUsers(users, results) {
   filtered.forEach(user => {
     const userResults = resultsForUser(user, results);
     const latest = latestResult(userResults) || {};
-    const care = latestByFramework(userResults, "CARE");
-    const real = latestByFramework(userResults, "REAL");
-    const status = userStatus(user);
-    const completedCount = userResults.filter(result => result.completed).length;
+    const careScore = pathScoreForResults(userResults, "CARE", "first");
+    const realScore = pathScoreForResults(userResults, "REAL", "first");
+    const status = userStatus(user, results);
+    const completedCount = new Set(userResults.filter(result => result.completed).map(result => result.scenarioId)).size;
     const action = document.createElement("button");
     action.className = "button subtle fit";
     action.type = "button";
@@ -413,8 +843,8 @@ function renderUsers(users, results) {
       createCell("Name", user.email || user.uid || "Unknown"),
       createCell("Role", latest.selectedRole || user.selectedRole || "-"),
       createCell("Completed scenarios", String(completedCount)),
-      createCell("CARE score", scoreLabel(care)),
-      createCell("REAL score", scoreLabel(real)),
+      createCell("CARE score", careScore === null ? "-" : careScore + "%"),
+      createCell("REAL score", realScore === null ? "-" : realScore + "%"),
       createCell("Status", createStatusPill(statusText(status), statusTone(status))),
       createCell("Reflection", createStatusPill(reflectionStatus(userResults), reflectionStatus(userResults) === "Saved" ? "success" : "warning")),
       createCell("Last activity", formatDate(latest.updatedAt || latest.updatedAtIso || latest.completedAt || latest.completedAtIso)),
@@ -424,38 +854,45 @@ function renderUsers(users, results) {
     notifyMotion("motion:content-added", { element: row });
   });
 }
-
 function renderResults(results) {
   resultsTable.textContent = "";
 
   if (!results.length) {
     const row = document.createElement("tr");
-    const cell = createCell("Status", "No scenario results have been saved yet.");
-    cell.colSpan = 6;
+    const cell = createCell("Status", "No scenario attempts have been saved yet.");
+    cell.colSpan = 8;
     row.append(cell);
     resultsTable.append(row);
-      notifyMotion("motion:content-added", { element: row });
+    notifyMotion("motion:content-added", { element: row });
     return;
   }
 
   [...results]
-    .sort((a, b) => String(b.updatedAtIso || "").localeCompare(String(a.updatedAtIso || "")))
+    .sort((a, b) => resultTimestamp(b) - resultTimestamp(a))
     .forEach(result => {
+      const classification = resultClassification(result);
+      const optionScore = resultOptionScore(result);
+      const dimension = result.frameworkDimension
+        || frameworkDefinitions?.[result.frameworkId]?.dimensions?.find(item => item.id === (result.frameworkDimensionId || scenarioDefinition(result.scenarioId)?.focusDimension))?.label
+        || result.frameworkDimensionId
+        || scenarioDefinition(result.scenarioId)?.focusDimension
+        || "-";
       const row = document.createElement("tr");
-      if (result.needsFollowUp) row.className = "needs-follow-up";
+      if (classification === "missed") row.className = "needs-follow-up";
       row.append(
         createCell("User", result.email || result.uid || "Unknown"),
         createCell("Scenario", result.scenarioTitle || result.scenarioId || "-"),
-        createCell("Framework", result.frameworkId || "-"),
-        createCell("Score", createScoreMeter(result)),
-        createCell("Breakdown", formatBreakdown(result)),
+        createCell("Attempt", "#" + resultAttemptNumber(result)),
+        createCell("Dimension", (result.frameworkId || "-") + " / " + dimension),
+        createCell("Option", resultOptionLabel(result) || "Not selected"),
+        createCell("Result", classification ? createStatusPill(classification === "partial" ? "Partial / risky" : classification[0].toUpperCase() + classification.slice(1), classification === "strong" ? "success" : classification === "partial" ? "warning" : "danger") : createStatusPill("In progress", "warning")),
+        createCell("Score", optionScore === null ? "-" : optionScore + "/2"),
         createCell("Reflection", reflectionValues(result).join(" / ") || "No reflection saved")
       );
       resultsTable.append(row);
       notifyMotion("motion:content-added", { element: row });
     });
 }
-
 function renderAdmins(admins) {
   adminList.textContent = "";
 
@@ -495,6 +932,16 @@ function renderAdmins(admins) {
   });
 }
 
+function renderDashboardData() {
+  const scoped = dashboardScope(cachedUsers, cachedResults);
+  renderPrimaryAnalytics(scoped.users, scoped.results, scoped.framework);
+  renderMetrics(cachedUsers, cachedResults);
+  renderCharts(scoped.users, scoped.results);
+  renderInsights(scoped.users, scoped.results);
+  renderUsers(scoped.users, cachedResults);
+  renderResults(scoped.results);
+  renderAdmins(cachedAdmins);
+}
 function renderDetail(userId) {
   const user = allTrackedUsers(cachedUsers, cachedResults).find(item => String(item.uid || item.email) === String(userId));
   if (!user) return;
@@ -510,7 +957,7 @@ function renderDetail(userId) {
   [
     ["Role", latest.selectedRole || user.selectedRole || "-"],
     ["Completed", String(results.filter(result => result.completed).length)],
-    ["Status", statusText(userStatus(user))]
+    ["Status", statusText(userStatus(user, results))]
   ].forEach(([label, value]) => {
     const card = document.createElement("div");
     card.className = "detail-card";
@@ -593,6 +1040,7 @@ async function loadDashboard() {
 
   setAccess("Loading dashboard", "Fetching user progress and scenario scoring records...", true);
   setDashboardBusy(true);
+  dashboardNotice.hidden = true;
 
   try {
     const [usersSnap, resultsSnap, adminsSnap] = await Promise.all([
@@ -605,20 +1053,20 @@ async function loadDashboard() {
     cachedResults = resultsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     cachedAdmins = adminsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    renderMetrics(cachedUsers, cachedResults);
-    renderCharts(cachedUsers, cachedResults);
-    renderInsights(cachedUsers, cachedResults);
-    renderUsers(cachedUsers, cachedResults);
-    renderResults(cachedResults);
-    renderAdmins(cachedAdmins);
-    if (dashboardSyncStatus) {
-      dashboardSyncStatus.textContent = "Updated " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    }
+    renderDashboardData();
+
+    const updatedTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    dashboardSyncStatus.textContent = "Updated " + updatedTime;
+    overviewSyncText.textContent = "Live Firestore data | Updated " + updatedTime;
+  } catch (error) {
+    dashboardNotice.textContent = error?.message || "Dashboard data could not be loaded. Refresh to try again.";
+    dashboardNotice.hidden = false;
+    dashboardSyncStatus.textContent = "Update failed";
+    overviewSyncText.textContent = "Live Firestore data is temporarily unavailable";
   } finally {
     setDashboardBusy(false);
   }
 }
-
 async function addAdmin(event) {
   event.preventDefault();
   const email = normalizeEmail(adminEmail.value);
@@ -657,9 +1105,7 @@ async function removeAdmin(email) {
 }
 
 function bindEvents() {
-  refreshButton.addEventListener("click", () => loadDashboard().catch(error => {
-    setAccess("Dashboard error", error.message || "Could not refresh dashboard.");
-  }));
+  refreshButton.addEventListener("click", () => loadDashboard());
 
   setupAdminButton.addEventListener("click", () => {
     createAdminProfile().catch(error => {
@@ -668,11 +1114,23 @@ function bindEvents() {
     });
   });
 
+  frameworkView.addEventListener("change", () => {
+    syncScenarioOptions();
+    detailPanel.hidden = true;
+    renderDashboardData();
+  });
+  [attemptView, scenarioView].forEach(control => {
+    control.addEventListener("change", () => {
+      detailPanel.hidden = true;
+      renderDashboardData();
+    });
+  });
   document.querySelectorAll("[data-filter]").forEach(button => {
     button.addEventListener("click", () => {
       currentFilter = button.dataset.filter;
       document.querySelectorAll("[data-filter]").forEach(item => item.classList.toggle("active", item === button));
-      renderUsers(cachedUsers, cachedResults);
+      const scoped = dashboardScope(cachedUsers, cachedResults);
+      renderUsers(scoped.users, scoped.results);
     });
   });
 
@@ -696,28 +1154,45 @@ async function init() {
   setAccess("Connecting", "Checking Firebase Authentication and dashboard permissions...");
 
   try {
+    await loadScenarioDefinitions();
+  } catch {
+    scenarioDefinitions = [];
+    frameworkDefinitions = {};
+  }
+
+  try {
     firebaseClient = await loadFirebaseClient();
     firebaseClient.onAuthStateChanged(firebaseClient.auth, async user => {
       currentUser = user;
       if (!user) {
         dashboardAllowed = false;
-        setAccess("Sign in required", "Sign in from the main app with an authorised dashboard account, then return here.");
+        setAccess(
+          "Sign in required",
+          "Sign in as liuguangxuan1230@gmail.com from this local preview, then the owner profile will be created automatically.",
+          false,
+          { needsSignIn: true }
+        );
         return;
       }
 
       dashboardAllowed = await checkAdminAccess(user);
       if (!dashboardAllowed) {
         if (canBootstrapAdmin) {
-          setAccess(
-            "Admin profile required",
-            "This email is approved for first setup, but the dashboard will stay hidden until its admin profile is created.",
-            false,
-            { canBootstrapAdmin: true }
-          );
+          try {
+            await createAdminProfile();
+          } catch (error) {
+            setupAdminButton.disabled = false;
+            setAccess(
+              "Admin profile setup failed",
+              (error?.message || "The owner profile could not be created.") + " Check that the latest Firestore rules are deployed, then try again.",
+              false,
+              { canBootstrapAdmin: true }
+            );
+          }
           return;
         }
 
-        setAccess("Access denied", (user.email || "This account") + " is not authorised to view the dashboard.");
+        setAccess("Access denied", (user.email || "This account") + " is not listed as a dashboard viewer.", false, { needsSignIn: true });
         return;
       }
 

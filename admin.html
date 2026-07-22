@@ -3,125 +3,209 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Protected manager dashboard for Feedback Playbook completion, CARE / REAL scoring, and reflection follow-up." />
+  <meta name="description" content="Protected manager dashboard for CARE and REAL scenario scoring, completion, learning progress, and reflection follow-up." />
   <meta name="theme-color" content="#d71920" />
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-  <title>Manager Dashboard | Feedback Playbook</title>
-  <link rel="stylesheet" href="assets/css/app.css?v=20260718-clean-interactive" />
-  <link rel="stylesheet" href="assets/css/admin.css?v=20260718-clean-interactive" />
-  <script type="module" src="assets/js/admin.js?v=20260718-clean-interactive"></script>
+  <title>Feedback Culture Dashboard | Feedback Playbook</title>
+  <link rel="stylesheet" href="assets/css/app.css?v=20260722-admin-access" />
+  <link rel="stylesheet" href="assets/css/admin.css?v=20260722-admin-access" />
+  <script type="module" src="assets/js/admin.js?v=20260722-admin-access"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-  <script defer src="assets/js/motion.js?v=20260718-clean-interactive"></script>
+  <script defer src="assets/js/motion.js?v=20260722-admin-access"></script>
 </head>
 <body class="admin-page">
   <a class="skip-link" href="#adminMain">Skip to dashboard</a>
-  <main class="admin-shell" id="adminMain" tabindex="-1">
-    <header class="admin-hero">
-      <a class="button subtle fit" href="index.html#home">Back to learning dashboard</a>
-      <div class="admin-title-block">
-        <p class="section-label">Manager access</p>
-        <h1>Manager Dashboard</h1>
-        <p>Review completion, CARE / REAL scores, reflections, and follow-up signals from one protected view.</p>
-      </div>
-      <div class="hero-actions">
-        <span class="live-chip" id="dashboardSyncStatus">Secure view</span>
-        <button class="button secondary fit" type="button" id="refreshButton" data-busy-label="Refreshing...">Refresh</button>
-      </div>
-    </header>
 
+  <header class="admin-topbar">
+    <a class="admin-brand" href="index.html#home" aria-label="Feedback Playbook home">
+      <span class="admin-brand-mark" aria-hidden="true">
+        <img src="assets/favicon.svg" alt="" width="24" height="24" />
+      </span>
+      <span>
+        <strong>Feedback Culture Dashboard</strong>
+        <small>Manager workspace</small>
+      </span>
+    </a>
+
+    <div class="admin-top-actions">
+      <span class="live-chip" id="dashboardSyncStatus">Secure view</span>
+      <button class="button secondary fit admin-action-button" type="button" id="refreshButton" data-busy-label="Refreshing...">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" /></svg>
+        <span id="refreshButtonLabel">Refresh</span>
+      </button>
+      <a class="button subtle fit admin-action-button" href="index.html#home">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+        <span>Learning app</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="admin-shell" id="adminMain" tabindex="-1">
     <section class="panel access-panel" id="accessPanel" aria-live="polite">
-      <h2>Checking access</h2>
+      <h1>Checking access</h1>
       <p id="accessMessage">Use the main app to sign in with an authorised dashboard account.</p>
+      <a class="button primary fit" id="adminSignInLink" href="index.html#login" hidden>Sign in to dashboard</a>
       <button class="button primary fit" type="button" id="setupAdminButton" hidden>Create admin profile</button>
     </section>
 
     <section class="admin-content" id="dashboardContent" hidden>
-      <section class="metric-grid" aria-label="Dashboard summary">
-        <article class="panel admin-metric" data-metric="learners">
-          <div class="metric-orb" aria-hidden="true"></div>
-          <span>Total learners</span>
-          <strong id="userCount">0</strong>
-          <small>Profiles and scenario records</small>
-        </article>
-        <article class="panel admin-metric" data-metric="complete">
-          <div class="metric-orb" aria-hidden="true"></div>
-          <span>Completion rate</span>
-          <strong id="completionRate">0%</strong>
-          <small>Completed at least one scenario</small>
-        </article>
-        <article class="panel admin-metric" data-metric="care">
-          <div class="metric-orb" aria-hidden="true"></div>
-          <span>Average CARE</span>
-          <strong id="averageCareScore">0%</strong>
-          <small>Employee route average</small>
-        </article>
-        <article class="panel admin-metric" data-metric="real">
-          <div class="metric-orb" aria-hidden="true"></div>
-          <span>Average REAL</span>
-          <strong id="averageRealScore">0%</strong>
-          <small>Manager route average</small>
-        </article>
-        <article class="panel admin-metric warning" data-metric="support">
-          <div class="metric-orb" aria-hidden="true"></div>
-          <span>Needs follow-up</span>
-          <strong id="followUpCount">0</strong>
-          <small>Support signals to review</small>
-        </article>
-      </section>
-
-      <section class="panel admin-section" aria-labelledby="chartsTitle">
-        <div class="panel-heading">
-          <div>
-            <p class="section-label">Overview</p>
-            <h2 id="chartsTitle">Progress and framework performance</h2>
+      <section class="dashboard-overview" aria-labelledby="overviewTitle">
+        <header class="overview-toolbar">
+          <div class="overview-title">
+            <h1 id="overviewTitle">Scenario performance</h1>
+            <p>The formal evaluation uses each learner's first attempt. Later attempts show learning progress.</p>
           </div>
+
+          <div class="dashboard-controls" aria-label="Dashboard data filters">
+            <label class="dashboard-select" for="frameworkView">
+              <span>Path</span>
+              <select id="frameworkView">
+                <option value="CARE">Employee CARE</option>
+                <option value="REAL">Manager REAL</option>
+              </select>
+            </label>
+            <label class="dashboard-select" for="attemptView">
+              <span>Attempt</span>
+              <select id="attemptView">
+                <option value="first">First attempt (formal)</option>
+                <option value="latest">Latest attempt</option>
+                <option value="all">All attempts</option>
+              </select>
+            </label>
+            <label class="dashboard-select" for="scenarioView">
+              <span>Scenario</span>
+              <select id="scenarioView"><option value="all">All scenarios</option></select>
+            </label>
+          </div>
+
+          <p class="overview-sync" id="overviewSyncText">Live Firestore data</p>
+        </header>
+
+        <p class="dashboard-notice" id="dashboardNotice" aria-live="polite" hidden></p>
+
+        <div class="overview-metrics" aria-label="Selected view summary">
+          <article class="overview-metric" data-tone="score">
+            <span class="metric-label" id="scoreMetricLabel">CARE path score</span>
+            <strong class="dashboard-live-value" id="selectedFrameworkScore">-</strong>
+            <span class="metric-change" id="scoreTrend">First attempt is the formal score</span>
+            <small id="selectedScoreContext">No completed CARE paths</small>
+          </article>
+          <article class="overview-metric" data-tone="response">
+            <span class="metric-label">Path completion rate</span>
+            <strong class="dashboard-live-value" id="responseRateMetric">0%</strong>
+            <small id="responseCountMetric">0 completed paths</small>
+          </article>
+          <article class="overview-metric" data-tone="priority">
+            <span class="metric-label">Strong-choice rate</span>
+            <strong class="dashboard-live-value priority-value" id="priorityAreaValue">0%</strong>
+            <small id="priorityAreaDetail">Based on scored scenario choices.</small>
+          </article>
         </div>
+
+        <div class="pulse-analytics scenario-analytics">
+          <section class="pulse-comparison" aria-labelledby="pulseComparisonTitle">
+            <div class="analytics-heading">
+              <div>
+                <h2 id="pulseComparisonTitle">Framework dimension performance</h2>
+                <p>Average option score from 0 to 2. Response time is excluded.</p>
+              </div>
+              <div class="chart-legend" aria-label="Attempt comparison legend">
+                <span><i class="legend-dot pre" aria-hidden="true"></i>First</span>
+                <span><i class="legend-dot post" aria-hidden="true"></i>Latest</span>
+              </div>
+            </div>
+            <div class="pulse-axis" aria-hidden="true">
+              <span>Score</span>
+              <div><span>0</span><span>0.5</span><span>1</span><span>1.5</span><span>2</span></div>
+            </div>
+            <div class="pulse-comparison-chart" id="pulseComparisonChart"></div>
+          </section>
+
+          <aside class="response-breakdown" aria-labelledby="pulseBreakdownTitle">
+            <div class="analytics-heading compact">
+              <div>
+                <h2 id="pulseBreakdownTitle">Option selection</h2>
+                <p><span>Less selected</span><span>More selected</span></p>
+              </div>
+            </div>
+            <div class="distribution-bar" id="pulseDistribution"></div>
+            <div class="distribution-scale" aria-hidden="true"><span>A</span><span>B</span><span>C</span></div>
+            <p class="visually-hidden" id="pulseDistributionSummary"></p>
+
+            <article class="recommendation-panel" aria-labelledby="recommendationTitle">
+              <span class="status-pill">Most selected ineffective option</span>
+              <h3 id="recommendationTitle">No missed choices yet</h3>
+              <p id="recommendationCopy">Missed choices score 0 and may signal where follow-up support is useful.</p>
+            </article>
+          </aside>
+        </div>
+
+        <dl class="classification-summary" aria-label="Choice quality and learning summary">
+          <div><dt>Strong choices</dt><dd id="strongChoiceRate">0%</dd></div>
+          <div><dt>Partial / risky</dt><dd id="partialChoiceRate">0%</dd></div>
+          <div><dt>Missed</dt><dd id="missedChoiceRate">0%</dd></div>
+          <div><dt>Completed both paths</dt><dd id="bothPathsRate">0%</dd></div>
+          <div><dt>First to latest</dt><dd id="improvementValue">-</dd></div>
+          <div><dt>Highest drop-off</dt><dd id="dropOffValue">No data</dd></div>
+        </dl>
+
+        <dl class="operational-summary" aria-label="Operational dashboard summary">
+          <div><dt>Total learners</dt><dd id="userCount">0</dd></div>
+          <div><dt>Completion rate</dt><dd id="completionRate">0%</dd></div>
+          <div><dt>Average CARE</dt><dd id="averageCareScore">0%</dd></div>
+          <div><dt>Average REAL</dt><dd id="averageRealScore">0%</dd></div>
+          <div><dt>Needs follow-up</dt><dd id="followUpCount">0</dd></div>
+        </dl>
+      </section>
+      <section class="panel admin-section" aria-labelledby="chartsTitle">
+        <header class="dashboard-section-heading">
+          <div>
+            <h2 id="chartsTitle">Scenario activity</h2>
+            <p>Completion, improvement, and drop-off signals for the selected path.</p>
+          </div>
+        </header>
         <div class="chart-grid">
           <article class="chart-card" aria-labelledby="completionChartTitle">
             <h3 id="completionChartTitle">Completion progress</h3>
             <div class="bar-list" id="completionChart"></div>
           </article>
           <article class="chart-card" aria-labelledby="frameworkChartTitle">
-            <h3 id="frameworkChartTitle">Framework performance</h3>
+            <h3 id="frameworkChartTitle">Choice quality</h3>
             <div class="bar-list" id="frameworkChart"></div>
           </article>
-          <article class="chart-card" aria-labelledby="scenarioChartTitle">
-            <h3 id="scenarioChartTitle">Scenario completion</h3>
+          <article class="chart-card wide" aria-labelledby="scenarioChartTitle">
+            <h3 id="scenarioChartTitle">Scenario completion and drop-off</h3>
             <div class="bar-list" id="scenarioChart"></div>
-          </article>
-          <article class="chart-card" aria-labelledby="departmentChartTitle">
-            <h3 id="departmentChartTitle">Department statistics</h3>
-            <p class="empty-note">Department data will appear here when learner profiles include a department field.</p>
           </article>
         </div>
       </section>
 
       <section class="insight-grid" aria-label="Dashboard insights">
         <article class="panel insight-card" aria-labelledby="supportQueueTitle">
-          <div class="panel-heading">
+          <header class="dashboard-section-heading">
             <div>
-              <p class="section-label">Support queue</p>
-              <h2 id="supportQueueTitle">Learners who may need follow-up</h2>
+              <h2 id="supportQueueTitle">Follow-up queue</h2>
+              <p>Learners whose saved results include a support signal.</p>
             </div>
-          </div>
+          </header>
           <div class="insight-list" id="supportQueue"></div>
         </article>
         <article class="panel insight-card" aria-labelledby="recentActivityTitle">
-          <div class="panel-heading">
+          <header class="dashboard-section-heading">
             <div>
-              <p class="section-label">Recent activity</p>
-              <h2 id="recentActivityTitle">Latest scenario saves</h2>
+              <h2 id="recentActivityTitle">Recent activity</h2>
+              <p>Latest scenario saves in the selected cohort.</p>
             </div>
-          </div>
+          </header>
           <div class="insight-list" id="recentActivity"></div>
         </article>
       </section>
 
       <section class="panel admin-section" aria-labelledby="usersTitle">
-        <div class="panel-heading filters-heading">
+        <header class="dashboard-section-heading filters-heading">
           <div>
-            <p class="section-label">Employees</p>
             <h2 id="usersTitle">Learner progress</h2>
+            <p>Review completion, reflection status, and follow-up needs.</p>
           </div>
           <div class="filter-group" aria-label="Filter learners by progress status">
             <button class="filter-button active" type="button" data-filter="all">All</button>
@@ -130,73 +214,34 @@
             <button class="filter-button" type="button" data-filter="not_started">Not started</button>
             <button class="filter-button" type="button" data-filter="needs_follow_up">Needs follow-up</button>
           </div>
-        </div>
+        </header>
         <div class="table-wrap" tabindex="0" role="region" aria-label="Learner progress table">
           <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Role</th>
-                <th>Completed scenarios</th>
-                <th>CARE score</th>
-                <th>REAL score</th>
-                <th>Status</th>
-                <th>Reflection</th>
-                <th>Last activity</th>
-                <th>Action</th>
-              </tr>
-            </thead>
+            <thead><tr><th>Name</th><th>Role</th><th>Completed scenarios</th><th>CARE score</th><th>REAL score</th><th>Status</th><th>Reflection</th><th>Last activity</th><th>Action</th></tr></thead>
             <tbody id="usersTable"></tbody>
           </table>
         </div>
       </section>
 
       <section class="panel detail-panel" id="detailPanel" aria-labelledby="detailTitle" hidden>
-        <div class="panel-heading">
-          <div>
-            <p class="section-label">Learner detail</p>
-            <h2 id="detailTitle">Select a learner</h2>
-          </div>
-        </div>
+        <header class="dashboard-section-heading"><div><h2 id="detailTitle">Select a learner</h2><p>Scenario scores and saved reflections.</p></div></header>
         <div id="detailBody" class="detail-body"></div>
       </section>
 
       <section class="panel admin-section" aria-labelledby="resultsTitle">
-        <div class="panel-heading">
-          <div>
-            <p class="section-label">Scoring details</p>
-            <h2 id="resultsTitle">CARE / REAL result records</h2>
-          </div>
-        </div>
+        <header class="dashboard-section-heading"><div><h2 id="resultsTitle">CARE / REAL result records</h2><p>Detailed scoring and reflection evidence.</p></div></header>
         <div class="table-wrap" tabindex="0" role="region" aria-label="CARE and REAL result table">
           <table>
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Scenario</th>
-                <th>Framework</th>
-                <th>Score</th>
-                <th>Breakdown</th>
-                <th>Reflection</th>
-              </tr>
-            </thead>
+            <thead><tr><th>User</th><th>Scenario</th><th>Attempt</th><th>Dimension</th><th>Option</th><th>Result</th><th>Score</th><th>Reflection</th></tr></thead>
             <tbody id="resultsTable"></tbody>
           </table>
         </div>
       </section>
 
       <section class="panel admin-section" aria-labelledby="adminsTitle">
-        <div class="panel-heading">
-          <div>
-            <p class="section-label">Access control</p>
-            <h2 id="adminsTitle">Dashboard viewers</h2>
-          </div>
-        </div>
+        <header class="dashboard-section-heading"><div><h2 id="adminsTitle">Dashboard viewers</h2><p>Only listed viewers can access this page.</p></div></header>
         <form class="admin-form" id="adminForm">
-          <label class="field" for="adminEmail">
-            <span>Add viewer email</span>
-            <input id="adminEmail" name="email" type="email" placeholder="name@example.com" aria-describedby="adminMessage" required />
-          </label>
+          <label class="field" for="adminEmail"><span>Add viewer email</span><input id="adminEmail" name="email" type="email" placeholder="name@example.com" aria-describedby="adminMessage" required /></label>
           <button class="button primary fit" type="submit">Add viewer</button>
         </form>
         <p class="form-message" id="adminMessage" aria-live="polite"></p>
@@ -206,4 +251,3 @@
   </main>
 </body>
 </html>
-

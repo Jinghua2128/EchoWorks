@@ -4,6 +4,8 @@ const scenarioLibraryFile = "assets/data/scenarios/scenario-library.json";
 const fullGameScriptFile = "assets/data/scenarios/full-game-script.json";
 const lastScenarioKey = "feedbackPlaybook.lastScenarioByRole";
 const localResultsKey = "feedbackPlaybook.scenarioResults";
+const anonymousPlayerKey = "feedbackPlaybook.anonymousPlayerId";
+const soundPreferenceKey = "feedbackPlaybook.dialogueSound";
 const textSpeed = 16;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -48,6 +50,7 @@ const scenarioRewardTitleEl = document.getElementById("scenarioRewardTitle");
 const scenarioRewardDetailEl = document.getElementById("scenarioRewardDetail");
 const scenarioWipeEl = document.getElementById("scenarioWipe");
 const scenarioWipeTitleEl = document.getElementById("scenarioWipeTitle");
+const soundToggleEl = document.getElementById("soundToggle");
 
 let firebaseClient = null;
 let currentUser = null;
@@ -69,6 +72,20 @@ let choiceHistory = [];
 let reflectionAnswers = {};
 let completedAtIso = null;
 let completionShown = false;
+let anonymousPlayerId = "";
+let attemptId = "";
+let attemptNumber = 1;
+let attemptStartedAtIso = null;
+let decisionShownAtMs = null;
+let choiceResponseTimeMs = null;
+let feedbackCardViewed = false;
+let playAgainSelected = false;
+let replayedSamePath = false;
+let triedOtherRole = false;
+let exitPoint = "role_selection";
+let dialogueAudioContext = null;
+let dialogueSoundEnabled = localStorage.getItem(soundPreferenceKey) !== "off";
+const activeDialogueOscillators = new Set();
 
 function notifyMotion(name, detail = {}) {
   window.dispatchEvent(new CustomEvent(name, { detail }));
@@ -82,14 +99,126 @@ function safeJsonParse(value, fallback) {
   }
 }
 
+function audioContextConstructor() {
+  return window.AudioContext || window.webkitAudioContext || null;
+}
+
+function updateSoundToggle() {
+  if (!soundToggleEl) return;
+  const supported = Boolean(audioContextConstructor());
+  soundToggleEl.disabled = !supported;
+  soundToggleEl.setAttribute("aria-pressed", String(dialogueSoundEnabled && supported));
+  const label = supported
+    ? (dialogueSoundEnabled ? "Mute dialogue sounds" : "Play dialogue sounds")
+    : "Dialogue sounds are not supported in this browser";
+  soundToggleEl.setAttribute("aria-label", label);
+  soundToggleEl.title = label;
+}
+
+async function unlockDialogueAudio() {
+  if (!dialogueSoundEnabled) return null;
+  const AudioContextClass = audioContextConstructor();
+  if (!AudioContextClass) return null;
+
+  if (!dialogueAudioContext) dialogueAudioContext = new AudioContextClass();
+  if (dialogueAudioContext.state === "suspended") {
+    await dialogueAudioContext.resume().catch(() => {});
+  }
+  return dialogueAudioContext;
+}
+
+function stopDialogueSounds() {
+  activeDialogueOscillators.forEach(oscillator => {
+    try {
+      oscillator.stop();
+    } catch {
+      // The oscillator may already have ended.
+    }
+  });
+  activeDialogueOscillators.clear();
+}
+
+function playDialogueTone(frequency, duration, volume, type = "sine", delay = 0) {
+  if (!dialogueSoundEnabled || !dialogueAudioContext || dialogueAudioContext.state !== "running") return;
+
+  const now = dialogueAudioContext.currentTime + delay;
+  const oscillator = dialogueAudioContext.createOscillator();
+  const gain = dialogueAudioContext.createGain();
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, now);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(volume, now + 0.004);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+  oscillator.connect(gain);
+  gain.connect(dialogueAudioContext.destination);
+  oscillator.addEventListener("ended", () => activeDialogueOscillators.delete(oscillator), { once: true });
+  activeDialogueOscillators.add(oscillator);
+  oscillator.start(now);
+  oscillator.stop(now + duration + 0.01);
+}
+
+function playLineCue() {
+  playDialogueTone(330, 0.055, 0.014, "sine");
+  playDialogueTone(470, 0.07, 0.01, "sine", 0.025);
+}
+
+function playTypingBlip(character, index) {
+  if (!character || /\s/.test(character) || index % 3 !== 0) return;
+  const pitch = 390 + (character.codePointAt(0) % 8) * 18;
+  playDialogueTone(pitch, 0.022, 0.006, "triangle");
+}
+
+async function toggleDialogueSound() {
+  dialogueSoundEnabled = !dialogueSoundEnabled;
+  localStorage.setItem(soundPreferenceKey, dialogueSoundEnabled ? "on" : "off");
+  if (!dialogueSoundEnabled) {
+    stopDialogueSounds();
+  } else {
+    await unlockDialogueAudio();
+    playLineCue();
+  }
+  updateSoundToggle();
+}
 function readLocalResults() {
   return safeJsonParse(localStorage.getItem(localResultsKey), {});
 }
 
 function writeLocalResult(record) {
   const results = readLocalResults();
-  results[record.scenarioId] = record;
+  const recordKey = record.attemptId || `${record.scenarioId}_attempt_1`;
+  results[recordKey] = record;
   localStorage.setItem(localResultsKey, JSON.stringify(results));
+}
+
+function persistentAnonymousPlayerId() {
+  const existing = localStorage.getItem(anonymousPlayerKey);
+  if (existing) return existing;
+
+  const generated = window.crypto?.randomUUID
+    ? window.crypto.randomUUID()
+    : `player-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  localStorage.setItem(anonymousPlayerKey, generated);
+  return generated;
+}
+
+function initialiseAttemptTracking(nextScenario) {
+  const previousResults = Object.values(readLocalResults());
+  const scenarioAttempts = previousResults.filter(result => result.scenarioId === nextScenario.id);
+  const highestAttempt = scenarioAttempts.reduce((highest, result) => {
+    return Math.max(highest, Number(result.attemptNumber || 1));
+  }, 0);
+
+  anonymousPlayerId = persistentAnonymousPlayerId();
+  attemptNumber = highestAttempt + 1;
+  attemptId = `${nextScenario.id}_attempt_${attemptNumber}_${Date.now()}`;
+  attemptStartedAtIso = new Date().toISOString();
+  decisionShownAtMs = null;
+  choiceResponseTimeMs = null;
+  feedbackCardViewed = false;
+  playAgainSelected = false;
+  replayedSamePath = previousResults.some(result => result.selectedRole === nextScenario.role);
+  triedOtherRole = previousResults.some(result => result.selectedRole && result.selectedRole !== nextScenario.role);
+  exitPoint = "path_started";
 }
 
 function initialiseScoreState(nextScenario) {
@@ -188,19 +317,73 @@ function buildFrameworkDetails() {
   }).filter(detail => detail.maxScore > 0);
 }
 
+function choiceClassification(score) {
+  if (score >= 2) return "strong";
+  if (score === 1) return "partial";
+  return "missed";
+}
+
+function selectedChoiceSummary() {
+  const selected = choiceHistory.at(-1);
+  const optionScore = selected
+    ? Object.values(selected.score || {}).reduce((sum, value) => sum + Number(value || 0), 0)
+    : null;
+  return { selected, optionScore };
+}
+
+function pathCompletionSnapshot(status) {
+  const expectedScenarios = scenarioLibrary?.scenarios?.filter(entry => entry.role === scenario.role) || [];
+  const completedIds = new Set(
+    Object.values(readLocalResults())
+      .filter(result => result.selectedRole === scenario.role && result.completed)
+      .map(result => result.scenarioId)
+  );
+  if (status === "completed") completedIds.add(scenario.id);
+  return {
+    completedScenarioCount: completedIds.size,
+    totalScenarioCount: expectedScenarios.length,
+    pathCompleted: expectedScenarios.length > 0 && completedIds.size >= expectedScenarios.length
+  };
+}
+
 function buildScenarioRecord(status = "in_progress") {
   const nowIso = new Date().toISOString();
+  const { selected, optionScore } = selectedChoiceSummary();
+  const pathProgress = pathCompletionSnapshot(status);
+  const frameworkDimension = scenario.framework.dimensions.find(dimension => dimension.id === scenario.focusDimension);
   return {
     uid: currentUser?.uid || null,
     email: currentUser?.email || "Guest learner",
+    anonymousPlayerId,
+    attemptId,
+    attemptNumber,
+    attemptStartedAtIso,
     scenarioId: scenario.id,
     scenarioTitle: scenario.title,
     selectedRole: scenario.role,
     frameworkId: scenario.framework.id,
+    frameworkDimensionId: scenario.focusDimension,
+    frameworkDimension: frameworkDimension?.label || scenario.focusDimension,
+    optionSelected: selected?.optionLabel || null,
+    optionId: selected?.choiceId || null,
+    optionScore,
+    choiceClassification: optionScore === null ? null : choiceClassification(optionScore),
+    choiceResponseTimeMs,
     progressStatus: status,
     progressPercent: progressPercent(),
     completed: status === "completed",
+    scenarioCompleted: status === "completed",
+    pathStarted: true,
+    pathCompleted: pathProgress.pathCompleted,
+    pathCompletedScenarioCount: pathProgress.completedScenarioCount,
+    pathScenarioCount: pathProgress.totalScenarioCount,
     completedAtIso,
+    completionDateTime: completedAtIso,
+    playAgainSelected,
+    feedbackCardViewed,
+    replayedSamePath,
+    triedOtherRole,
+    exitPoint,
     updatedAtIso: nowIso,
     score: totalScore,
     maxScore: scenario.framework.maxScore,
@@ -212,6 +395,10 @@ function buildScenarioRecord(status = "in_progress") {
     choices: choiceHistory.map(choice => ({
       sceneId: choice.sceneId,
       choiceId: choice.choiceId,
+      optionLabel: choice.optionLabel,
+      optionScore: choice.optionScore,
+      classification: choice.classification,
+      choiceResponseTimeMs: choice.choiceResponseTimeMs,
       effect: choice.effect,
       score: choice.score,
       totalAfter: choice.totalAfter
@@ -239,11 +426,12 @@ async function saveScenarioRecord(status = "in_progress") {
     firestoreRecord.completedAt = firebaseClient.serverTimestamp();
   }
 
-  const resultId = `${currentUser.uid}_${scenario.id}`;
+  const resultId = `${currentUser.uid}_${attemptId}`;
   await Promise.all([
     firebaseClient.setDoc(firebaseClient.doc(firebaseClient.db, "users", currentUser.uid), {
       email: currentUser.email || "",
       selectedRole: scenario.role,
+      anonymousPlayerId,
       updatedAt: firebaseClient.serverTimestamp()
     }, { merge: true }),
     firebaseClient.setDoc(firebaseClient.doc(firebaseClient.db, "users", currentUser.uid, "scenarioProgress", scenario.id), firestoreRecord, { merge: true }),
@@ -271,16 +459,22 @@ function randomIndex(length) {
 
 function chooseRandomScenario(pool, role) {
   const recent = safeJsonParse(localStorage.getItem(lastScenarioKey), {});
-  const candidates = pool.length > 1
-    ? pool.filter(entry => entry.id !== recent[role])
-    : pool;
+  const completedIds = new Set(
+    Object.values(readLocalResults())
+      .filter(result => result.selectedRole === role && result.completed)
+      .map(result => result.scenarioId)
+  );
+  const unseen = pool.filter(entry => !completedIds.has(entry.id));
+  const availablePool = unseen.length ? unseen : pool;
+  const candidates = availablePool.length > 1
+    ? availablePool.filter(entry => entry.id !== recent[role])
+    : availablePool;
   const selected = candidates[randomIndex(candidates.length)];
 
   recent[role] = selected.id;
   localStorage.setItem(lastScenarioKey, JSON.stringify(recent));
   return selected;
 }
-
 function addSceneSequence(target, prefix, lines, nextId) {
   let next = nextId;
   for (let index = lines.length - 1; index >= 0; index -= 1) {
@@ -684,6 +878,7 @@ function typeText(text) {
   typedIndex = 0;
   isTyping = true;
   setText("");
+  playLineCue();
   advanceButton.disabled = false;
   advanceLabelEl.textContent = "Reveal";
   startTalking();
@@ -703,6 +898,7 @@ function typeText(text) {
     typedIndex += 1;
     setText(fullText.slice(0, typedIndex));
     const previousCharacter = fullText[typedIndex - 1];
+    playTypingBlip(previousCharacter, typedIndex);
     typingTimer = window.setTimeout(tick, previousCharacter === "\n" ? 0 : textSpeed);
   }
 
@@ -711,6 +907,11 @@ function typeText(text) {
 
 function applyChoiceScore(choice) {
   const score = choice.score || {};
+  const optionScore = Object.values(score).reduce((sum, value) => sum + Number(value || 0), 0);
+  choiceResponseTimeMs = decisionShownAtMs === null
+    ? null
+    : Math.max(0, Math.round(performance.now() - decisionShownAtMs));
+  exitPoint = "choice_selected";
   Object.entries(score).forEach(([dimension, points]) => {
     scoreState[dimension] = (scoreState[dimension] || 0) + Number(points || 0);
   });
@@ -719,6 +920,10 @@ function applyChoiceScore(choice) {
   choiceHistory.push({
     sceneId: currentSceneId,
     choiceId: choice.id,
+    optionLabel: choice.label || null,
+    optionScore,
+    classification: choiceClassification(optionScore),
+    choiceResponseTimeMs,
     effect: choice.effect || "neutral",
     score: { ...score },
     totalAfter: totalScore
@@ -773,6 +978,18 @@ function renderScene(id) {
   const scene = scenes[id] || scenes[scenario.startScene];
   currentSceneId = id;
   pendingNext = scene.next || null;
+
+  let nextExitPoint = "scene";
+  if (id === "decision") nextExitPoint = "decision";
+  else if (id.startsWith("outcome-")) nextExitPoint = "outcome";
+  else if (id.startsWith("feedback-")) nextExitPoint = "feedback_card";
+  else if (id.startsWith("game-end-")) nextExitPoint = "ending";
+  else if (id.startsWith("intro-")) nextExitPoint = "introduction";
+
+  const phaseChanged = exitPoint !== nextExitPoint;
+  exitPoint = nextExitPoint;
+  if (id === "decision") decisionShownAtMs = performance.now();
+  if (id.startsWith("feedback-")) feedbackCardViewed = true;
   hideChoices();
   resultEl.hidden = true;
   reflectionPanelEl.hidden = true;
@@ -793,6 +1010,7 @@ function renderScene(id) {
   setCharacters(scene);
   updateScoreHud();
   typeText(scene.displayText || scene.text);
+  if (phaseChanged) saveScenarioRecord("in_progress");
 }
 
 function completionCopy() {
@@ -887,10 +1105,12 @@ function revealScenarioCompletion(percent) {
   scoreRingEl.style.setProperty("--score-angle", String(percent * 3.6) + "deg");
   reflectionTitleEl.textContent = scenario.framework.id + " result";
   reflectionSummaryEl.textContent = completionCopy();
-  frameworkResultEl.textContent = totalScore + "/" + scenario.framework.maxScore + " / " + (needsFollowUp() ? "Follow-up suggested" : "On track");
+  const pathProgress = pathCompletionSnapshot("completed");
+  const classification = choiceClassification(totalScore);
+  const classificationLabel = classification === "partial" ? "Partial / risky" : classification[0].toUpperCase() + classification.slice(1);
+  frameworkResultEl.textContent = totalScore + "/2 | " + classificationLabel + " | " + pathProgress.completedScenarioCount + "/" + pathProgress.totalScenarioCount + " path scenarios";
   scenarioRewardTitleEl.textContent = scenario.title;
-  scenarioRewardDetailEl.textContent = scenario.framework.id + " · " + String(percent) + "%";
-  renderEvaluationDetails();
+  scenarioRewardDetailEl.textContent = scenario.framework.id + " | " + String(percent) + "%";  renderEvaluationDetails();
   renderReflectionFields();
   reflectionPanelEl.hidden = false;
   notifyMotion("motion:content-added", { element: reflectionPanelEl });
@@ -919,6 +1139,7 @@ function showCompletion() {
   if (!scenario || completionShown) return;
   completionShown = true;
   completedAtIso = completedAtIso || new Date().toISOString();
+  exitPoint = "completed";
   updateScoreHud();
 
   const percent = scorePercent();
@@ -969,6 +1190,7 @@ async function selectRole(role) {
     managerEl.alt = `${nextScenario.characters?.manager?.name || "Manager"} character`;
     sarahEl.alt = `${nextScenario.characters?.employee?.name || "Employee"} character`;
     initialiseScoreState(nextScenario);
+    initialiseAttemptTracking(nextScenario);
     document.body.dataset.scenarioState = "playing";
     rolePanelEl.hidden = true;
     setRoleMessage(currentUser ? "Cloud sync is ready." : "Signed out: this scenario saves on this device only.", currentUser ? "success" : "neutral");
@@ -1041,6 +1263,11 @@ async function initFirebase() {
 }
 
 function bindEvents() {
+  updateSoundToggle();
+  document.addEventListener("pointerdown", () => { unlockDialogueAudio(); }, { once: true, capture: true });
+  document.addEventListener("keydown", () => { unlockDialogueAudio(); }, { once: true, capture: true });
+  soundToggleEl?.addEventListener("click", () => { toggleDialogueSound(); });
+
   rolePanelEl.addEventListener("click", event => {
     const button = event.target.closest("[data-role]");
     if (button) selectRole(button.dataset.role);
@@ -1051,8 +1278,15 @@ function bindEvents() {
 
   sceneBackdropEl.addEventListener("animationend", () => sceneBackdropEl.classList.remove("is-changing"));
 
-  document.querySelector('[data-action="restart"]').addEventListener("click", restartScenario);
-  document.querySelector('[data-action="restart-route"]').addEventListener("click", restartScenario);
+  const replayAndRestart = async () => {
+    if (scenario && completedAtIso) {
+      playAgainSelected = true;
+      await saveScenarioRecord("completed");
+    }
+    restartScenario();
+  };
+  document.querySelector('[data-action="restart"]').addEventListener("click", replayAndRestart);
+  document.querySelector('[data-action="restart-route"]').addEventListener("click", replayAndRestart);
 
   document.addEventListener("keydown", event => {
     const target = event.target;
