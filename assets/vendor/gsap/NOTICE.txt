@@ -1,0 +1,4 @@
+GSAP 3.12.5
+Copyright 2008-2024, GreenSock. All rights reserved.
+Distributed under the GreenSock standard no-charge license included with the npm package terms.
+Source package: https://www.npmjs.com/package/gsap/v/3.12.5

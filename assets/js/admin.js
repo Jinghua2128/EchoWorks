@@ -1,4 +1,4 @@
-import { loadFirebaseClient, normalizeEmail, rootAdminEmail } from "./firebase-client.js";
+import { dashboardRole, loadFirebaseClient, normalizeEmail, rootAdminEmail } from "./firebase-client.js";
 
 const accessPanel = document.getElementById("accessPanel");
 const accessMessage = document.getElementById("accessMessage");
@@ -29,6 +29,7 @@ const recentActivity = document.getElementById("recentActivity");
 const refreshButtonLabel = document.getElementById("refreshButtonLabel");
 const frameworkView = document.getElementById("frameworkView");
 const attemptView = document.getElementById("attemptView");
+const cohortView = document.getElementById("cohortView");
 const scenarioView = document.getElementById("scenarioView");
 const overviewSyncText = document.getElementById("overviewSyncText");
 const dashboardNotice = document.getElementById("dashboardNotice");
@@ -52,6 +53,18 @@ const missedChoiceRate = document.getElementById("missedChoiceRate");
 const bothPathsRate = document.getElementById("bothPathsRate");
 const improvementValue = document.getElementById("improvementValue");
 const dropOffValue = document.getElementById("dropOffValue");
+const dateFrom = document.getElementById("dateFrom");
+const dateTo = document.getElementById("dateTo");
+const dashboardNoticeText = document.getElementById("dashboardNoticeText");
+const dashboardRetryButton = document.getElementById("dashboardRetryButton");
+const usersPageStatus = document.getElementById("usersPageStatus");
+const resultsPageStatus = document.getElementById("resultsPageStatus");
+const loadMoreUsersButton = document.getElementById("loadMoreUsers");
+const loadMoreResultsButton = document.getElementById("loadMoreResults");
+const viewerAdminSection = document.getElementById("viewerAdminSection");
+const adminAccountEmail = document.getElementById("adminAccountEmail");
+const adminAccountRole = document.getElementById("adminAccountRole");
+const adminSignOutButton = document.getElementById("adminSignOutButton");
 
 const scenarioLibraryFile = "assets/data/scenarios/scenario-library.json";
 
@@ -63,8 +76,16 @@ let cachedUsers = [];
 let cachedResults = [];
 let cachedAdmins = [];
 let canBootstrapAdmin = false;
+let currentDashboardRole = null;
 let scenarioDefinitions = [];
 let frameworkDefinitions = {};
+let usersCursor = null;
+let resultsCursor = null;
+let hasMoreUsers = false;
+let hasMoreResults = false;
+let totalUsersFromServer = 0;
+let totalResultsFromServer = 0;
+const dashboardPageSize = 75;
 
 function notifyMotion(name, detail = {}) {
   window.dispatchEvent(new CustomEvent(name, { detail }));
@@ -134,7 +155,7 @@ function reflectionValues(result) {
 }
 
 function reflectionStatus(results) {
-  return results.some(result => reflectionValues(result).length) ? "Saved" : "Pending";
+  return results.some(result => result.reflectionSaved || reflectionValues(result).length) ? "Saved" : "Pending";
 }
 
 function latestResult(results) {
@@ -218,7 +239,7 @@ function resultTimestamp(result) {
 }
 
 async function loadScenarioDefinitions() {
-  const response = await fetch(scenarioLibraryFile, { cache: "no-store" });
+  const response = await fetch(`${scenarioLibraryFile}?v=20260724`);
   if (!response.ok) throw new Error("Scenario scoring definitions could not be loaded.");
 
   const data = await response.json();
@@ -780,9 +801,22 @@ function renderInsights(users, results) {
   });
 }
 
-function createCell(label, value) {
+const tableHeaderIds = {
+  Name: "users-name", Role: "users-role", "Completed scenarios": "users-completed",
+  "CARE score": "users-care", "REAL score": "users-real", Status: "users-status",
+  Reflection: "users-reflection", "Last activity": "users-activity", Action: "users-action",
+  User: "results-user", Scenario: "results-scenario", Attempt: "results-attempt",
+  Dimension: "results-dimension", Option: "results-option", Result: "results-class", Score: "results-score"
+};
+
+function createCell(label, value, headerId = "") {
   const cell = document.createElement("td");
   cell.dataset.label = label;
+  const table = label === "User" || ["Scenario", "Attempt", "Dimension", "Option", "Result", "Score"].includes(label)
+    ? "results"
+    : "users";
+  const reflectionHeader = table === "results" ? "results-reflection" : "users-reflection";
+  cell.setAttribute("headers", headerId || (label === "Reflection" ? reflectionHeader : (tableHeaderIds[label] || "")));
   if (value instanceof Node) cell.append(value);
   else cell.textContent = value;
   return cell;
@@ -820,7 +854,6 @@ function renderUsers(users, results) {
     cell.colSpan = 9;
     row.append(cell);
     usersTable.append(row);
-    notifyMotion("motion:content-added", { element: row });
     return;
   }
 
@@ -851,7 +884,6 @@ function renderUsers(users, results) {
       createCell("Action", action)
     );
     usersTable.append(row);
-    notifyMotion("motion:content-added", { element: row });
   });
 }
 function renderResults(results) {
@@ -863,7 +895,6 @@ function renderResults(results) {
     cell.colSpan = 8;
     row.append(cell);
     resultsTable.append(row);
-    notifyMotion("motion:content-added", { element: row });
     return;
   }
 
@@ -887,11 +918,10 @@ function renderResults(results) {
         createCell("Option", resultOptionLabel(result) || "Not selected"),
         createCell("Result", classification ? createStatusPill(classification === "partial" ? "Partial / risky" : classification[0].toUpperCase() + classification.slice(1), classification === "strong" ? "success" : classification === "partial" ? "warning" : "danger") : createStatusPill("In progress", "warning")),
         createCell("Score", optionScore === null ? "-" : optionScore + "/2"),
-        createCell("Reflection", reflectionValues(result).join(" / ") || "No reflection saved")
+        createCell("Reflection", result.reflectionSaved || reflectionValues(result).length ? "Saved - open learner details" : "Not saved", "results-reflection")
       );
       resultsTable.append(row);
-      notifyMotion("motion:content-added", { element: row });
-    });
+      });
 }
 function renderAdmins(admins) {
   adminList.textContent = "";
@@ -915,7 +945,9 @@ function renderAdmins(admins) {
     const label = document.createElement("strong");
     label.textContent = email;
     const meta = document.createElement("span");
-    meta.textContent = email === normalizeEmail(currentUser?.email) ? "Current viewer" : "Dashboard viewer";
+    meta.textContent = email === rootAdminEmail
+      ? "Dashboard owner"
+      : (email === normalizeEmail(currentUser?.email) ? "Current viewer" : "Read-only viewer");
 
     const copy = document.createElement("div");
     copy.append(label, meta);
@@ -925,7 +957,7 @@ function renderAdmins(admins) {
     button.type = "button";
     button.dataset.removeAdmin = email;
     button.textContent = "Remove";
-    button.disabled = email === normalizeEmail(currentUser?.email);
+    button.disabled = email === rootAdminEmail || email === normalizeEmail(currentUser?.email);
 
     item.append(copy, button);
     adminList.append(item);
@@ -940,9 +972,9 @@ function renderDashboardData() {
   renderInsights(scoped.users, scoped.results);
   renderUsers(scoped.users, cachedResults);
   renderResults(scoped.results);
-  renderAdmins(cachedAdmins);
+  if (currentDashboardRole === "owner") renderAdmins(cachedAdmins);
 }
-function renderDetail(userId) {
+async function renderDetail(userId) {
   const user = allTrackedUsers(cachedUsers, cachedResults).find(item => String(item.uid || item.email) === String(userId));
   if (!user) return;
 
@@ -950,8 +982,23 @@ function renderDetail(userId) {
   const latest = latestResult(results) || {};
   detailPanel.hidden = false;
   detailTitle.textContent = user.email || user.uid || "Learner detail";
-  detailBody.textContent = "";
+  detailBody.textContent = "Loading reflections...";
 
+  let reflectionByAttempt = new Map();
+  try {
+    const reflectionSnapshot = await firebaseClient.getDocs(firebaseClient.query(
+      firebaseClient.collection(firebaseClient.db, "scenarioReflections"),
+      firebaseClient.where("uid", "==", user.uid)
+    ));
+    reflectionByAttempt = new Map(reflectionSnapshot.docs.map(document => {
+      const data = document.data();
+      return [data.attemptId, data.answers || {}];
+    }));
+  } catch {
+    // Legacy result records may still contain reflectionAnswers and remain readable here.
+  }
+
+  detailBody.textContent = "";
   const summary = document.createElement("div");
   summary.className = "detail-grid";
   [
@@ -989,7 +1036,9 @@ function renderDetail(userId) {
     breakdown.textContent = formatBreakdown(result);
     item.append(breakdown);
 
-    const values = reflectionValues(result);
+    const values = Object.values(reflectionByAttempt.get(result.attemptId) || result.reflectionAnswers || {})
+      .map(value => String(value || "").trim())
+      .filter(Boolean);
     const reflection = document.createElement("p");
     reflection.textContent = values.length ? values.join(" / ") : "No reflection saved.";
     item.append(reflection);
@@ -997,19 +1046,23 @@ function renderDetail(userId) {
   });
 
   detailBody.append(summary, reflections);
-  notifyMotion("motion:content-added", { element: detailPanel });
-  detailPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  detailTitle.setAttribute("tabindex", "-1");
+  detailTitle.focus({ preventScroll: true });
+  detailPanel.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
 }
-
 async function checkAdminAccess(user) {
   canBootstrapAdmin = false;
+  currentDashboardRole = null;
   if (!user) return false;
 
   const email = normalizeEmail(user.email);
   if (!email) return false;
 
   const snap = await firebaseClient.getDoc(firebaseClient.doc(firebaseClient.db, "dashboardAdminEmails", email));
-  if (snap.exists()) return true;
+  if (snap.exists()) {
+    currentDashboardRole = dashboardRole(snap.data(), email);
+    return Boolean(currentDashboardRole);
+  }
 
   canBootstrapAdmin = email === rootAdminEmail;
   return false;
@@ -1031,46 +1084,142 @@ async function createAdminProfile() {
 
   canBootstrapAdmin = false;
   dashboardAllowed = true;
+  currentDashboardRole = "owner";
   setupAdminButton.disabled = false;
   await loadDashboard();
 }
 
-async function loadDashboard() {
-  if (!dashboardAllowed) return;
+function resultFilterConstraints() {
+  const constraints = [firebaseClient.where("frameworkId", "==", frameworkView.value)];
+  if (cohortView.value !== "all") constraints.push(firebaseClient.where("selectedRole", "==", cohortView.value));
+  if (scenarioView.value !== "all") constraints.push(firebaseClient.where("scenarioId", "==", scenarioView.value));
+  if (dateFrom.value) constraints.push(firebaseClient.where("updatedAt", ">=", new Date(`${dateFrom.value}T00:00:00`)));
+  if (dateTo.value) {
+    const exclusiveEnd = new Date(`${dateTo.value}T00:00:00`);
+    exclusiveEnd.setDate(exclusiveEnd.getDate() + 1);
+    constraints.push(firebaseClient.where("updatedAt", "<", exclusiveEnd));
+  }
+  return constraints;
+}
 
-  setAccess("Loading dashboard", "Fetching user progress and scenario scoring records...", true);
+function mergeDocumentPage(existing, incoming, identity = "id") {
+  const merged = new Map(existing.map(item => [item[identity], item]));
+  incoming.forEach(item => merged.set(item[identity], item));
+  return [...merged.values()];
+}
+
+function updatePaginationStatus() {
+  usersPageStatus.textContent = `${cachedUsers.length} of ${totalUsersFromServer} learner profiles loaded.`;
+  resultsPageStatus.textContent = `${cachedResults.length} of ${totalResultsFromServer} filtered result records loaded.`;
+  loadMoreUsersButton.hidden = !hasMoreUsers;
+  loadMoreResultsButton.hidden = !hasMoreResults;
+  loadMoreUsersButton.disabled = !hasMoreUsers;
+  loadMoreResultsButton.disabled = !hasMoreResults;
+}
+
+async function loadDashboard(options = {}) {
+  if (!dashboardAllowed) return;
+  const appendTarget = options.append || "";
+  const loadUsers = appendTarget !== "results";
+  const loadResults = appendTarget !== "users";
+
+  if (!appendTarget) {
+    usersCursor = null;
+    resultsCursor = null;
+    cachedUsers = [];
+    cachedResults = [];
+  }
+
+  setAccess("Loading dashboard", "Fetching a protected Firestore snapshot...", true);
   setDashboardBusy(true);
+  loadMoreUsersButton.disabled = true;
+  loadMoreResultsButton.disabled = true;
   dashboardNotice.hidden = true;
+  viewerAdminSection.hidden = currentDashboardRole !== "owner";
+  adminAccountEmail.textContent = currentUser?.email || "Unknown account";
+  adminAccountRole.textContent = currentDashboardRole === "owner" ? "Dashboard owner" : "Read-only viewer";
 
   try {
-    const [usersSnap, resultsSnap, adminsSnap] = await Promise.all([
-      firebaseClient.getDocs(firebaseClient.collection(firebaseClient.db, "users")),
-      firebaseClient.getDocs(firebaseClient.collection(firebaseClient.db, "scenarioResults")),
-      firebaseClient.getDocs(firebaseClient.collection(firebaseClient.db, "dashboardAdminEmails"))
-    ]);
+    const operations = {};
+    if (loadUsers) {
+      const userFilters = cohortView.value === "all" ? [] : [firebaseClient.where("selectedRole", "==", cohortView.value)];
+      const constraints = [...userFilters, firebaseClient.orderBy(firebaseClient.documentId())];
+      if (usersCursor) constraints.push(firebaseClient.startAfter(usersCursor));
+      constraints.push(firebaseClient.limit(dashboardPageSize));
+      operations.users = firebaseClient.getDocs(firebaseClient.query(
+        firebaseClient.collection(firebaseClient.db, "users"),
+        ...constraints
+      ));
+      operations.userCount = firebaseClient.getCountFromServer(firebaseClient.query(firebaseClient.collection(firebaseClient.db, "users"), ...userFilters));
+    }
 
-    cachedUsers = usersSnap.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
-    cachedResults = resultsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    cachedAdmins = adminsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (loadResults) {
+      const filterConstraints = resultFilterConstraints();
+      const pageConstraints = [...filterConstraints, firebaseClient.orderBy("updatedAt", "desc")];
+      if (resultsCursor) pageConstraints.push(firebaseClient.startAfter(resultsCursor));
+      pageConstraints.push(firebaseClient.limit(dashboardPageSize));
+      operations.results = firebaseClient.getDocs(firebaseClient.query(
+        firebaseClient.collection(firebaseClient.db, "scenarioResults"),
+        ...pageConstraints
+      ));
+      operations.resultCount = firebaseClient.getCountFromServer(firebaseClient.query(
+        firebaseClient.collection(firebaseClient.db, "scenarioResults"),
+        ...filterConstraints
+      ));
+    }
+
+    if (currentDashboardRole === "owner" && !appendTarget) {
+      operations.admins = firebaseClient.getDocs(firebaseClient.collection(firebaseClient.db, "dashboardAdminEmails"));
+    }
+
+    const keys = Object.keys(operations);
+    const values = await Promise.all(Object.values(operations));
+    const loaded = Object.fromEntries(keys.map((key, index) => [key, values[index]]));
+
+    if (loaded.users) {
+      const page = loaded.users.docs.map(document => ({ uid: document.id, ...document.data() }));
+      cachedUsers = mergeDocumentPage(cachedUsers, page, "uid");
+      usersCursor = loaded.users.docs.at(-1) || usersCursor;
+      hasMoreUsers = loaded.users.size === dashboardPageSize;
+      totalUsersFromServer = loaded.userCount.data().count;
+    }
+    if (loaded.results) {
+      const page = loaded.results.docs.map(document => ({ id: document.id, ...document.data() }));
+      cachedResults = mergeDocumentPage(cachedResults, page, "id");
+      resultsCursor = loaded.results.docs.at(-1) || resultsCursor;
+      hasMoreResults = loaded.results.size === dashboardPageSize;
+      totalResultsFromServer = loaded.resultCount.data().count;
+    }
+    if (loaded.admins) cachedAdmins = loaded.admins.docs.map(document => ({ id: document.id, ...document.data() }));
 
     renderDashboardData();
+    if (totalUsersFromServer) userCount.textContent = String(totalUsersFromServer);
+    updatePaginationStatus();
 
     const updatedTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     dashboardSyncStatus.textContent = "Updated " + updatedTime;
-    overviewSyncText.textContent = "Live Firestore data | Updated " + updatedTime;
+    overviewSyncText.textContent = `Firestore snapshot | ${cachedResults.length} of ${totalResultsFromServer} filtered results loaded`;
   } catch (error) {
-    dashboardNotice.textContent = error?.message || "Dashboard data could not be loaded. Refresh to try again.";
+    dashboardNoticeText.textContent = error?.code === "failed-precondition"
+      ? "This filter needs the included Firestore index. Deploy the indexes, then retry."
+      : "Dashboard data could not be loaded. Retry when the connection is available.";
     dashboardNotice.hidden = false;
     dashboardSyncStatus.textContent = "Update failed";
-    overviewSyncText.textContent = "Live Firestore data is temporarily unavailable";
+    overviewSyncText.textContent = "Firestore snapshot unavailable";
   } finally {
     setDashboardBusy(false);
+    updatePaginationStatus();
   }
 }
 async function addAdmin(event) {
   event.preventDefault();
+  if (currentDashboardRole !== "owner") {
+    setAdminMessage("Only the dashboard owner can manage viewers.");
+    return;
+  }
   const email = normalizeEmail(adminEmail.value);
-  if (!email) {
+  if (!email || !adminEmail.validity.valid) {
+    adminEmail.setAttribute("aria-invalid", "true");
     setAdminMessage("Enter a valid email address.");
     return;
   }
@@ -1079,11 +1228,13 @@ async function addAdmin(event) {
   try {
     await firebaseClient.setDoc(firebaseClient.doc(firebaseClient.db, "dashboardAdminEmails", email), {
       email,
+      role: "viewer",
       addedBy: currentUser?.email || "",
       addedAt: firebaseClient.serverTimestamp()
     }, { merge: true });
 
     adminEmail.value = "";
+    adminEmail.setAttribute("aria-invalid", "false");
     setAdminMessage("Dashboard viewer added.", "success");
     await loadDashboard();
   } finally {
@@ -1092,10 +1243,14 @@ async function addAdmin(event) {
 }
 
 async function removeAdmin(email) {
+  if (currentDashboardRole !== "owner") {
+    setAdminMessage("Only the dashboard owner can manage viewers.");
+    return;
+  }
   const normalized = normalizeEmail(email);
   if (!normalized) return;
-  if (normalized === normalizeEmail(currentUser?.email)) {
-    setAdminMessage("You cannot remove your own admin profile while signed in.");
+  if (normalized === rootAdminEmail || normalized === normalizeEmail(currentUser?.email)) {
+    setAdminMessage("The owner profile cannot be removed or downgraded.");
     return;
   }
 
@@ -1106,49 +1261,82 @@ async function removeAdmin(email) {
 
 function bindEvents() {
   refreshButton.addEventListener("click", () => loadDashboard());
+  dashboardRetryButton.addEventListener("click", () => loadDashboard());
+  loadMoreUsersButton.addEventListener("click", () => loadDashboard({ append: "users" }));
+  loadMoreResultsButton.addEventListener("click", () => loadDashboard({ append: "results" }));
+  adminSignOutButton.addEventListener("click", async () => {
+    if (firebaseClient && currentUser) await firebaseClient.signOut(firebaseClient.auth).catch(() => {});
+    window.location.href = "index.html#login";
+  });
 
   setupAdminButton.addEventListener("click", () => {
-    createAdminProfile().catch(error => {
+    createAdminProfile().catch(() => {
       setupAdminButton.disabled = false;
-      setAccess("Setup failed", error.message || "Could not create the admin profile.", false, { canBootstrapAdmin });
+      setAccess("Setup failed", "The owner profile could not be created. Deploy the included Firestore rules, then try again.", false, { canBootstrapAdmin });
     });
   });
 
   frameworkView.addEventListener("change", () => {
     syncScenarioOptions();
     detailPanel.hidden = true;
+    loadDashboard();
+  });
+  cohortView.addEventListener("change", () => {
+    detailPanel.hidden = true;
+    loadDashboard();
+  });
+  scenarioView.addEventListener("change", () => {
+    detailPanel.hidden = true;
+    loadDashboard();
+  });
+  [dateFrom, dateTo].forEach(control => control.addEventListener("change", () => {
+    if (dateFrom.value && dateTo.value && dateFrom.value > dateTo.value) {
+      dashboardNoticeText.textContent = "The start date must be before the end date.";
+      dashboardNotice.hidden = false;
+      control.setAttribute("aria-invalid", "true");
+      return;
+    }
+    dateFrom.setAttribute("aria-invalid", "false");
+    dateTo.setAttribute("aria-invalid", "false");
+    detailPanel.hidden = true;
+    loadDashboard();
+  }));
+  attemptView.addEventListener("change", () => {
+    detailPanel.hidden = true;
     renderDashboardData();
   });
-  [attemptView, scenarioView].forEach(control => {
-    control.addEventListener("change", () => {
-      detailPanel.hidden = true;
-      renderDashboardData();
-    });
-  });
+
   document.querySelectorAll("[data-filter]").forEach(button => {
     button.addEventListener("click", () => {
       currentFilter = button.dataset.filter;
-      document.querySelectorAll("[data-filter]").forEach(item => item.classList.toggle("active", item === button));
+      document.querySelectorAll("[data-filter]").forEach(item => {
+        const selected = item === button;
+        item.classList.toggle("active", selected);
+        item.setAttribute("aria-pressed", String(selected));
+      });
       const scoped = dashboardScope(cachedUsers, cachedResults);
-      renderUsers(scoped.users, scoped.results);
+      renderUsers(scoped.users, cachedResults);
     });
   });
 
   usersTable.addEventListener("click", event => {
     const userId = event.target.closest("[data-user-id]")?.dataset.userId;
-    if (userId) renderDetail(userId);
+    if (userId) renderDetail(userId).catch(() => {
+      dashboardNoticeText.textContent = "Learner details could not be loaded. Retry from the learner row.";
+      dashboardNotice.hidden = false;
+    });
   });
 
+  adminEmail.addEventListener("input", () => adminEmail.setAttribute("aria-invalid", "false"));
   adminForm.addEventListener("submit", event => {
-    addAdmin(event).catch(error => setAdminMessage(error.message || "Could not add dashboard viewer."));
+    addAdmin(event).catch(() => setAdminMessage("Could not add dashboard viewer. Check your owner access and try again."));
   });
 
   adminList.addEventListener("click", event => {
     const email = event.target.closest("[data-remove-admin]")?.dataset.removeAdmin;
-    if (email) removeAdmin(email).catch(error => setAdminMessage(error.message || "Could not remove dashboard viewer."));
+    if (email) removeAdmin(email).catch(() => setAdminMessage("Could not remove dashboard viewer. Try again."));
   });
 }
-
 async function init() {
   bindEvents();
   setAccess("Connecting", "Checking Firebase Authentication and dashboard permissions...");
@@ -1168,7 +1356,7 @@ async function init() {
         dashboardAllowed = false;
         setAccess(
           "Sign in required",
-          "Sign in as liuguangxuan1230@gmail.com from this local preview, then the owner profile will be created automatically.",
+          "Sign in from the learning app with an authorised dashboard account.",
           false,
           { needsSignIn: true }
         );
@@ -1184,7 +1372,7 @@ async function init() {
             setupAdminButton.disabled = false;
             setAccess(
               "Admin profile setup failed",
-              (error?.message || "The owner profile could not be created.") + " Check that the latest Firestore rules are deployed, then try again.",
+              "The owner profile could not be created. Deploy the included Firestore rules, then try again.",
               false,
               { canBootstrapAdmin: true }
             );
@@ -1198,8 +1386,8 @@ async function init() {
 
       await loadDashboard();
     });
-  } catch (error) {
-    setAccess("Firebase unavailable", error.message || "Dashboard data cannot be loaded.");
+  } catch {
+    setAccess("Dashboard unavailable", "The secure dashboard cannot connect right now. Return to the learning app and try again later.");
   }
 }
 

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /test3.html
+
+Sitemap: https://echoworks-e3b4d.web.app/sitemap.xml

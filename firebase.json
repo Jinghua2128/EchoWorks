@@ -1,16 +1,104 @@
 {
-  "firestore": {
-    "rules": "firestore.rules"
-  },
-  "hosting": {
-    "public": ".",
-    "ignore": [
-      "firebase.json",
-      "firestore.rules",
-      "**/.*",
-      "**/node_modules/**",
-      "package*.json",
-      "red-cross-feedback-simulator/**"
-    ]
-  }
+    "firestore":  {
+                      "rules":  "firestore.rules",
+                      "indexes":  "firestore.indexes.json"
+                  },
+    "hosting":  {
+                    "public":  "public",
+                    "ignore":  [
+                                   "firebase.json",
+                                   "firestore.rules",
+                                   "firestore.indexes.json",
+                                   "**/.*",
+                                   "**/node_modules/**",
+                                   "package*.json"
+                               ],
+                    "headers":  [
+                                    {
+                                        "source":  "**/*.html",
+                                        "headers":  [
+                                                        {
+                                                            "key":  "Content-Security-Policy",
+                                                            "value":  "default-src \u0027self\u0027; script-src \u0027self\u0027 https://www.gstatic.com \u0027sha256-Fydwqi/xZoZ8E2CjtYD+FXEFjoECM5A/XarcaUMi7pk=\u0027 \u0027sha256-xSeyZsuLwzQC2Foccsd7cVBcpn3qBFqwuDBDv1nGeTs=\u0027; connect-src \u0027self\u0027 https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; img-src \u0027self\u0027 data: blob:; media-src \u0027self\u0027 blob:; style-src \u0027self\u0027; font-src \u0027self\u0027; worker-src \u0027self\u0027 blob:; frame-src https://echoworks-e3b4d.firebaseapp.com; object-src \u0027none\u0027; base-uri \u0027self\u0027; form-action \u0027self\u0027"
+                                                        },
+                                                        {
+                                                            "key":  "Referrer-Policy",
+                                                            "value":  "strict-origin-when-cross-origin"
+                                                        },
+                                                        {
+                                                            "key":  "X-Content-Type-Options",
+                                                            "value":  "nosniff"
+                                                        },
+                                                        {
+                                                            "key":  "X-Frame-Options",
+                                                            "value":  "DENY"
+                                                        },
+                                                        {
+                                                            "key":  "Cross-Origin-Opener-Policy",
+                                                            "value":  "same-origin"
+                                                        },
+                                                        {
+                                                            "key":  "Permissions-Policy",
+                                                            "value":  "geolocation=(), microphone=(), payment=(), usb=()"
+                                                        }
+                                                    ]
+                                    },
+                                    {
+                                        "source":  "/index.html",
+                                        "headers":  [
+                                                        {
+                                                            "key":  "Permissions-Policy",
+                                                            "value":  "camera=(self)"
+                                                        }
+                                                    ]
+                                    },
+                                    {
+                                        "source":  "/",
+                                        "headers":  [
+                                                        {
+                                                            "key":  "Permissions-Policy",
+                                                            "value":  "camera=(self)"
+                                                        }
+                                                    ]
+                                    },
+                                    {
+                                        "source":  "/admin.html",
+                                        "headers":  [
+                                                        {
+                                                            "key":  "Permissions-Policy",
+                                                            "value":  "camera=()"
+                                                        }
+                                                    ]
+                                    },
+                                    {
+                                        "source":  "/scenario.html",
+                                        "headers":  [
+                                                        {
+                                                            "key":  "Permissions-Policy",
+                                                            "value":  "camera=()"
+                                                        }
+                                                    ]
+                                    },
+                                    {
+                                        "source":  "/privacy.html",
+                                        "headers":  [
+                                                        {
+                                                            "key":  "Permissions-Policy",
+                                                            "value":  "camera=()"
+                                                        }
+                                                    ]
+                                    }
+                                ],
+                    "predeploy":  [
+                                      "npm run build"
+                                  ]
+                },
+    "emulators":  {
+                      "firestore":  {
+                                        "port":  8085
+                                    },
+                      "ui":  {
+                                 "enabled":  false
+                             }
+                  }
 }

@@ -3,65 +3,195 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() {
-      return request.auth != null;
+      return request.auth != null && request.auth.token.email is string;
     }
 
-    function isBootstrapAdmin(email) {
-      return signedIn()
-        && request.auth.token.email == "liuguangxuan1230@gmail.com"
-        && email == request.auth.token.email;
-    }
-
-    function isDashboardAdmin() {
-      return signedIn()
-        && exists(/databases/$(database)/documents/dashboardAdminEmails/$(request.auth.token.email));
-    }
-
-    function writesBootstrapAdminProfile(email) {
-      return isBootstrapAdmin(email)
-        && request.resource.data.email == request.auth.token.email;
+    function authEmail() {
+      return request.auth.token.email;
     }
 
     function ownsUser(uid) {
       return signedIn() && request.auth.uid == uid;
     }
 
-    function writesOwnScenarioResult(resultId) {
+    function viewerProfilePath() {
+      return /databases/$(database)/documents/dashboardAdminEmails/$(authEmail());
+    }
+
+    function isDashboardViewer() {
       return signedIn()
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.scenarioId is string
+        && exists(viewerProfilePath())
+        && get(viewerProfilePath()).data.role in ['owner', 'viewer'];
+    }
+
+    function isDashboardOwner() {
+      return signedIn()
+        && authEmail() == 'liuguangxuan1230@gmail.com'
+        && exists(viewerProfilePath())
+        && get(viewerProfilePath()).data.role == 'owner';
+    }
+
+    function isOwnerBootstrap(email) {
+      return signedIn()
+        && authEmail() == 'liuguangxuan1230@gmail.com'
+        && email == authEmail()
+        && !exists(/databases/$(database)/documents/dashboardAdminEmails/$(email));
+    }
+
+    function validRole(role) {
+      return role in ['manager', 'employee'];
+    }
+
+    function validFramework(role, framework) {
+      return (role == 'manager' && framework == 'REAL')
+        || (role == 'employee' && framework == 'CARE');
+    }
+
+    function validLearningProgress(progress) {
+      return progress is map
+        && progress.surveyVersion is string
+        && progress.answers is map
+        && progress.completed is int
+        && progress.completed >= 0
+        && progress.completed <= 4
+        && progress.total == 4
+        && progress.progress is int
+        && progress.progress >= 0
+        && progress.progress <= 100
+        && progress.updatedAt is number;
+    }
+
+    function validUserProfile(uid) {
+      return request.resource.data.email == authEmail()
+        && (!request.resource.data.keys().hasAny(['selectedRole'])
+          || validRole(request.resource.data.selectedRole))
+        && (!request.resource.data.keys().hasAny(['anonymousPlayerId'])
+          || request.resource.data.anonymousPlayerId is string)
+        && (!request.resource.data.keys().hasAny(['learningProgress'])
+          || validLearningProgress(request.resource.data.learningProgress))
+        && request.resource.data.keys().hasOnly([
+          'email', 'updatedAt', 'learningProgress', 'selectedRole', 'anonymousPlayerId'
+        ]);
+    }
+
+    function validOptionScore(score) {
+      return score == null || (score is int && score >= 0 && score <= 2);
+    }
+
+    function validClassification(score, classification) {
+      return (score == null && classification == null)
+        || (score == 2 && classification == 'strong')
+        || (score == 1 && classification == 'partial')
+        || (score == 0 && classification == 'missed');
+    }
+
+    function validScenarioRecord(uid, scenarioId) {
+      return request.resource.data.uid == uid
+        && request.resource.data.scenarioId == scenarioId
+        && request.resource.data.scenarioTitle is string
+        && request.resource.data.attemptId is string
         && request.resource.data.attemptNumber is int
         && request.resource.data.attemptNumber >= 1
         && request.resource.data.anonymousPlayerId is string
-        && (request.resource.data.optionScore == null
-          || (request.resource.data.optionScore is number
-            && request.resource.data.optionScore >= 0
-            && request.resource.data.optionScore <= 2));
+        && validRole(request.resource.data.selectedRole)
+        && validFramework(request.resource.data.selectedRole, request.resource.data.frameworkId)
+        && request.resource.data.frameworkDimensionId is string
+        && request.resource.data.score is int
+        && request.resource.data.score >= 0
+        && request.resource.data.score <= 2
+        && request.resource.data.maxScore == 2
+        && request.resource.data.scorePercent == request.resource.data.score * 50
+        && validOptionScore(request.resource.data.optionScore)
+        && validClassification(request.resource.data.optionScore, request.resource.data.choiceClassification)
+        && request.resource.data.progressPercent is int
+        && request.resource.data.progressPercent >= 0
+        && request.resource.data.progressPercent <= 100
+        && request.resource.data.completed is bool
+        && request.resource.data.pathStarted == true
+        && (!request.resource.data.keys().hasAny(['reflectionSaved']) || request.resource.data.reflectionSaved is bool)
+        && (!request.resource.data.keys().hasAny(['reflectionAnswers']) || request.resource.data.reflectionAnswers is map);
+    }
+
+    function immutableAttemptIdentity() {
+      return request.resource.data.uid == resource.data.uid
+        && request.resource.data.attemptId == resource.data.attemptId
+        && request.resource.data.attemptNumber == resource.data.attemptNumber
+        && request.resource.data.scenarioId == resource.data.scenarioId
+        && request.resource.data.selectedRole == resource.data.selectedRole
+        && request.resource.data.frameworkId == resource.data.frameworkId
+        && request.resource.data.frameworkDimensionId == resource.data.frameworkDimensionId
+        && request.resource.data.anonymousPlayerId == resource.data.anonymousPlayerId;
+    }
+
+    function completedAttemptChangesOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'reflectionAnswers', 'reflectionSaved', 'playAgainSelected', 'feedbackCardViewed', 'exitPoint',
+        'updatedAt', 'updatedAtIso', 'completedAt', 'completedAtIso', 'completionDateTime'
+      ]);
     }
 
     match /users/{uid} {
-      allow create, read, update: if ownsUser(uid) || isDashboardAdmin();
-      allow delete: if isDashboardAdmin();
+      allow get: if ownsUser(uid) || isDashboardViewer();
+      allow list: if isDashboardViewer();
+      allow create: if ownsUser(uid) && validUserProfile(uid);
+      allow update: if ownsUser(uid) && validUserProfile(uid) && request.resource.data.email == resource.data.email;
+      allow delete: if ownsUser(uid);
 
       match /scenarioProgress/{scenarioId} {
-        allow read, write: if ownsUser(uid) || isDashboardAdmin();
+        allow read: if ownsUser(uid) || isDashboardViewer();
+        allow create, update: if ownsUser(uid) && validScenarioRecord(uid, scenarioId);
+        allow delete: if ownsUser(uid);
       }
     }
 
     match /scenarioResults/{resultId} {
-      allow create: if writesOwnScenarioResult(resultId) || isDashboardAdmin();
-      allow update: if isDashboardAdmin()
-        || (writesOwnScenarioResult(resultId) && resource.data.uid == request.auth.uid);
-      allow read: if (signedIn() && resource.data.uid == request.auth.uid) || isDashboardAdmin();
-      allow list: if isDashboardAdmin();
-      allow delete: if (signedIn() && resource.data.uid == request.auth.uid) || isDashboardAdmin();
+      allow read: if (signedIn() && resource.data.uid == request.auth.uid) || isDashboardViewer();
+      allow create: if signedIn()
+        && resultId.matches('^' + request.auth.uid + '_.*')
+        && validScenarioRecord(request.auth.uid, request.resource.data.scenarioId);
+      allow update: if signedIn()
+        && resource.data.uid == request.auth.uid
+        && validScenarioRecord(request.auth.uid, request.resource.data.scenarioId)
+        && immutableAttemptIdentity()
+        && (!resource.data.completed || completedAttemptChangesOnly());
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    match /scenarioReflections/{resultId} {
+      allow read: if (signedIn() && resource.data.uid == request.auth.uid) || isDashboardViewer();
+      allow create: if signedIn()
+        && resultId.matches('^' + request.auth.uid + '_.*')
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.attemptId is string
+        && request.resource.data.scenarioId is string
+        && request.resource.data.answers is map;
+      allow update: if signedIn()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.attemptId == resource.data.attemptId
+        && request.resource.data.scenarioId == resource.data.scenarioId
+        && request.resource.data.answers is map;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
     }
 
     match /dashboardAdminEmails/{email} {
-      allow get: if isDashboardAdmin() || (signedIn() && request.auth.token.email == email);
-      allow list: if isDashboardAdmin();
-      allow create: if isDashboardAdmin() || writesBootstrapAdminProfile(email);
-      allow update, delete: if isDashboardAdmin();
+      allow get: if isDashboardOwner() || (signedIn() && authEmail() == email);
+      allow list: if isDashboardOwner();
+      allow create: if (
+          isOwnerBootstrap(email)
+          && request.resource.data.email == email
+          && request.resource.data.role == 'owner'
+        ) || (
+          isDashboardOwner()
+          && email != 'liuguangxuan1230@gmail.com'
+          && request.resource.data.email == email
+          && request.resource.data.role == 'viewer'
+        );
+      allow update: if isDashboardOwner()
+        && email != 'liuguangxuan1230@gmail.com'
+        && request.resource.data.email == email
+        && request.resource.data.role == 'viewer';
+      allow delete: if isDashboardOwner() && email != 'liuguangxuan1230@gmail.com';
     }
 
     match /{document=**} {

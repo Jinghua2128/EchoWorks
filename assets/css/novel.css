@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   color-scheme: light;
   --red: #d71920;
   --red-dark: #a90f17;
@@ -12,7 +12,7 @@
   --surface-muted: #f4f6f8;
   --teal: #0f766e;
   --teal-soft: #e6f6f4;
-  --amber: #b7791f;
+  --amber: #8a4b00;
   --amber-soft: #fff6df;
   --danger: #b42318;
   --danger-soft: #fff2f1;
@@ -37,7 +37,7 @@ body {
   overflow: hidden;
   background: #17212f;
   color: var(--ink);
-  font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -64,7 +64,7 @@ svg {
 }
 
 :focus-visible {
-  outline: 3px solid rgba(215, 25, 32, .35);
+  outline: 3px solid #b42318;
   outline-offset: 3px;
 }
 

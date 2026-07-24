@@ -1,5 +1,16 @@
-const firebaseVersion = "12.15.0";
-const firebaseBaseUrl = `https://www.gstatic.com/firebasejs/${firebaseVersion}`;
+import {
+  dashboardRole,
+  ensureFirestore,
+  loadFirebaseAuthClient,
+  normalizeEmail
+} from "./firebase-client.js";
+import {
+  clearLocalScenarioProgress,
+  latestScenarioRecord,
+  mergeCloudScenarioRecords,
+  readLocalScenarioRecords,
+  retryPendingScenarioRecords
+} from "./progress-store.js";
 
 const storageKeys = {
   version: "feedbackPlaybook.storageVersion",
@@ -15,7 +26,6 @@ const protectedRoutes = new Set(["home", "survey", "ar", "settings"]);
 const authRoutes = new Set(["login", "signup"]);
 const routeIds = ["login", "signup", "home", "survey", "ar", "settings"];
 const storageVersion = "2026-07-four-question-pulse-v8";
-const bootstrapAdminEmail = "liuguangxuan1230@gmail.com";
 
 function notifyMotion(name, detail = {}) {
   window.dispatchEvent(new CustomEvent(name, { detail }));
@@ -23,17 +33,10 @@ function notifyMotion(name, detail = {}) {
 
 const pulseSurveyFile = "assets/data/pulse-surveys.json";
 const arCardsFile = "assets/data/ar-cards.json";
-const scenarioIds = [
-  "real-late-arrival",
-  "real-uneven-scale",
-  "real-quiet-one",
-  "real-star-stopped-caring",
-  "care-ambush",
-  "care-rating-stings",
-  "care-what-did-that-mean",
-  "care-three-weeks-one-goal"
-];
-const scenarioTarget = scenarioIds.length;
+const scenarioLibraryFile = "assets/data/scenarios/scenario-library.json";
+let scenarioDefinitions = [];
+let scenarioIds = [];
+let scenarioTarget = 0;
 
 let surveyDefinitions = [];
 let ratingLabels = [];
@@ -50,6 +53,7 @@ let answers = {};
 let cameraStream = null;
 let activeRoute = "login";
 let firebaseReady = null;
+let surveyDataReady = Promise.resolve();
 let arCardData = null;
 let selectedArCard = null;
 let activeArRole = "manager";
@@ -146,9 +150,6 @@ function syncMobileNavState() {
   else setMobileNav(false);
 }
 
-function normalizeEmail(value) {
-  return String(value || "").trim().toLowerCase();
-}
 
 function safeJsonParse(value, fallback) {
   try {
@@ -159,16 +160,29 @@ function safeJsonParse(value, fallback) {
 }
 
 async function loadSurveyDefinitions() {
-  const response = await fetch(pulseSurveyFile, { cache: "no-store" });
+  const response = await fetch(`${pulseSurveyFile}?v=20260724`);
   if (!response.ok) throw new Error("Pulse survey questions could not be loaded.");
 
   const data = await response.json();
-  if (!Array.isArray(data.surveys) || !data.surveys.length || !Array.isArray(data.scale?.labels)) {
+  if (!Array.isArray(data.surveys) || data.surveys.length !== 2 || !Array.isArray(data.scale?.labels)) {
     throw new Error("Pulse survey data is incomplete.");
+  }
+  if (data.surveys.some(survey => !Array.isArray(survey.questions) || survey.questions.length !== 2)) {
+    throw new Error("Each pulse survey must contain exactly two questions.");
   }
 
   surveyDefinitions = data.surveys;
   ratingLabels = data.scale.labels;
+}
+
+async function loadScenarioDefinitions() {
+  const response = await fetch(`${scenarioLibraryFile}?v=20260724`);
+  if (!response.ok) throw new Error("Scenario progress definitions could not be loaded.");
+  const data = await response.json();
+  if (!Array.isArray(data.scenarios) || !data.scenarios.length) throw new Error("Scenario definitions are incomplete.");
+  scenarioDefinitions = data.scenarios.filter(item => item?.id && ["manager", "employee"].includes(item.role));
+  scenarioIds = scenarioDefinitions.map(item => item.id);
+  scenarioTarget = scenarioIds.length;
 }
 
 function totalSurveyQuestions() {
@@ -218,19 +232,12 @@ function completedSurveyQuestionCount() {
   return Object.values(answers).flat().filter(answer => answer !== null).length;
 }
 
-function readScenarioResults() {
-  return safeJsonParse(localStorage.getItem(storageKeys.scenarioResults), {});
-}
-
 function scenarioResults() {
-  return Object.values(readScenarioResults()).filter(result => scenarioIds.includes(result.scenarioId));
+  return readLocalScenarioRecords().filter(result => scenarioIds.includes(result.scenarioId));
 }
 
 function latestScenarioResult() {
-  const results = scenarioResults();
-  if (!results.length) return null;
-
-  return results.sort((a, b) => String(b.updatedAtIso || b.completedAtIso || "").localeCompare(String(a.updatedAtIso || a.completedAtIso || "")))[0];
+  return latestScenarioRecord(scenarioResults());
 }
 
 function wantsGuestMode() {
@@ -268,49 +275,9 @@ function decodedCloudAnswers(value) {
   return normalizeAnswers(decoded);
 }
 
-async function loadFirebaseConfig() {
-  try {
-    const configUrl = new URL("../../firebase-config.js?v=20260701-firebase", import.meta.url);
-    const localConfig = await import(configUrl.href);
-    if (localConfig.firebaseConfig) return localConfig.firebaseConfig;
-  } catch {
-    // Local config is optional for GitHub Pages and local demos.
-  }
-
-  try {
-    const response = await fetch("/__/firebase/init.json", { cache: "no-store" });
-    if (response.ok) return await response.json();
-  } catch {
-    // Firebase Hosting provides this file after deployment.
-  }
-
-  throw new Error("Cloud sync is unavailable. You can continue locally and save progress on this device.");
-}
-
 async function loadFirebase() {
   try {
-    const firebaseConfig = await loadFirebaseConfig();
-    const [appModule, authModule, firestoreModule] = await Promise.all([
-      import(`${firebaseBaseUrl}/firebase-app.js`),
-      import(`${firebaseBaseUrl}/firebase-auth.js`),
-      import(`${firebaseBaseUrl}/firebase-firestore.js`)
-    ]);
-
-    const app = appModule.initializeApp(firebaseConfig);
-    firebaseSdk = {
-      app,
-      auth: authModule.getAuth(app),
-      db: firestoreModule.getFirestore(app),
-      createUserWithEmailAndPassword: authModule.createUserWithEmailAndPassword,
-      deleteDoc: firestoreModule.deleteDoc,
-      doc: firestoreModule.doc,
-      getDoc: firestoreModule.getDoc,
-      onAuthStateChanged: authModule.onAuthStateChanged,
-      serverTimestamp: firestoreModule.serverTimestamp,
-      setDoc: firestoreModule.setDoc,
-      signInWithEmailAndPassword: authModule.signInWithEmailAndPassword,
-      signOut: authModule.signOut
-    };
+    firebaseSdk = await loadFirebaseAuthClient();
 
     firebaseSdk.onAuthStateChanged(firebaseSdk.auth, async user => {
       const guestModeRequested = wantsGuestMode();
@@ -321,11 +288,7 @@ async function loadFirebase() {
         dashboardProfileAllowed = false;
         answers = loadLocalAnswers();
         updateUI();
-
-        if (user) {
-          await firebaseSdk.signOut(firebaseSdk.auth).catch(() => {});
-        }
-
+        if (user) await firebaseSdk.signOut(firebaseSdk.auth).catch(() => {});
         return;
       }
 
@@ -342,8 +305,23 @@ async function loadFirebase() {
       currentUser = user;
       localStorage.setItem(storageKeys.email, user.email || "");
       localStorage.setItem(storageKeys.legacyEmail, user.email || "");
-      await loadUserProgress(user);
-      await refreshDashboardAccess(user);
+
+      try {
+        await surveyDataReady;
+        firebaseSdk = await ensureFirestore(firebaseSdk);
+        await Promise.all([
+          loadUserProgress(user),
+          mergeCloudScenarioRecords(firebaseSdk, user)
+        ]);
+        await retryPendingScenarioRecords({ firebaseClient: firebaseSdk, user });
+        await refreshDashboardAccess(user);
+      } catch {
+        answers = loadLocalAnswers();
+        dashboardProfileAllowed = false;
+        setMessage("settingsMessage", "Cloud progress could not be loaded. Local progress is still available.");
+        updateUI();
+      }
+
       if (wantsGuestMode()) {
         currentUser = null;
         await firebaseSdk.signOut(firebaseSdk.auth).catch(() => {});
@@ -361,7 +339,6 @@ async function loadFirebase() {
     return null;
   }
 }
-
 function userDocRef(user = currentUser) {
   return firebaseSdk.doc(firebaseSdk.db, "users", user.uid);
 }
@@ -369,28 +346,15 @@ function userDocRef(user = currentUser) {
 async function refreshDashboardAccess(user = currentUser) {
   dashboardProfileAllowed = false;
 
-  if (!firebaseSdk || !user?.email) {
+  if (!firebaseSdk?.db || !user?.email) {
     updateUI();
     return false;
   }
 
   try {
     const email = normalizeEmail(user.email);
-
-    const profileRef = firebaseSdk.doc(firebaseSdk.db, "dashboardAdminEmails", email);
-    let snapshot = await firebaseSdk.getDoc(profileRef);
-
-    if (email === bootstrapAdminEmail && !snapshot.exists()) {
-      await firebaseSdk.setDoc(profileRef, {
-        email,
-        role: "owner",
-        addedBy: email,
-        addedAt: firebaseSdk.serverTimestamp()
-      }, { merge: true });
-      snapshot = await firebaseSdk.getDoc(profileRef);
-    }
-
-    dashboardProfileAllowed = snapshot.exists();
+    const snapshot = await firebaseSdk.getDoc(firebaseSdk.doc(firebaseSdk.db, "dashboardAdminEmails", email));
+    dashboardProfileAllowed = snapshot.exists() && Boolean(dashboardRole(snapshot.data(), email));
   } catch {
     dashboardProfileAllowed = false;
   }
@@ -398,7 +362,6 @@ async function refreshDashboardAccess(user = currentUser) {
   updateUI();
   return dashboardProfileAllowed;
 }
-
 async function getFirebase(messageId) {
   if (firebaseSdk) return firebaseSdk;
 
@@ -443,36 +406,52 @@ function friendlyAuthError(error) {
   if (code === "auth/email-already-in-use") return "That email already has an account. Try logging in.";
   if (code === "auth/invalid-email") return "Enter a valid email address.";
   if (["auth/invalid-credential", "auth/user-not-found", "auth/wrong-password"].includes(code)) return "Email or password is incorrect.";
-  if (code === "auth/operation-not-allowed") return "Email and password sign-in is not enabled in Firebase Authentication.";
-  if (code === "auth/weak-password") return "Use a password with at least 6 characters.";
+  if (code === "auth/weak-password") return "Choose a stronger password and try again.";
+  if (code === "auth/too-many-requests") return "Too many attempts. Wait a moment, then try again.";
   if (code === "auth/network-request-failed") return "Network error. Check your connection and try again.";
-  return error?.message || "Something went wrong. Please try again.";
+  return "Account access is temporarily unavailable. Please try again.";
 }
 
-function validateCredentials(form, messageId) {
+function setInvalidFields(form, fieldNames = []) {
+  form.querySelectorAll("input").forEach(input => {
+    const invalid = fieldNames.includes(input.name);
+    input.setAttribute("aria-invalid", String(invalid));
+  });
+}
+
+function validateCredentials(form, messageId, options = {}) {
   const email = form.email.value.trim();
   const password = form.password.value;
+  setInvalidFields(form);
 
   if (!email || !password) {
+    setInvalidFields(form, [!email ? "email" : "", !password ? "password" : ""].filter(Boolean));
     setMessage(messageId, "Enter your email and password.");
     return null;
   }
 
   if (!form.email.validity.valid) {
+    setInvalidFields(form, ["email"]);
     setMessage(messageId, "Enter a valid email address.");
     return null;
   }
 
-  if (password.length < 6) {
-    setMessage(messageId, "Password must be at least 6 characters.");
-    return null;
+  if (options.requireStrongPassword) {
+    const strongEnough = password.length >= 10
+      && /[a-z]/.test(password)
+      && /[A-Z]/.test(password)
+      && /\d/.test(password);
+    if (!strongEnough) {
+      setInvalidFields(form, ["password"]);
+      setMessage(messageId, "Use at least 10 characters with uppercase, lowercase, and a number.");
+      return null;
+    }
   }
 
   return { email, password };
 }
-
 async function saveUserProfile(user) {
-  if (!firebaseSdk) return;
+  firebaseSdk = await ensureFirestore(firebaseSdk);
   await firebaseSdk.setDoc(userDocRef(user), {
     email: user.email || "",
     updatedAt: firebaseSdk.serverTimestamp()
@@ -480,7 +459,8 @@ async function saveUserProfile(user) {
 }
 
 async function loadUserProgress(user) {
-  if (!firebaseSdk || wantsGuestMode()) return;
+  if (wantsGuestMode()) return;
+  firebaseSdk = await ensureFirestore(firebaseSdk);
 
   try {
     const snapshot = await firebaseSdk.getDoc(userDocRef(user));
@@ -505,22 +485,33 @@ async function loadUserProgress(user) {
 }
 
 async function saveProgress(user = currentUser) {
-  saveLocalAnswers();
+  let localOk = true;
+  let localError = null;
+  try {
+    saveLocalAnswers();
+  } catch (error) {
+    localOk = false;
+    localError = error;
+  }
   updateUI();
 
-  if (wantsGuestMode() || !user || !firebaseSdk) return;
+  if (wantsGuestMode() || !user) {
+    return { ok: localOk, local: { ok: localOk, error: localError }, cloud: { ok: false, state: "not_signed_in" } };
+  }
 
   try {
+    firebaseSdk = await ensureFirestore(firebaseSdk);
     await firebaseSdk.setDoc(userDocRef(user), {
       email: user.email || "",
       learningProgress: progressData(),
       updatedAt: firebaseSdk.serverTimestamp()
     }, { merge: true });
-  } catch {
-    setMessage("settingsMessage", "Progress is saved locally. Cloud sync will retry next time.");
+    return { ok: localOk, local: { ok: localOk, error: localError }, cloud: { ok: true, state: "synced" } };
+  } catch (error) {
+    setMessage("settingsMessage", "Progress is saved locally. Cloud sync is pending; retry when you are online.");
+    return { ok: false, local: { ok: localOk, error: localError }, cloud: { ok: false, state: "failed", error } };
   }
 }
-
 async function enterGuestMode(route = "home") {
   const hadGuestSession = localStorage.getItem(storageKeys.mode) === "guest";
 
@@ -540,6 +531,43 @@ async function enterGuestMode(route = "home") {
   goTo(route);
 }
 
+async function requestPasswordReset() {
+  const emailInput = document.getElementById("loginEmail");
+  const email = emailInput?.value.trim() || "";
+  if (!email || !emailInput.validity.valid) {
+    emailInput?.setAttribute("aria-invalid", "true");
+    setMessage("loginMessage", "Enter your account email, then choose Reset password.");
+    emailInput?.focus();
+    return;
+  }
+
+  const sdk = await getFirebase("loginMessage");
+  if (!sdk) return;
+  try {
+    await sdk.sendPasswordResetEmail(sdk.auth, email);
+    setMessage("loginMessage", "If an account matches that email, a reset link has been sent.", "success");
+  } catch (error) {
+    if (error?.code === "auth/invalid-email") {
+      setMessage("loginMessage", "Enter a valid email address.");
+      return;
+    }
+    setMessage("loginMessage", "Password reset is temporarily unavailable. Please try again.");
+  }
+}
+
+async function resendVerificationEmail() {
+  if (!currentUser || currentUser.emailVerified) return;
+  const button = document.querySelector('[data-action="resend-verification"]');
+  if (button) button.disabled = true;
+  try {
+    await firebaseSdk.sendEmailVerification(currentUser);
+    setMessage("settingsMessage", "Verification email sent. Open the link, then sign in again.", "success");
+  } catch {
+    setMessage("settingsMessage", "Verification email could not be sent. Please try again later.");
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
 async function login(event) {
   event.preventDefault();
   clearMessages();
@@ -559,7 +587,13 @@ async function login(event) {
     currentUser = credential.user;
     localStorage.setItem(storageKeys.email, currentUser.email || credentials.email);
     localStorage.setItem(storageKeys.legacyEmail, currentUser.email || credentials.email);
-    await loadUserProgress(currentUser);
+    await surveyDataReady;
+    firebaseSdk = await ensureFirestore(sdk);
+    await Promise.all([
+      loadUserProgress(currentUser),
+      mergeCloudScenarioRecords(firebaseSdk, currentUser)
+    ]);
+    await retryPendingScenarioRecords({ firebaseClient: firebaseSdk, user: currentUser });
     await refreshDashboardAccess(currentUser);
     goTo("home");
   } catch (error) {
@@ -574,7 +608,7 @@ async function signup(event) {
   clearMessages();
 
   const form = event.currentTarget;
-  const credentials = validateCredentials(form, "signupMessage");
+  const credentials = validateCredentials(form, "signupMessage", { requireStrongPassword: true });
   if (!credentials) return;
 
   const sdk = await getFirebase("signupMessage");
@@ -588,9 +622,13 @@ async function signup(event) {
     currentUser = credential.user;
     localStorage.setItem(storageKeys.email, currentUser.email || credentials.email);
     localStorage.setItem(storageKeys.legacyEmail, currentUser.email || credentials.email);
-    await saveUserProfile(currentUser).catch(() => {});
+    await surveyDataReady;
+    firebaseSdk = await ensureFirestore(sdk);
+    await saveUserProfile(currentUser);
     await saveProgress(currentUser);
+    await sdk.sendEmailVerification(currentUser).catch(() => {});
     await refreshDashboardAccess(currentUser);
+    setMessage("settingsMessage", "Account created. Check your email to verify your address.", "success");
     goTo("home");
   } catch (error) {
     setMessage("signupMessage", friendlyAuthError(error));
@@ -615,54 +653,112 @@ async function logout() {
   goTo("login");
 }
 
-async function clearCloudScenarioProgress(user = currentUser) {
-  if (!firebaseSdk?.db || !user) return;
-
-  const storedScenarioIds = [
-    ...scenarioIds,
-    "sarah-feedback-manager",
-    "sarah-feedback-employee"
-  ];
-  const progressDeletes = storedScenarioIds.map(scenarioId => {
-    return firebaseSdk.deleteDoc(firebaseSdk.doc(firebaseSdk.db, "users", user.uid, "scenarioProgress", scenarioId));
-  });
-
-  const ownAttemptsQuery = firebaseSdk.query(
-    firebaseSdk.collection(firebaseSdk.db, "scenarioResults"),
-    firebaseSdk.where("uid", "==", user.uid)
-  );
-  const attemptSnapshot = await firebaseSdk.getDocs(ownAttemptsQuery);
-  const attemptDeletes = attemptSnapshot.docs.map(snapshot => firebaseSdk.deleteDoc(snapshot.ref));
-
-  await Promise.all([...progressDeletes, ...attemptDeletes]);
-}
-async function resetProgress() {
-  const confirmed = window.confirm("Delete your saved learning progress?");
-  if (!confirmed) return;
-
-  answers = blankAnswers();
-  localStorage.removeItem(storageKeys.scenarioResults);
-  localStorage.removeItem("feedbackPlaybook.lastScenarioByRole");
-  saveLocalAnswers();
-  updateUI();
-
-  if (currentUser && firebaseSdk) {
-    try {
-      await firebaseSdk.setDoc(userDocRef(currentUser), {
-        email: currentUser.email || "",
-        learningProgress: progressData(),
-        updatedAt: firebaseSdk.serverTimestamp()
-      }, { merge: true });
-      await clearCloudScenarioProgress(currentUser);
-    } catch {
-      setMessage("settingsMessage", "Local progress was deleted. Cloud progress could not be reached.");
-      return;
-    }
+function requestProgressDeletion() {
+  const dialog = document.getElementById("deleteProgressDialog");
+  if (!dialog?.showModal) {
+    return Promise.resolve(window.confirm("Delete local and cloud learning progress? This cannot be undone."));
   }
 
-  setMessage("settingsMessage", "Progress reset to 0%.", "success");
+  return new Promise(resolve => {
+    const handleClose = () => resolve(dialog.returnValue === "confirm");
+    dialog.addEventListener("close", handleClose, { once: true });
+    dialog.showModal();
+    dialog.querySelector("[value=cancel]")?.focus();
+  });
 }
 
+async function commitDeleteBatches(references) {
+  const chunkSize = 400;
+  for (let index = 0; index < references.length; index += chunkSize) {
+    const batch = firebaseSdk.writeBatch(firebaseSdk.db);
+    references.slice(index, index + chunkSize).forEach(reference => batch.delete(reference));
+    await batch.commit();
+  }
+}
+
+async function clearCloudScenarioProgress(user = currentUser) {
+  if (!user?.uid) return { progressDocuments: 0, resultDocuments: 0 };
+  firebaseSdk = await ensureFirestore(firebaseSdk);
+
+  const [progressSnapshot, resultSnapshot, reflectionSnapshot] = await Promise.all([
+    firebaseSdk.getDocs(firebaseSdk.collection(firebaseSdk.db, "users", user.uid, "scenarioProgress")),
+    firebaseSdk.getDocs(firebaseSdk.query(
+      firebaseSdk.collection(firebaseSdk.db, "scenarioResults"),
+      firebaseSdk.where("uid", "==", user.uid)
+    )),
+    firebaseSdk.getDocs(firebaseSdk.query(
+      firebaseSdk.collection(firebaseSdk.db, "scenarioReflections"),
+      firebaseSdk.where("uid", "==", user.uid)
+    ))
+  ]);
+
+  const references = [
+    ...progressSnapshot.docs.map(document => document.ref),
+    ...resultSnapshot.docs.map(document => document.ref),
+    ...reflectionSnapshot.docs.map(document => document.ref)
+  ];
+  await commitDeleteBatches(references);
+
+  await firebaseSdk.setDoc(userDocRef(user), {
+    email: user.email || "",
+    learningProgress: firebaseSdk.deleteField(),
+    selectedRole: firebaseSdk.deleteField(),
+    anonymousPlayerId: firebaseSdk.deleteField(),
+    updatedAt: firebaseSdk.serverTimestamp()
+  }, { merge: true });
+
+  return {
+    progressDocuments: progressSnapshot.size,
+    resultDocuments: resultSnapshot.size,
+    reflectionDocuments: reflectionSnapshot.size
+  };
+}
+
+function clearLocalLearningProgress() {
+  answers = blankAnswers();
+  clearLocalScenarioProgress();
+  localStorage.removeItem("feedbackPlaybook.anonymousPlayerId");
+  localStorage.removeItem(storageKeys.answers);
+  localStorage.removeItem(storageKeys.legacyAnswers);
+  saveLocalAnswers();
+  updateUI();
+}
+
+async function resetProgress() {
+  const confirmed = await requestProgressDeletion();
+  if (!confirmed) return;
+
+  const resetButton = document.querySelector('[data-action="reset-progress"]');
+  if (resetButton) {
+    resetButton.disabled = true;
+    resetButton.textContent = currentUser ? "Deleting cloud progress..." : "Deleting progress...";
+  }
+
+  try {
+    if (currentUser) await clearCloudScenarioProgress(currentUser);
+    clearLocalLearningProgress();
+    setMessage(
+      "settingsMessage",
+      currentUser ? "Local and cloud progress were deleted." : "Progress on this device was deleted.",
+      "success"
+    );
+    if (resetButton) {
+      resetButton.dataset.retry = "false";
+      resetButton.textContent = "Delete progress";
+    }
+  } catch {
+    setMessage(
+      "settingsMessage",
+      "Deletion was not completed on both storage locations. Your local copy was kept; choose Retry deletion when the connection is available."
+    );
+    if (resetButton) {
+      resetButton.dataset.retry = "true";
+      resetButton.textContent = "Retry deletion";
+    }
+  } finally {
+    if (resetButton) resetButton.disabled = false;
+  }
+}
 function renderUnitList() {
   unitList.textContent = "";
 
@@ -800,6 +896,10 @@ function renderSurvey() {
 }
 
 function openSurvey(index) {
+  if (!surveyDefinitions.length) {
+    setMessage("surveyMessage", "Survey questions are still loading. Try again in a moment.");
+    return;
+  }
   currentSurvey = Math.max(0, Math.min(surveyDefinitions.length - 1, Number(index) || 0));
   const survey = surveyDefinitions[currentSurvey];
   const firstIncomplete = answers[survey.id]?.findIndex(answer => answer === null) ?? -1;
@@ -871,8 +971,12 @@ function updateUI() {
 
   document.getElementById("userEmail").textContent = email;
   document.getElementById("accountMode").textContent = currentUser
-    ? "Progress syncs with your training account."
+    ? (currentUser.emailVerified
+      ? "Verified account. Progress syncs across devices."
+      : "Progress syncs across devices. Verify your email before dashboard access.")
     : "Progress is saved on this device.";
+  const verificationButton = document.querySelector('[data-action="resend-verification"]');
+  if (verificationButton) verificationButton.hidden = !currentUser || currentUser.emailVerified;
 
   if (dashboardNavLink) {
     dashboardNavLink.hidden = !(currentUser && dashboardProfileAllowed);
@@ -929,6 +1033,14 @@ function goTo(route, options = {}) {
   clearMessages();
   updateUI();
   notifyMotion("motion:route-change", { route: resolvedRoute });
+
+  window.requestAnimationFrame(() => {
+    const heading = document.getElementById(resolvedRoute)?.querySelector("h1, h2");
+    if (heading) {
+      heading.setAttribute("tabindex", "-1");
+      heading.focus({ preventScroll: true });
+    }
+  });
 
   const hash = `#${resolvedRoute}`;
   if (window.location.hash !== hash) {
@@ -1113,7 +1225,7 @@ function renderPrintableArCards() {
 }
 
 async function loadArCards() {
-  const response = await fetch(arCardsFile, { cache: "no-store" });
+  const response = await fetch(`${arCardsFile}?v=20260724`);
   if (!response.ok) throw new Error("AR card content could not be loaded.");
 
   const data = await response.json();
@@ -1423,6 +1535,9 @@ function bindEvents() {
   document.getElementById("loginForm").addEventListener("submit", login);
   document.getElementById("signupForm").addEventListener("submit", signup);
   surveyForm.addEventListener("submit", submitSurvey);
+  document.querySelectorAll(".auth-card input").forEach(input => {
+    input.addEventListener("input", () => input.setAttribute("aria-invalid", "false"));
+  });
 
   if (mobileNavToggle) {
     mobileNavToggle.addEventListener("click", () => {
@@ -1472,7 +1587,11 @@ function bindEvents() {
     const action = event.target.closest("[data-action]")?.dataset.action;
     if (action === "guest") enterGuestMode();
     if (action === "logout") logout();
+    if (action === "password-reset") requestPasswordReset();
+    if (action === "resend-verification") resendVerificationEmail();
     if (action === "reset-progress") resetProgress();
+    if (action === "retry-survey") initialiseSurveyData();
+    if (action === "retry-ar") initialiseArData();
     if (action === "start-camera") startCamera();
     if (action === "print-ar-cards") {
       document.body.classList.add("printing-ar-cards");
@@ -1498,30 +1617,66 @@ function bindEvents() {
   });
 }
 
-async function init() {
-  await Promise.all([loadSurveyDefinitions(), loadArCards()]);
-  answers = loadLocalAnswers();
-  renderUnitList();
-  renderRatingOptions();
+async function initialiseSurveyData() {
+  const retryButton = document.querySelector('[data-action="retry-survey"]');
+  if (retryButton) retryButton.hidden = true;
+  try {
+    await loadSurveyDefinitions();
+    answers = loadLocalAnswers();
+    renderUnitList();
+    renderRatingOptions();
+    renderSurvey();
+    updateUI();
+  } catch (error) {
+    questionTitle.textContent = "Pulse survey content is unavailable.";
+    setMessage("surveyMessage", error.message || "The pulse survey could not be loaded.");
+    if (retryButton) retryButton.hidden = false;
+  }
+}
+
+async function initialiseScenarioDefinitions() {
+  try {
+    await loadScenarioDefinitions();
+    updateUI();
+  } catch {
+    scenarioIds = [];
+    scenarioTarget = 0;
+    if (scenarioStatusEl) scenarioStatusEl.textContent = "Progress unavailable";
+  }
+}
+
+async function initialiseArData() {
+  const retryButton = document.querySelector('[data-action="retry-ar"]');
+  if (retryButton) retryButton.hidden = true;
+  try {
+    await loadArCards();
+    setMessage("cameraMessage", "");
+  } catch (error) {
+    setMessage("cameraMessage", error.message || "AR card content could not be loaded.");
+    if (retryButton) retryButton.hidden = false;
+  }
+}
+
+function init() {
   bindEvents();
   syncMobileNavState();
+  answers = {};
   updateUI();
-  firebaseReady = loadFirebase();
 
   const requestedRoute = routeFromHash();
   const storedGuest = localStorage.getItem(storageKeys.mode) === "guest";
-
   if (storedGuest && !authRoutes.has(requestedRoute)) {
     enterGuestMode(protectedRoutes.has(requestedRoute) ? requestedRoute : "home");
   } else {
     goTo(authRoutes.has(requestedRoute) ? requestedRoute : "login", { replace: true });
   }
+
+  firebaseReady = loadFirebase();
+  surveyDataReady = initialiseSurveyData();
+  initialiseScenarioDefinitions();
+  initialiseArData();
 }
 
-init().catch(error => {
-  console.error(error);
-  questionTitle.textContent = "Pulse survey content is unavailable.";
-  setMessage("surveyMessage", error.message || "The pulse survey could not be loaded.");
-});
+init();
 
 

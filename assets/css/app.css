@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   color-scheme: light;
   --red: #d71920;
   --red-dark: #a90f17;
@@ -12,7 +12,7 @@
   --surface-tint: #f8fbfc;
   --teal: #0f766e;
   --teal-soft: #e6f6f4;
-  --amber: #b7791f;
+  --amber: #8a4b00;
   --amber-soft: #fff6df;
   --danger: #b42318;
   --danger-soft: #fff2f1;
@@ -39,7 +39,7 @@ body {
   margin: 0;
   background: var(--surface-muted);
   color: var(--charcoal);
-  font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+  font-family: var(--font-sans);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -71,7 +71,7 @@ svg {
 }
 
 :focus-visible {
-  outline: 3px solid rgba(215, 25, 32, .28);
+  outline: 3px solid #b42318;
   outline-offset: 3px;
 }
 
@@ -490,8 +490,8 @@ svg {
 }
 
 .back-button {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -703,6 +703,10 @@ svg {
   margin: 0 auto;
 }
 
+.survey-card .button[hidden] {
+  display: none;
+}
+
 .survey-card fieldset:focus {
   outline: none;
 }
@@ -719,6 +723,19 @@ legend {
   color: var(--charcoal);
   font-size: 1.25rem;
   font-weight: 850;
+}
+
+.survey-question {
+  margin-bottom: 6px;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.survey-instruction {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: .9rem;
+  font-weight: 650;
 }
 
 .rating-options {
@@ -1092,7 +1109,7 @@ legend {
   --red-soft: #fff0f1;
   --charcoal: #151923;
   --ink: #2f3541;
-  --muted: #697386;
+  --muted: #5f6878;
   --line: rgba(33, 41, 54, .13);
   --surface: #ffffff;
   --surface-muted: #eef2f5;
@@ -1630,7 +1647,7 @@ textarea:focus {
     padding: 5px 2px;
     border-radius: 8px;
     background: transparent;
-    color: #697386;
+    color: #5f6878;
     font-size: .7rem;
     font-weight: 750;
     line-height: 1.1;
@@ -1691,13 +1708,13 @@ textarea:focus {
   }
 
   .compact-header {
-    grid-template-columns: 40px minmax(0, 1fr);
+    grid-template-columns: 44px minmax(0, 1fr);
     align-items: start;
   }
 
   .compact-header .back-button {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
   }
 
   .dashboard-grid,
@@ -2571,7 +2588,7 @@ body.app-page .progress-track span {
 
 .ar-card-option:focus-visible,
 .segmented-control button:focus-visible {
-  outline: 3px solid rgba(215, 25, 32, .28);
+  outline: 3px solid #b42318;
   outline-offset: 2px;
 }
 
@@ -3253,5 +3270,240 @@ body.app-page .progress-track span {
 @media (prefers-reduced-motion: reduce) {
   .completion-wipe.is-active .completion-wipe-surface {
     animation: none;
+  }
+}
+
+/* Production interaction and account states */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.field input[aria-invalid="true"],
+.dashboard-select input[aria-invalid="true"] {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(180, 35, 24, .14);
+}
+
+.field-help {
+  margin: -6px 0 0;
+  color: var(--muted);
+  font-size: .82rem;
+}
+
+.auth-help {
+  min-height: 44px;
+  justify-self: center;
+}
+
+.account-actions,
+.account-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.account-links {
+  margin: 18px 0 0;
+  font-size: .9rem;
+}
+
+.account-links a {
+  color: var(--red-dark);
+  font-weight: 700;
+}
+
+.confirm-dialog {
+  width: min(92vw, 520px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--charcoal);
+  box-shadow: 0 28px 80px rgba(16, 24, 40, .28);
+}
+
+.confirm-dialog::backdrop {
+  background: rgba(16, 24, 40, .56);
+}
+
+.confirm-dialog form {
+  display: grid;
+  gap: 14px;
+  padding: 24px;
+}
+
+.confirm-dialog h2,
+.confirm-dialog p {
+  margin: 0;
+}
+
+.confirm-dialog-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.confirm-dialog-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.privacy-page {
+  min-height: 100vh;
+  background: var(--surface-muted);
+}
+
+.privacy-shell {
+  width: min(100% - 32px, 820px);
+  margin: 0 auto;
+  padding: 32px 0 64px;
+}
+
+.privacy-header,
+.privacy-content {
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.privacy-header {
+  padding: 26px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  border-bottom: 0;
+}
+
+.privacy-header h1,
+.privacy-header p,
+.privacy-content h2,
+.privacy-content p,
+.privacy-content ul {
+  margin-top: 0;
+}
+
+.privacy-content {
+  display: grid;
+  gap: 22px;
+  padding: 26px;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.privacy-content section + section {
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 520px) {
+  .confirm-dialog-actions .button,
+  .account-actions .button {
+    width: 100%;
+  }
+}
+@media (max-width: 980px) {
+  body.app-page .app-shell:not(.auth-mode) .sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    height: 68px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 0;
+    border-bottom: 1px solid #dbe1e8;
+    background: #fff;
+    color: var(--charcoal);
+    box-shadow: 0 6px 20px rgba(21, 25, 35, .08);
+  }
+
+  body.app-page .app-shell:not(.auth-mode) .brand strong {
+    color: var(--charcoal);
+  }
+
+  body.app-page .app-shell:not(.auth-mode) .brand small,
+  body.app-page .app-shell:not(.auth-mode) .sidebar-card {
+    display: none;
+  }
+
+  body.app-page .app-shell:not(.auth-mode) .brand-mark {
+    background: var(--red-soft);
+    color: var(--red-dark);
+    box-shadow: none;
+  }
+
+  body.app-page .app-shell:not(.auth-mode) .mobile-nav-toggle {
+    min-height: 44px;
+    border-color: #dbe1e8;
+    background: #fff;
+    color: var(--charcoal);
+  }
+
+  body.app-page .app-shell:not(.auth-mode) .mobile-nav-toggle:hover,
+  body.app-page .app-shell:not(.auth-mode) .mobile-nav-toggle[aria-expanded="true"] {
+    border-color: rgba(215, 25, 32, .28);
+    background: var(--red-soft);
+    color: var(--red-dark);
+  }
+
+  body.app-page .app-shell:not(.auth-mode) .nav-list {
+    position: absolute;
+    inset: calc(100% + 6px) 10px auto;
+    z-index: 70;
+    width: auto;
+    min-height: 0;
+    max-height: calc(100dvh - 86px);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+    overflow-y: auto;
+    padding: 8px;
+    border: 1px solid #dbe1e8;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, .16);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-8px);
+  }
+
+  body.app-page .app-shell:not(.auth-mode).nav-open .nav-list {
+    max-height: calc(100dvh - 86px);
+    padding: 8px;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  body.app-page .app-shell:not(.auth-mode) .nav-button {
+    min-height: 48px;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #fff;
+    color: var(--charcoal);
+    font-size: .92rem;
+    text-align: left;
+  }
+
+  body.app-page .app-shell:not(.auth-mode) .nav-button:hover,
+  body.app-page .app-shell:not(.auth-mode) .nav-button[aria-current="page"] {
+    background: var(--red-soft);
+    color: var(--red-dark);
   }
 }

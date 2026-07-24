@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; img-src 'self' data: blob:; media-src 'self' blob:; style-src 'self'; font-src 'self'; worker-src 'self' blob:; frame-src https://echoworks-e3b4d.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self'" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="How Feedback Playbook stores learning progress, reflections, account details, and camera data." />
+  <meta name="theme-color" content="#d71920" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <link rel="canonical" href="https://echoworks-e3b4d.web.app/privacy.html" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="assets/css/tokens.css?v=20260724" />
+  <link rel="stylesheet" href="assets/css/app.css?v=20260724-audit" />
+  <title>Privacy and data | Feedback Playbook</title>
+</head>
+<body class="privacy-page">
+  <a class="skip-link" href="#privacyContent">Skip to privacy information</a>
+  <main class="privacy-shell" id="privacyContent">
+    <header class="privacy-header">
+      <p class="section-label">Feedback Playbook</p>
+      <h1>Privacy and data</h1>
+      <p>What is saved, who can see it, and how you can remove it.</p>
+      <a class="button secondary fit" href="index.html#settings">Back to settings</a>
+    </header>
+    <article class="privacy-content">
+      <section aria-labelledby="localDataTitle">
+        <h2 id="localDataTitle">Data on this device</h2>
+        <p>Guest progress is stored in this browser. It can include pulse answers, role and scenario history, scores, reflections, completion dates, and a random player identifier. It does not automatically move to another browser or device.</p>
+      </section>
+      <section aria-labelledby="cloudDataTitle">
+        <h2 id="cloudDataTitle">Firebase account and cloud data</h2>
+        <p>Signed-in learners use Firebase Authentication and Firestore. Firestore stores the account email, selected role, completed scenarios, CARE or REAL scores, progress status, reflection answers, attempt details, and completion dates. Scenario scripts, survey questions, and AR card content remain local JSON files and are not stored in Firestore.</p>
+      </section>
+      <section aria-labelledby="dashboardDataTitle">
+        <h2 id="dashboardDataTitle">Dashboard access</h2>
+        <p>Only explicitly authorised dashboard accounts can view learner analytics. Read-only viewers can inspect progress, scores, and reflections but cannot change learner records. Only the named dashboard owner can add or remove viewers, and the owner profile cannot be removed in the app.</p>
+      </section>
+      <section aria-labelledby="cameraDataTitle">
+        <h2 id="cameraDataTitle">Camera use</h2>
+        <p>The browser asks for camera permission only after you choose Start camera on the AR page. Card recognition runs in the browser. Camera frames are not uploaded or saved by Feedback Playbook. The manual card viewer remains available without camera permission.</p>
+      </section>
+      <section aria-labelledby="retentionTitle">
+        <h2 id="retentionTitle">Retention and deletion</h2>
+        <p>Learning records remain until you delete progress or the project owner removes them. Delete progress removes the learner's pulse answers, scenario progress, attempts, scores, and reflections from this device and, when signed in, from Firestore. It does not delete the Firebase Authentication account.</p>
+      </section>
+      <section aria-labelledby="verificationTitle">
+        <h2 id="verificationTitle">Email verification</h2>
+        <p>New accounts receive a verification email. Learning can continue while verification is pending, but dashboard access always requires a separately authorised dashboard profile. Never share passwords or sign-in codes with project staff.</p>
+      </section>
+      <section aria-labelledby="supportContactTitle">
+        <h2 id="supportContactTitle">Questions or account deletion</h2>
+        <p>For support or full account deletion, email <a href="mailto:liuguangxuan1230@gmail.com?subject=Feedback%20Playbook%20privacy">liuguangxuan1230@gmail.com</a>.</p>
+      </section>
+    </article>
+  </main>
+</body>
+</html>

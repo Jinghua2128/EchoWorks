@@ -1,12 +1,28 @@
 {
-    "name":  "feedback-playbook",
-    "version":  "1.0.0",
-    "private":  true,
-    "description":  "Singapore Red Cross workplace communication learning platform",
-    "scripts":  {
-                    "check":  "node --check assets/js/app.js \u0026\u0026 node --check assets/js/firebase-client.js \u0026\u0026 node --check assets/js/novel.js \u0026\u0026 node --check assets/js/admin.js \u0026\u0026 node --check assets/js/motion.js"
-                },
-    "dependencies":  {
-                         "firebase":  "^12.15.0"
-                     }
+  "name": "feedback-playbook",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Singapore Red Cross workplace communication learning platform",
+  "scripts": {
+    "check": "node --check assets/js/app.js && node --check assets/js/firebase-client.js && node --check assets/js/progress-store.js && node --check assets/js/scenario-engine.js && node --check assets/js/novel.js && node --check assets/js/admin.js && node --check assets/js/motion.js && node --check assets/js/scenario-redirect.js && node --check scripts/dashboard-sample-data.mjs && node --check scripts/export-dashboard-sample.mjs && node --check scripts/seed-firestore.mjs",
+    "build": "node scripts/build-public.mjs",
+    "test": "node --test tests/scenario-data.test.mjs tests/progress-store.test.mjs tests/deployment.test.mjs tests/dashboard-sample-data.test.mjs",
+    "test:rules": "npx --yes firebase-tools@15.22.3 emulators:exec --only firestore --project demo-echoworks-rules \"node --test tests/firestore.rules.test.mjs\"",
+    "test:browser": "node tests/browser-qa.mjs",
+    "verify": "npm run check && npm test",
+    "sample:export": "node scripts/export-dashboard-sample.mjs",
+    "sample:seed": "node scripts/seed-firestore.mjs",
+    "sample:cleanup": "node scripts/seed-firestore.mjs --cleanup"
+  },
+  "dependencies": {
+    "firebase": "^12.15.0",
+    "gsap": "3.12.5"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@firebase/rules-unit-testing": "^5.0.0",
+    "firebase-admin": "^14.2.0",
+    "playwright-core": "^1.54.1"
+  },
+  "type": "module"
 }

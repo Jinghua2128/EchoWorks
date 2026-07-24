@@ -1,10 +1,21 @@
-import { loadFirebaseClient } from "./firebase-client.js";
+import { ensureFirestore, loadFirebaseAuthClient } from "./firebase-client.js";
+import { choiceClassification, prepareVisibleSceneLines } from "./scenario-engine.js";
+import {
+  completionForRole,
+  mergeCloudScenarioRecords,
+  nextAttemptNumber,
+  readLocalScenarioRecords,
+  retryPendingScenarioRecords,
+  safeJsonParse,
+  saveScenarioRecordWithStatus,
+  scenarioRecordsToMap,
+  scenarioStorageKeys
+} from "./progress-store.js";
 
 const scenarioLibraryFile = "assets/data/scenarios/scenario-library.json";
 const fullGameScriptFile = "assets/data/scenarios/full-game-script.json";
-const lastScenarioKey = "feedbackPlaybook.lastScenarioByRole";
-const localResultsKey = "feedbackPlaybook.scenarioResults";
-const anonymousPlayerKey = "feedbackPlaybook.anonymousPlayerId";
+const lastScenarioKey = scenarioStorageKeys.recentByRole;
+const anonymousPlayerKey = scenarioStorageKeys.anonymousPlayerId;
 const soundPreferenceKey = "feedbackPlaybook.dialogueSound";
 const textSpeed = 16;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -25,6 +36,7 @@ const scenarioProgressTextEl = document.getElementById("scenarioProgressText");
 const speakerNameEl = document.getElementById("speakerName");
 const sceneCountEl = document.getElementById("sceneCount");
 const textEl = document.getElementById("dialogueText");
+const dialogueAnnouncementEl = document.getElementById("dialogueAnnouncement");
 const dialoguePanelEl = document.querySelector(".dialogue-panel");
 const resultEl = document.getElementById("result");
 const advanceButton = document.querySelector('[data-action="advance"]');
@@ -86,18 +98,13 @@ let exitPoint = "role_selection";
 let dialogueAudioContext = null;
 let dialogueSoundEnabled = localStorage.getItem(soundPreferenceKey) !== "off";
 const activeDialogueOscillators = new Set();
+let resolveInitialHistory;
+const initialHistoryReady = new Promise(resolve => { resolveInitialHistory = resolve; });
 
 function notifyMotion(name, detail = {}) {
   window.dispatchEvent(new CustomEvent(name, { detail }));
 }
 
-function safeJsonParse(value, fallback) {
-  try {
-    return value ? JSON.parse(value) : fallback;
-  } catch {
-    return fallback;
-  }
-}
 
 function audioContextConstructor() {
   return window.AudioContext || window.webkitAudioContext || null;
@@ -180,14 +187,7 @@ async function toggleDialogueSound() {
   updateSoundToggle();
 }
 function readLocalResults() {
-  return safeJsonParse(localStorage.getItem(localResultsKey), {});
-}
-
-function writeLocalResult(record) {
-  const results = readLocalResults();
-  const recordKey = record.attemptId || `${record.scenarioId}_attempt_1`;
-  results[recordKey] = record;
-  localStorage.setItem(localResultsKey, JSON.stringify(results));
+  return scenarioRecordsToMap(readLocalScenarioRecords());
 }
 
 function persistentAnonymousPlayerId() {
@@ -203,13 +203,9 @@ function persistentAnonymousPlayerId() {
 
 function initialiseAttemptTracking(nextScenario) {
   const previousResults = Object.values(readLocalResults());
-  const scenarioAttempts = previousResults.filter(result => result.scenarioId === nextScenario.id);
-  const highestAttempt = scenarioAttempts.reduce((highest, result) => {
-    return Math.max(highest, Number(result.attemptNumber || 1));
-  }, 0);
 
   anonymousPlayerId = persistentAnonymousPlayerId();
-  attemptNumber = highestAttempt + 1;
+  attemptNumber = nextAttemptNumber(previousResults, nextScenario.id);
   attemptId = `${nextScenario.id}_attempt_${attemptNumber}_${Date.now()}`;
   attemptStartedAtIso = new Date().toISOString();
   decisionShownAtMs = null;
@@ -317,11 +313,6 @@ function buildFrameworkDetails() {
   }).filter(detail => detail.maxScore > 0);
 }
 
-function choiceClassification(score) {
-  if (score >= 2) return "strong";
-  if (score === 1) return "partial";
-  return "missed";
-}
 
 function selectedChoiceSummary() {
   const selected = choiceHistory.at(-1);
@@ -332,18 +323,11 @@ function selectedChoiceSummary() {
 }
 
 function pathCompletionSnapshot(status) {
-  const expectedScenarios = scenarioLibrary?.scenarios?.filter(entry => entry.role === scenario.role) || [];
-  const completedIds = new Set(
-    Object.values(readLocalResults())
-      .filter(result => result.selectedRole === scenario.role && result.completed)
-      .map(result => result.scenarioId)
-  );
-  if (status === "completed") completedIds.add(scenario.id);
-  return {
-    completedScenarioCount: completedIds.size,
-    totalScenarioCount: expectedScenarios.length,
-    pathCompleted: expectedScenarios.length > 0 && completedIds.size >= expectedScenarios.length
-  };
+  const records = Object.values(readLocalResults());
+  if (status === "completed") {
+    records.push({ scenarioId: scenario.id, selectedRole: scenario.role, completed: true });
+  }
+  return completionForRole(records, scenario.role, scenarioLibrary?.scenarios || []);
 }
 
 function buildScenarioRecord(status = "in_progress") {
@@ -408,39 +392,26 @@ function buildScenarioRecord(status = "in_progress") {
 }
 
 async function saveScenarioRecord(status = "in_progress") {
-  if (!scenario) return;
+  if (!scenario) return null;
 
-  const record = buildScenarioRecord(status);
-  writeLocalResult(record);
+  const outcome = await saveScenarioRecordWithStatus({
+    record: buildScenarioRecord(status),
+    firebaseClient,
+    user: currentUser
+  });
 
-  if (!firebaseClient || !currentUser) return;
-
-  const firestoreRecord = {
-    ...record,
-    uid: currentUser.uid,
-    email: currentUser.email || "",
-    updatedAt: firebaseClient.serverTimestamp()
-  };
-
-  if (status === "completed") {
-    firestoreRecord.completedAt = firebaseClient.serverTimestamp();
+  if (!outcome.local.ok) {
+    setRoleMessage("Progress could not be saved on this device. Check browser storage and try again.", "error");
+  } else if (currentUser && !outcome.cloud.ok) {
+    setRoleMessage("Saved on this device. Cloud sync is pending; use Retry sync when your connection is available.", "error");
+  } else if (currentUser && outcome.cloud.ok) {
+    setRoleMessage("Saved to your training record.", "success");
+  } else {
+    setRoleMessage("Saved on this device only.", "neutral");
   }
 
-  const resultId = `${currentUser.uid}_${attemptId}`;
-  await Promise.all([
-    firebaseClient.setDoc(firebaseClient.doc(firebaseClient.db, "users", currentUser.uid), {
-      email: currentUser.email || "",
-      selectedRole: scenario.role,
-      anonymousPlayerId,
-      updatedAt: firebaseClient.serverTimestamp()
-    }, { merge: true }),
-    firebaseClient.setDoc(firebaseClient.doc(firebaseClient.db, "users", currentUser.uid, "scenarioProgress", scenario.id), firestoreRecord, { merge: true }),
-    firebaseClient.setDoc(firebaseClient.doc(firebaseClient.db, "scenarioResults", resultId), firestoreRecord, { merge: true })
-  ]).catch(error => {
-    setRoleMessage(`Cloud save is unavailable. Your scenario result is saved locally. ${error.message || ""}`.trim(), "error");
-  });
+  return outcome;
 }
-
 function setRoleMessage(message, tone = "neutral") {
   if (!roleMessageEl) return;
   roleMessageEl.textContent = message;
@@ -476,11 +447,12 @@ function chooseRandomScenario(pool, role) {
   return selected;
 }
 function addSceneSequence(target, prefix, lines, nextId) {
+  const visibleLines = prepareVisibleSceneLines(lines);
   let next = nextId;
-  for (let index = lines.length - 1; index >= 0; index -= 1) {
+  for (let index = visibleLines.length - 1; index >= 0; index -= 1) {
     const id = `${prefix}-${index + 1}`;
     target[id] = {
-      ...lines[index],
+      ...visibleLines[index],
       next
     };
     next = id;
@@ -504,8 +476,9 @@ function buildRuntimeScenario(entry, library, scriptLibrary) {
       tone: "mentor",
       text: "Play again — try the other side."
     }];
-  const endingStart = addSceneSequence(scenes, "game-end", endingLines, null);
-  scenes[`game-end-${endingLines.length}`].ending = true;
+  const visibleEndingLines = prepareVisibleSceneLines(endingLines);
+  const endingStart = addSceneSequence(scenes, "game-end", visibleEndingLines, null);
+  scenes[`game-end-${visibleEndingLines.length}`].ending = true;
 
   const decisionChoices = entry.choices.map(choice => {
     const scriptedChoice = scriptEntry.choices?.[choice.id];
@@ -595,8 +568,8 @@ function buildRuntimeScenario(entry, library, scriptLibrary) {
 async function loadScenario(role) {
   if (!scenarioLibrary || !fullGameScript) {
     const [libraryResponse, scriptResponse] = await Promise.all([
-      fetch(scenarioLibraryFile, { cache: "no-store" }),
-      fetch(fullGameScriptFile, { cache: "no-store" })
+      fetch(`${scenarioLibraryFile}?v=20260724`),
+      fetch(`${fullGameScriptFile}?v=20260724`)
     ]);
     if (!libraryResponse.ok) throw new Error("Scenario library could not be loaded.");
     if (!scriptResponse.ok) throw new Error("The FULL GAME SCRIPT could not be loaded.");
@@ -860,6 +833,10 @@ function finishTyping() {
   setText(fullText);
   isTyping = false;
   stopTalking();
+  if (dialogueAnnouncementEl) {
+    const speaker = speakerNameEl.textContent.trim();
+    dialogueAnnouncementEl.textContent = speaker ? `${speaker}: ${fullText}` : fullText;
+  }
   const scene = scenes[currentSceneId];
   if (scene.choices) {
     advanceLabelEl.textContent = "Choose a response";
@@ -1091,6 +1068,11 @@ function renderReflectionFields() {
     textarea.rows = 3;
     textarea.value = reflectionAnswers[prompt.id] || "";
     textarea.maxLength = 600;
+    textarea.minLength = 3;
+    textarea.required = true;
+    textarea.setAttribute("aria-describedby", "reflectionMessage");
+    textarea.setAttribute("aria-invalid", "false");
+    textarea.addEventListener("input", () => textarea.setAttribute("aria-invalid", "false"));
 
     label.append(span, textarea);
     reflectionFieldsEl.append(label);
@@ -1114,6 +1096,10 @@ function revealScenarioCompletion(percent) {
   renderReflectionFields();
   reflectionPanelEl.hidden = false;
   notifyMotion("motion:content-added", { element: reflectionPanelEl });
+  window.requestAnimationFrame(() => {
+    reflectionTitleEl.setAttribute("tabindex", "-1");
+    reflectionTitleEl.focus({ preventScroll: true });
+  });
 }
 
 function runScenarioCompletionWipe(title, onCovered) {
@@ -1174,6 +1160,11 @@ function restartScenario() {
   setText("Every day, someone has to speak. And someone has to listen.");
   setSceneEnvironment({ tone: "neutral" });
   setCharacters({ speaker: "Scene" });
+  window.requestAnimationFrame(() => {
+    const roleTitle = document.getElementById("roleTitle");
+    roleTitle?.setAttribute("tabindex", "-1");
+    roleTitle?.focus({ preventScroll: true });
+  });
 }
 
 async function selectRole(role) {
@@ -1182,6 +1173,10 @@ async function selectRole(role) {
   rolePanelEl.querySelectorAll("button").forEach(button => { button.disabled = true; });
 
   try {
+    await Promise.race([
+      initialHistoryReady,
+      new Promise(resolve => window.setTimeout(resolve, 3500))
+    ]);
     const nextScenario = await loadScenario(role);
     scenario = nextScenario;
     scenes = nextScenario.scenes;
@@ -1193,7 +1188,7 @@ async function selectRole(role) {
     initialiseAttemptTracking(nextScenario);
     document.body.dataset.scenarioState = "playing";
     rolePanelEl.hidden = true;
-    setRoleMessage(currentUser ? "Cloud sync is ready." : "Signed out: this scenario saves on this device only.", currentUser ? "success" : "neutral");
+    setRoleMessage("Preparing your training record...", "neutral");
     updateScoreHud();
     await saveScenarioRecord("in_progress");
     renderScene(nextScenario.startScene);
@@ -1237,31 +1232,80 @@ async function saveReflection(event) {
   event.preventDefault();
   if (!scenario) return;
 
+  const invalidField = scenario.reflectionPrompts
+    .map(prompt => reflectionFormEl.elements[prompt.id])
+    .find(field => String(field?.value || "").trim().length < 3);
+  if (invalidField) {
+    invalidField.setAttribute("aria-invalid", "true");
+    reflectionMessageEl.textContent = "Write a short response for each reflection question before saving.";
+    reflectionMessageEl.classList.remove("success");
+    invalidField.focus();
+    return;
+  }
+
   reflectionAnswers = {};
   scenario.reflectionPrompts.forEach(prompt => {
     reflectionAnswers[prompt.id] = String(reflectionFormEl.elements[prompt.id]?.value || "").trim();
   });
 
-  await saveScenarioRecord("completed");
-  reflectionMessageEl.textContent = currentUser
-    ? "Reflection saved to your training record."
-    : "Reflection saved on this device.";
-  reflectionMessageEl.classList.add("success");
+  const outcome = await saveScenarioRecord("completed");
+  if (currentUser && outcome?.cloud.ok) {
+    reflectionMessageEl.textContent = "Reflection saved to your training record.";
+    reflectionMessageEl.classList.add("success");
+  } else if (outcome?.local.ok) {
+    reflectionMessageEl.textContent = currentUser
+      ? "Reflection saved on this device. Cloud sync is pending."
+      : "Reflection saved on this device.";
+    reflectionMessageEl.classList.toggle("success", !currentUser);
+  } else {
+    reflectionMessageEl.textContent = "Reflection could not be saved. Check browser storage and try again.";
+    reflectionMessageEl.classList.remove("success");
+  }
+}
+
+async function syncPendingScenarioRecords() {
+  if (!firebaseClient || !currentUser) {
+    setRoleMessage("Sign in from the main app to sync this device's training records.", "neutral");
+    return [];
+  }
+  setRoleMessage("Syncing saved progress...", "neutral");
+  const outcomes = await retryPendingScenarioRecords({ firebaseClient, user: currentUser });
+  await mergeCloudScenarioRecords(firebaseClient, currentUser);
+  const failed = outcomes.filter(outcome => !outcome.ok);
+  setRoleMessage(
+    failed.length ? "Some records are still saved locally. Try sync again when the connection improves." : "Training records are up to date.",
+    failed.length ? "error" : "success"
+  );
+  return outcomes;
 }
 
 async function initFirebase() {
   try {
-    firebaseClient = await loadFirebaseClient();
-    firebaseClient.onAuthStateChanged(firebaseClient.auth, user => {
+    firebaseClient = await loadFirebaseAuthClient();
+    firebaseClient.onAuthStateChanged(firebaseClient.auth, async user => {
       currentUser = user;
-      if (scenario) saveScenarioRecord(completedAtIso ? "completed" : "in_progress");
-      setRoleMessage(user ? "Cloud sync is ready." : "Signed out: scenario saves on this device only.", user ? "success" : "neutral");
+      if (!user) {
+        resolveInitialHistory();
+        setRoleMessage("Signed out: scenario progress stays on this device.", "neutral");
+        return;
+      }
+
+      try {
+        firebaseClient = await ensureFirestore(firebaseClient);
+        await mergeCloudScenarioRecords(firebaseClient, user);
+        await syncPendingScenarioRecords();
+        resolveInitialHistory();
+        if (scenario) await saveScenarioRecord(completedAtIso ? "completed" : "in_progress");
+      } catch {
+        resolveInitialHistory();
+        setRoleMessage("Cloud progress could not be loaded. Local progress is still available.", "error");
+      }
     });
-  } catch (error) {
-    setRoleMessage(error.message || "Scenario progress will save locally only.", "neutral");
+  } catch {
+    resolveInitialHistory();
+    setRoleMessage("Cloud sync is unavailable. Scenario progress will save on this device.", "neutral");
   }
 }
-
 function bindEvents() {
   updateSoundToggle();
   document.addEventListener("pointerdown", () => { unlockDialogueAudio(); }, { once: true, capture: true });
@@ -1275,6 +1319,9 @@ function bindEvents() {
 
   advanceButton.addEventListener("click", advanceScene);
   reflectionFormEl.addEventListener("submit", saveReflection);
+  document.querySelector('[data-action="retry-sync"]')?.addEventListener("click", () => {
+    syncPendingScenarioRecords().catch(() => setRoleMessage("Cloud sync is still unavailable. Local progress is safe.", "error"));
+  });
 
   sceneBackdropEl.addEventListener("animationend", () => sceneBackdropEl.classList.remove("is-changing"));
 
@@ -1290,9 +1337,10 @@ function bindEvents() {
 
   document.addEventListener("keydown", event => {
     const target = event.target;
-    const isTypingField = target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement;
-    const isButton = target instanceof HTMLButtonElement || target instanceof HTMLAnchorElement;
-    if (isTypingField || isButton || !scenario) return;
+    const isTypingField = target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement || target instanceof HTMLSelectElement;
+    const isInteractive = target instanceof HTMLButtonElement || target instanceof HTMLAnchorElement || target?.isContentEditable;
+    const scenarioIsActive = scenario && !document.body.matches('[data-scenario-state="complete"]');
+    if (isTypingField || isInteractive || !scenarioIsActive || !reflectionPanelEl.hidden) return;
 
     if (!choicesEl.hidden && /^[1-3a-c]$/i.test(event.key)) {
       event.preventDefault();
@@ -1312,4 +1360,4 @@ function bindEvents() {
 
 bindEvents();
 restartScenario();
-window.setTimeout(() => { initFirebase(); }, 1200);
+initFirebase();

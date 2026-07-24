@@ -2,15 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; img-src 'self' data: blob:; media-src 'self' blob:; style-src 'self'; font-src 'self'; worker-src 'self' blob:; frame-src https://echoworks-e3b4d.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self'" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Protected manager dashboard for CARE and REAL scenario scoring, completion, learning progress, and reflection follow-up." />
   <meta name="theme-color" content="#d71920" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="assets/css/tokens.css?v=20260724" />
   <title>Feedback Culture Dashboard | Feedback Playbook</title>
-  <link rel="stylesheet" href="assets/css/app.css?v=20260722-admin-access" />
-  <link rel="stylesheet" href="assets/css/admin.css?v=20260722-admin-access" />
-  <script type="module" src="assets/js/admin.js?v=20260722-admin-access"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <link rel="stylesheet" href="assets/css/app.css?v=20260724-audit" />
+  <link rel="stylesheet" href="assets/css/admin.css?v=20260724-audit" />
+  <script type="module" src="assets/js/admin.js?v=20260724-audit"></script>
+  <script defer src="assets/vendor/gsap/gsap.min.js?v=3.12.5"></script>
   <script defer src="assets/js/motion.js?v=20260722-admin-access"></script>
 </head>
 <body class="admin-page">
@@ -29,6 +33,12 @@
 
     <div class="admin-top-actions">
       <span class="live-chip" id="dashboardSyncStatus">Secure view</span>
+      <div class="admin-account" aria-label="Dashboard account">
+        <span><strong id="adminAccountEmail">Not signed in</strong><small id="adminAccountRole">Access pending</small></span>
+        <button class="icon-button" type="button" id="adminSignOutButton" aria-label="Sign out of dashboard" title="Sign out">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5m4-3 4-4-4-4m4 4H9" /></svg>
+        </button>
+      </div>
       <button class="button secondary fit admin-action-button" type="button" id="refreshButton" data-busy-label="Refreshing...">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" /></svg>
         <span id="refreshButtonLabel">Refresh</span>
@@ -64,6 +74,14 @@
                 <option value="REAL">Manager REAL</option>
               </select>
             </label>
+            <label class="dashboard-select" for="cohortView">
+              <span>Cohort</span>
+              <select id="cohortView">
+                <option value="all">All respondents</option>
+                <option value="manager">Manager role</option>
+                <option value="employee">Employee role</option>
+              </select>
+            </label>
             <label class="dashboard-select" for="attemptView">
               <span>Attempt</span>
               <select id="attemptView">
@@ -76,12 +94,20 @@
               <span>Scenario</span>
               <select id="scenarioView"><option value="all">All scenarios</option></select>
             </label>
+            <label class="dashboard-select" for="dateFrom">
+              <span>From</span>
+              <input id="dateFrom" type="date" />
+            </label>
+            <label class="dashboard-select" for="dateTo">
+              <span>To</span>
+              <input id="dateTo" type="date" />
+            </label>
           </div>
 
-          <p class="overview-sync" id="overviewSyncText">Live Firestore data</p>
+          <p class="overview-sync" id="overviewSyncText">Firestore snapshot</p>
         </header>
 
-        <p class="dashboard-notice" id="dashboardNotice" aria-live="polite" hidden></p>
+        <div class="dashboard-notice" id="dashboardNotice" role="status" aria-live="polite" hidden><span id="dashboardNoticeText"></span><button class="button secondary fit" type="button" id="dashboardRetryButton">Retry</button></div>
 
         <div class="overview-metrics" aria-label="Selected view summary">
           <article class="overview-metric" data-tone="score">
@@ -208,19 +234,20 @@
             <p>Review completion, reflection status, and follow-up needs.</p>
           </div>
           <div class="filter-group" aria-label="Filter learners by progress status">
-            <button class="filter-button active" type="button" data-filter="all">All</button>
-            <button class="filter-button" type="button" data-filter="completed">Completed</button>
-            <button class="filter-button" type="button" data-filter="in_progress">In progress</button>
-            <button class="filter-button" type="button" data-filter="not_started">Not started</button>
-            <button class="filter-button" type="button" data-filter="needs_follow_up">Needs follow-up</button>
+            <button class="filter-button active" type="button" data-filter="all" aria-pressed="true">All</button>
+            <button class="filter-button" type="button" data-filter="completed" aria-pressed="false">Completed</button>
+            <button class="filter-button" type="button" data-filter="in_progress" aria-pressed="false">In progress</button>
+            <button class="filter-button" type="button" data-filter="not_started" aria-pressed="false">Not started</button>
+            <button class="filter-button" type="button" data-filter="needs_follow_up" aria-pressed="false">Needs follow-up</button>
           </div>
         </header>
         <div class="table-wrap" tabindex="0" role="region" aria-label="Learner progress table">
           <table>
-            <thead><tr><th>Name</th><th>Role</th><th>Completed scenarios</th><th>CARE score</th><th>REAL score</th><th>Status</th><th>Reflection</th><th>Last activity</th><th>Action</th></tr></thead>
+            <thead><tr><th id="users-name" scope="col">Name</th><th id="users-role" scope="col">Role</th><th id="users-completed" scope="col">Completed scenarios</th><th id="users-care" scope="col">CARE score</th><th id="users-real" scope="col">REAL score</th><th id="users-status" scope="col">Status</th><th id="users-reflection" scope="col">Reflection</th><th id="users-activity" scope="col">Last activity</th><th id="users-action" scope="col">Action</th></tr></thead>
             <tbody id="usersTable"></tbody>
           </table>
         </div>
+        <div class="pagination-status"><span id="usersPageStatus">No learners loaded.</span><button class="button secondary fit" type="button" id="loadMoreUsers">Load more learners</button></div>
       </section>
 
       <section class="panel detail-panel" id="detailPanel" aria-labelledby="detailTitle" hidden>
@@ -232,16 +259,17 @@
         <header class="dashboard-section-heading"><div><h2 id="resultsTitle">CARE / REAL result records</h2><p>Detailed scoring and reflection evidence.</p></div></header>
         <div class="table-wrap" tabindex="0" role="region" aria-label="CARE and REAL result table">
           <table>
-            <thead><tr><th>User</th><th>Scenario</th><th>Attempt</th><th>Dimension</th><th>Option</th><th>Result</th><th>Score</th><th>Reflection</th></tr></thead>
+            <thead><tr><th id="results-user" scope="col">User</th><th id="results-scenario" scope="col">Scenario</th><th id="results-attempt" scope="col">Attempt</th><th id="results-dimension" scope="col">Dimension</th><th id="results-option" scope="col">Option</th><th id="results-class" scope="col">Result</th><th id="results-score" scope="col">Score</th><th id="results-reflection" scope="col">Reflection</th></tr></thead>
             <tbody id="resultsTable"></tbody>
           </table>
         </div>
+        <div class="pagination-status"><span id="resultsPageStatus">No result records loaded.</span><button class="button secondary fit" type="button" id="loadMoreResults">Load more results</button></div>
       </section>
 
-      <section class="panel admin-section" aria-labelledby="adminsTitle">
+      <section class="panel admin-section" id="viewerAdminSection" aria-labelledby="adminsTitle">
         <header class="dashboard-section-heading"><div><h2 id="adminsTitle">Dashboard viewers</h2><p>Only listed viewers can access this page.</p></div></header>
         <form class="admin-form" id="adminForm">
-          <label class="field" for="adminEmail"><span>Add viewer email</span><input id="adminEmail" name="email" type="email" placeholder="name@example.com" aria-describedby="adminMessage" required /></label>
+          <label class="field" for="adminEmail"><span>Add viewer email</span><input id="adminEmail" name="email" type="email" placeholder="name@example.com" aria-describedby="adminMessage" aria-invalid="false" required /></label>
           <button class="button primary fit" type="submit">Add viewer</button>
         </form>
         <p class="form-message" id="adminMessage" aria-live="polite"></p>

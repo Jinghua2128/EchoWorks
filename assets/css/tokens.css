@@ -1,0 +1,43 @@
+:root {
+  color-scheme: light;
+  --red: #d71920;
+  --red-dark: #a90f17;
+  --red-soft: #fff1f2;
+  --charcoal: #1f2933;
+  --ink: #344054;
+  --muted: #667085;
+  --line: #d9e1ea;
+  --surface: #ffffff;
+  --surface-muted: #f5f7fa;
+  --surface-tint: #f8fbfc;
+  --teal: #0f766e;
+  --teal-soft: #e6f6f4;
+  --amber: #8a4b00;
+  --amber-soft: #fff6df;
+  --danger: #b42318;
+  --danger-soft: #fff2f1;
+  --focus-ring: #b42318;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, .06);
+  --shadow-md: 0 14px 34px rgba(16, 24, 40, .10);
+  --radius: 8px;
+  --radius-lg: 12px;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --font-sans: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+html {
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline-color: var(--focus-ring) !important;
+  outline-style: solid !important;
+  outline-width: 3px !important;
+  outline-offset: 3px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+}

@@ -142,11 +142,13 @@ body.admin-page {
 }
 
 .dashboard-overview {
+  min-width: 0;
   display: grid;
   gap: 22px;
 }
 
 .overview-toolbar {
+  min-width: 0;
   display: grid;
   grid-template-columns: minmax(240px, 1fr) auto;
   gap: 18px 24px;
@@ -172,8 +174,11 @@ body.admin-page {
 }
 
 .dashboard-controls {
+  min-width: 0;
   display: flex;
+  flex-wrap: wrap;
   align-items: end;
+  justify-content: flex-end;
   gap: 10px;
 }
 
@@ -593,7 +598,7 @@ body.admin-page {
 }
 
 .classification-summary div:nth-child(1) dd { color: var(--teal); }
-.classification-summary div:nth-child(2) dd { color: #a06a10; }
+.classification-summary div:nth-child(2) dd { color: #7a4500; }
 .classification-summary div:nth-child(3) dd { color: var(--red-dark); }
 .operational-summary {
   display: grid;
@@ -1345,5 +1350,101 @@ tr.needs-follow-up {
   .filter-button,
   tbody tr {
     transition: none;
+  }
+}
+/* Bounded dashboard loading and account controls */
+.admin-account {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.admin-account > span,
+.admin-account strong,
+.admin-account small {
+  min-width: 0;
+  display: block;
+}
+
+.admin-account strong {
+  max-width: 220px;
+  overflow: hidden;
+  font-size: .78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-account small {
+  color: var(--muted);
+  font-size: .7rem;
+}
+
+.admin-account .icon-button {
+  width: 44px;
+  height: 44px;
+}
+
+.dashboard-select input {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--charcoal);
+}
+
+.dashboard-notice {
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.dashboard-notice:not([hidden]) {
+  display: flex;
+}
+
+.pagination-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 14px;
+  color: var(--muted);
+  font-size: .86rem;
+}
+
+.filter-button,
+.admin-list-item button,
+.table-wrap .button {
+  min-height: 44px;
+}
+
+.status-pill.warning {
+  color: #6f3c00;
+}
+
+@media (max-width: 900px) {
+  .admin-account > span,
+  .live-chip {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .pagination-status,
+  .dashboard-notice:not([hidden]) {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pagination-status .button,
+  .dashboard-notice .button {
+    width: 100%;
   }
 }

@@ -2,23 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com 'sha256-Fydwqi/xZoZ8E2CjtYD+FXEFjoECM5A/XarcaUMi7pk=' 'sha256-xSeyZsuLwzQC2Foccsd7cVBcpn3qBFqwuDBDv1nGeTs='; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; img-src 'self' data: blob:; media-src 'self' blob:; style-src 'self'; font-src 'self'; worker-src 'self' blob:; frame-src https://echoworks-e3b4d.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self'" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta
     name="description"
     content="Feedback Playbook is a Singapore Red Cross workplace learning platform for practising feedback conversations with CARE and REAL frameworks."
   />
   <meta name="theme-color" content="#d71920" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <link rel="canonical" href="https://echoworks-e3b4d.web.app/" />
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="assets/css/tokens.css?v=20260724" />
   <meta property="og:title" content="Feedback Playbook" />
   <meta
     property="og:description"
     content="Complete short interactive workplace scenarios and reflect on CARE and REAL communication habits."
   />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://echoworks-e3b4d.web.app/" />
+  <meta property="og:image" content="https://echoworks-e3b4d.web.app/assets/office-vn.webp" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Feedback Playbook" />
+  <meta name="twitter:description" content="Interactive CARE and REAL workplace feedback learning." />
+  <meta name="twitter:image" content="https://echoworks-e3b4d.web.app/assets/office-vn.webp" />
   <title>Feedback Playbook | Singapore Red Cross</title>
   <link rel="preconnect" href="https://www.gstatic.com" />
   <link rel="preload" as="image" href="assets/office-vn.webp" />
-  <link rel="stylesheet" href="assets/css/app.css?v=20260722-admin-access" />
+  <link rel="stylesheet" href="assets/css/app.css?v=20260724-layout3" />
   <script type="importmap">
     {
       "imports": {
@@ -28,7 +38,7 @@
       }
     }
   </script>
-  <script type="module" src="assets/js/app.js?v=20260722-admin-access"></script>
+  <script type="module" src="assets/js/app.js?v=20260724-layout3"></script>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -42,7 +52,7 @@
       "timeRequired": "PT15M"
     }
   </script>
-  <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script defer src="assets/vendor/gsap/gsap.min.js?v=3.12.5"></script>
   <script defer src="assets/js/motion.js?v=20260718-full-script-ar"></script>
 </head>
 
@@ -140,12 +150,12 @@
 
             <label class="field" for="loginEmail">
               <span>Email</span>
-              <input id="loginEmail" name="email" type="email" autocomplete="email" aria-describedby="loginMessage" required />
+              <input id="loginEmail" name="email" type="email" autocomplete="email" aria-describedby="loginMessage" aria-invalid="false" required />
             </label>
 
             <label class="field" for="loginPassword">
               <span>Password</span>
-              <input id="loginPassword" name="password" type="password" autocomplete="current-password" aria-describedby="loginMessage" minlength="6" required />
+              <input id="loginPassword" name="password" type="password" autocomplete="current-password" aria-describedby="loginMessage" aria-invalid="false" required />
             </label>
 
             <p class="form-message" id="loginMessage" aria-live="polite"></p>
@@ -153,6 +163,7 @@
             <div class="button-stack">
               <button class="button primary" type="submit" data-busy-label="Logging in...">Log in</button>
               <button class="button ghost" type="button" data-action="guest">Continue as guest</button>
+              <button class="link-button auth-help" type="button" data-action="password-reset">Reset password</button>
             </div>
 
             <p class="switch-copy">
@@ -177,14 +188,15 @@
 
             <label class="field" for="signupEmail">
               <span>Email</span>
-              <input id="signupEmail" name="email" type="email" autocomplete="email" aria-describedby="signupMessage" required />
+              <input id="signupEmail" name="email" type="email" autocomplete="email" aria-describedby="signupMessage" aria-invalid="false" required />
             </label>
 
             <label class="field" for="signupPassword">
               <span>Password</span>
-              <input id="signupPassword" name="password" type="password" autocomplete="new-password" aria-describedby="signupMessage" minlength="6" required />
+              <input id="signupPassword" name="password" type="password" autocomplete="new-password" aria-describedby="signupPasswordHelp signupMessage" aria-invalid="false" minlength="10" required />
             </label>
 
+            <p class="field-help" id="signupPasswordHelp">Use 10+ characters with uppercase, lowercase, and a number.</p>
             <p class="form-message" id="signupMessage" aria-live="polite"></p>
 
             <button class="button primary" type="submit" data-busy-label="Creating account...">Create account</button>
@@ -201,7 +213,7 @@
               Practise randomized workplace conversations with the CARE and REAL frameworks, then compare your pre- and post-pulse reflections.
             </p>
           </div>
-          <a class="button primary fit" href="test3.html">
+          <a class="button primary fit" href="scenario.html">
             Continue learning
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
           </a>
@@ -273,7 +285,7 @@
               </dl>
             </div>
             <div class="split-actions">
-              <a class="button secondary fit" href="test3.html">Start interactive scenario</a>
+              <a class="button secondary fit" href="scenario.html">Start interactive scenario</a>
               <button class="button subtle fit" type="button" data-route="survey">Open pulse surveys</button>
             </div>
           </section>
@@ -328,16 +340,17 @@
             <p class="section-label">Pulse survey</p>
             <h1 id="surveyTitle">Pre-pulse</h1>
             <p class="survey-progress" id="surveyProgressText">Question 1</p>
-            <p class="lead" id="questionTitle">Select a pulse survey to begin.</p>
           </div>
         </header>
 
         <form class="panel survey-card" id="surveyForm" novalidate>
           <fieldset tabindex="-1">
-            <legend id="surveyLegend">How strongly do you agree?</legend>
+            <legend class="survey-question" id="questionTitle">Select a pulse survey to begin.</legend>
+            <p class="survey-instruction" id="surveyLegend">How strongly do you agree?</p>
             <div class="rating-options" id="ratingOptions"></div>
           </fieldset>
           <p class="form-message" id="surveyMessage" aria-live="polite"></p>
+          <button class="button secondary fit" type="button" data-action="retry-survey" hidden>Retry survey</button>
           <div class="split-actions">
             <button class="button primary fit" type="submit"><span id="surveySubmitLabel">Save and continue</span></button>
             <button class="button subtle fit" type="button" data-route="home">Cancel</button>
@@ -371,7 +384,7 @@
               <div class="ar-reticle" aria-hidden="true"><span></span></div>
               <article class="ar-overlay" id="arOverlay" aria-live="polite" hidden>
                 <div class="ar-visual" id="arVisual">
-                  <img id="arCharacterImage" src="assets/manager.webp" alt="" />
+                  <img id="arCharacterImage" src="assets/manager.webp" alt="" width="1600" height="900" decoding="async" />
                   <span class="ar-effect" id="arEffect" aria-hidden="true"></span>
                 </div>
                 <div class="ar-overlay-copy">
@@ -382,6 +395,7 @@
               </article>
             </div>
             <p class="form-message" id="cameraMessage" aria-live="polite"></p>
+            <button class="button secondary fit" type="button" data-action="retry-ar" hidden>Retry AR content</button>
             <div class="split-actions">
               <button class="button primary fit" type="button" data-action="start-camera" data-busy-label="Starting camera...">Start camera</button>
               <button class="button subtle fit" type="button" data-action="stop-camera">Stop camera</button>
@@ -469,7 +483,11 @@
               </div>
             </div>
             <p class="muted" id="accountMode">Progress is saved on this device.</p>
+            <div class="account-actions">
+              <button class="button secondary fit" type="button" data-action="resend-verification" hidden>Resend verification</button>
             <button class="button secondary fit" type="button" data-action="logout">Log out</button>
+            </div>
+            <p class="account-links"><a href="privacy.html">Privacy and data</a><a href="mailto:liuguangxuan1230@gmail.com?subject=Feedback%20Playbook%20support">Contact support</a></p>
           </section>
 
           <section class="panel danger-panel" aria-labelledby="dangerTitle">
@@ -487,7 +505,19 @@
       </section>
     </main>
   </div>
-  <div class="completion-wipe" id="screenWipe" hidden aria-live="polite">
+  <dialog class="confirm-dialog" id="deleteProgressDialog" aria-labelledby="deleteProgressTitle" aria-describedby="deleteProgressDescription">
+    <form method="dialog">
+      <div class="confirm-dialog-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 4 3.5 19h17L12 4Zm0 5v4m0 3h.01" /></svg>
+      </div>
+      <h2 id="deleteProgressTitle">Delete learning progress?</h2>
+      <p id="deleteProgressDescription">This permanently removes pulse answers, scenario attempts, scores, and reflections from this device and, when signed in, from your cloud training record. Your account remains active.</p>
+      <div class="confirm-dialog-actions">
+        <button class="button secondary fit" value="cancel">Keep progress</button>
+        <button class="button danger fit" value="confirm">Delete progress</button>
+      </div>
+    </form>
+  </dialog>  <div class="completion-wipe" id="screenWipe" hidden aria-live="polite">
     <div class="completion-wipe-surface">
       <span class="completion-wipe-check" aria-hidden="true">
         <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg>
