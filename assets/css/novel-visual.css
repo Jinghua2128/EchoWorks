@@ -1487,3 +1487,38 @@ body.novel-page .role-card {
 .sync-message[data-tone="error"] {
   color: #7a271a;
 }
+
+/* The whole caption is an optional advance target while the button stays primary. */
+.dialogue-panel.is-clickable {
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+
+.dialogue-panel.is-clickable:hover {
+  border-color: rgba(215, 25, 32, .42);
+  box-shadow: var(--shadow), inset 0 0 0 1px rgba(215, 25, 32, .08);
+}
+
+.dialogue-panel.is-clickable .dialogue-text::after {
+  content: "\203A";
+  display: inline-block;
+  margin-inline-start: .45rem;
+  color: var(--red);
+  font-size: 1.2em;
+  font-weight: 900;
+  line-height: 1;
+  opacity: .62;
+  animation: dialogueAdvanceCue 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes dialogueAdvanceCue {
+  from { transform: translateX(0); opacity: .46; }
+  to { transform: translateX(3px); opacity: .82; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialogue-panel.is-clickable .dialogue-text::after {
+    animation: none;
+  }
+}

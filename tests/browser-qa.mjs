@@ -275,8 +275,31 @@ export async function ensureFirestore() { return sdk; }
     assert.notEqual(openingNarration.metaDisplay, "none");
     assert.equal(openingNarration.sceneCueHidden, false);
     assert.ok(openingNarration.announcementWidth <= 1);
+    assert.equal(await page.locator(".dialogue-panel").getAttribute("tabindex"), "0");
+    assert.equal(await page.locator(".dialogue-panel").evaluate(element => element.classList.contains("is-clickable")), true);
+    const firstLine = await page.locator("#dialogueText").textContent();
+    await page.locator(".dialogue-panel").click({ position: { x: 24, y: 42 } });
+    await page.waitForTimeout(280);
+    const secondLine = await page.locator("#dialogueText").textContent();
+    assert.notEqual(secondLine, firstLine);
+    await page.evaluate(() => {
+      const text = document.querySelector("#dialogueText");
+      const range = document.createRange();
+      range.selectNodeContents(text);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      document.querySelector(".dialogue-panel").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    assert.equal(await page.locator("#dialogueText").textContent(), secondLine);
+    await page.evaluate(() => window.getSelection()?.removeAllRanges());
+    await page.locator(".dialogue-panel").focus();
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(280);
+    assert.notEqual(await page.locator("#dialogueText").textContent(), secondLine);
     for (let index = 0; index < 30 && await page.locator("#choices .choice-button").count() === 0; index += 1) {
       await page.click('[data-action="advance"]');
+      await page.waitForTimeout(280);
     }
     assert.equal(await page.locator("#choices .choice-button").count(), 3);
   }
@@ -285,6 +308,7 @@ export async function ensureFirestore() { return sdk; }
     await page.locator("#choices .choice-button").nth(1).click();
     for (let index = 0; index < 30 && await page.locator("#reflectionPanel").evaluate(element => element.hidden); index += 1) {
       await page.click('[data-action="advance"]');
+      await page.waitForTimeout(280);
     }
     assert.equal(await page.locator("#reflectionPanel").isVisible(), true);
     assert.equal(await page.locator("#reflectionTitle").evaluate(element => element === document.activeElement), true);

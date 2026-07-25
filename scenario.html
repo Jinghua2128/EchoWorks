@@ -30,8 +30,8 @@
   <link rel="prefetch" as="image" href="assets/office-tense.webp" />
   <link rel="prefetch" as="image" href="assets/office-mentor.webp" />
   <link rel="stylesheet" href="assets/css/novel.css?v=20260724-layout3" />
-  <link rel="stylesheet" href="assets/css/novel-visual.css?v=20260724-layout3" />
-  <script type="module" src="assets/js/novel.js?v=20260724-layout3"></script>
+  <link rel="stylesheet" href="assets/css/novel-visual.css?v=20260725-dialogue" />
+  <script type="module" src="assets/js/novel.js?v=20260725-dialogue"></script>
   <script defer src="assets/vendor/gsap/gsap.min.js?v=3.12.5"></script>
   <script defer src="assets/js/motion.js?v=20260718-full-script-ar"></script>
 </head>
@@ -127,7 +127,7 @@
 
     <section class="choice-panel" id="choices" aria-label="Response choices" hidden></section>
 
-    <section class="dialogue-panel">
+    <section class="dialogue-panel" aria-label="Dialogue" aria-describedby="dialogueInteractionHint" aria-keyshortcuts="Enter Space" tabindex="-1">
       <div class="dialogue-meta">
         <span class="speaker-wrap">
           <span class="speaker" id="speakerName">Role</span>
@@ -137,6 +137,7 @@
       </div>
       <div class="dialogue-text" id="dialogueText"></div>
       <p class="visually-hidden" id="dialogueAnnouncement" role="status" aria-live="polite" aria-atomic="true"></p>
+      <p class="visually-hidden" id="dialogueInteractionHint">Click or tap the dialogue, or press Enter or Space, to continue.</p>
       <div class="dialogue-actions">
         <button class="text-button" type="button" data-action="advance"><span id="advanceLabel">Continue</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13m-5-5 5 5-5 5" /></svg></button>
       </div>

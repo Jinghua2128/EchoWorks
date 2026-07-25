@@ -1,6 +1,6 @@
 # EchoWorks 项目交接文档
 
-更新日期：2026-07-24（Asia/Singapore）
+更新日期：2026-07-25（Asia/Singapore）
 
 English handoff: [HANDOFF.md](HANDOFF.md)
 
@@ -9,6 +9,7 @@ English handoff: [HANDOFF.md](HANDOFF.md)
 - 这是一个用于 GitHub Pages，并可选择使用 Firebase Hosting 的静态 HTML、CSS、JavaScript 应用。
 - 每次继续开发前，必须先阅读 HANDOFF.md。
 - 用户说 handoff 时，结束任务前必须更新英文和中文交接文档。
+- 用户可见的网站修改完成后，除非用户明确要求只保留本地版本，否则必须运行发布检查和构建、提交并推送到 `main`、等待 GitHub Pages 发布完成，并提供正式网站链接。
 - 不要重置或覆盖用户已有的工作树修改。
 - 情景、问卷、评分和 AR 内容保存在本地 JSON；Firebase 只保存账号、仪表板权限、学习进度、尝试、分数、反思和时间。
 - 经理路线使用 REAL；员工路线使用 CARE。
@@ -30,7 +31,7 @@ English handoff: [HANDOFF.md](HANDOFF.md)
 - admin.html：受保护的管理仪表板；入口不能放在 Settings 中。
 - privacy.html：隐私和数据处理说明。
 
-当前最终本地预览曾运行于 http://127.0.0.1:4177/。重新构建前，如果 Windows 锁定 public 文件夹，应先停止旧的静态服务器。
+当前本地生产预览使用 http://127.0.0.1:4176/。重新构建前，如果 Windows 锁定 public 文件夹，应先停止旧的静态服务器。
 
 ## 关键架构
 
@@ -75,7 +76,7 @@ dashboardAdminEmails/{标准化小写邮箱}
 
 ## 示例数据
 
-已实现但尚未写入正式 Firestore 的固定示例包包含：
+固定示例包已于 2026-07-24 写入正式 Firestore 项目 `echoworks-e3b4d`，包含：
 
 - 12 位虚构学习者
 - 61 次情景尝试
@@ -120,15 +121,9 @@ $env:GOOGLE_APPLICATION_CREDENTIALS='D:\FirebaseSecrets\echoworks-admin.json'
 firebase deploy --only firestore --project echoworks-e3b4d
 ~~~
 
-规则和索引的本地测试已经通过，但尚未从本任务部署到正式项目。示例数据也尚未上传。
+规则和索引已于 2026-07-24 成功部署到正式项目。示例数据也已上传，并逐一验证了 168 份预期文档：1 份 owner 权限文档和 167 份固定示例文档。
 
-GitHub Pages：
-
-1. 把已检查的版本推送或合并到 main。
-2. 在 GitHub 仓库 Settings > Pages 中选择 GitHub Actions。
-3. 等待 Deploy GitHub Pages 工作流成功。
-4. 在 Firebase Authentication > Settings > Authorized domains 加入 GitHub Pages 主机名。
-5. 以 owner 邮箱登录正式 HTTPS 网站，退出并重新登录一次，然后检查 Dashboard 导航和 admin.html。
+GitHub Pages 已上线：`https://jinghua2128.github.io/EchoWorks/`。主页和 `admin.html` 已于 2026-07-24 确认返回 HTTP 200。Firebase Authentication 已启用邮箱/密码登录，并已授权 `jinghua2128.github.io`。`liuguangxuan1230@gmail.com` 的 Authentication 账号处于启用状态，同时拥有 `dashboardAdminEmails` owner 权限文档。
 
 完整步骤请阅读 FIREBASE_GITHUB_PAGES.zh-CN.md。
 
@@ -153,21 +148,25 @@ The Quiet One 的 B 和 C 都是 strong。管理者维度统一写作 Advise，�
 
 Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式的对齐模型。
 
+## 对话与 AR 约束
+
+- 对话框与原有按钮共用同一套受保护的推进逻辑；保留点击/触摸、Enter/Space、文字选择保护、内部控件保护和 260ms 输入冷却。
+- 保留屏幕滑动转场、打字音效、静音设置和减少动态效果支持。
+- 不要翻转角色图片；相机识别不可用时继续提供 AR 手动选卡。
+
 ## 已通过测试
 
 - npm run check：通过。
 - npm test：11/11 通过。
 - npm run test:rules：5/5 Firestore 模拟器套件通过。
-- npm run test:browser：Chrome 与 Edge 通过。
+- npm run test:browser：Chrome 与 Edge 通过，包括对话框点击/触摸、文字选择保护、键盘操作和输入冷却。
 - app、scenario、dashboard 的 Axe serious/critical 问题：0。
 - 320px、390px、横屏、768px、1024px、1440px 和等效高倍缩放检查通过。
-- 示例数据导出和 dry run 通过。
+- 示例数据导出、dry run 和 168 份正式文档逐一检查通过。
 - 生产构建只包含白名单运行文件。
 
 ## 尚未完成的外部验证
 
-- 正式 Firestore 规则和索引尚未部署。
-- 示例数据尚未写入正式 Firestore。
 - 需要使用临时真实账号测试验证邮件、密码重设、跨设备合并、云端删除和 owner/viewer 权限。
 - Windows 环境没有完成 Firefox 和 Safari 测试。
 - 需要在真实 Android/iOS 设备上通过 HTTPS 测试实体 AR 卡。
@@ -175,11 +174,7 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 
 ## 下一步
 
-1. 阅读 FIREBASE_GITHUB_PAGES.zh-CN.md。
-2. 在 D: 的项目目录外保存新生成的服务账号私钥。
-3. 使用该凭据部署 Firestore 规则与索引。
-4. 执行示例数据写入命令并以 owner 登录检查仪表板。
-5. 检查工作树后推送到 main，并启用 GitHub Actions Pages。
-6. 添加 Firebase 授权域名并完成临时真实账号测试。
-7. 完成 Firefox、Safari 和实体手机 AR 卡测试。
-8. 把所有确认后的修改作为一次明确的发布提交。
+1. 在正式网站使用 `liuguangxuan1230@gmail.com` 登录；如果登录状态早于权限更新，刷新一次，然后检查 Dashboard 导航、指标、反思详情和 viewer 管理。
+2. 使用临时真实账号完成验证邮件、密码重设、跨设备合并、云端删除和 owner/viewer 权限测试。
+3. 完成 Firefox、Safari、键盘、高倍缩放和实体手机 AR 卡测试。
+4. 下次提交前检查现有的 `.firebaserc`、`firebase.json` 和交接文档修改，不要直接重置。

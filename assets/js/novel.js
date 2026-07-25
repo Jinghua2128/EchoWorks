@@ -18,6 +18,7 @@ const lastScenarioKey = scenarioStorageKeys.recentByRole;
 const anonymousPlayerKey = scenarioStorageKeys.anonymousPlayerId;
 const soundPreferenceKey = "feedbackPlaybook.dialogueSound";
 const textSpeed = 16;
+const dialogueInputCooldownMs = 260;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const sceneBackdropEl = document.querySelector(".scene-backdrop");
@@ -97,6 +98,7 @@ let triedOtherRole = false;
 let exitPoint = "role_selection";
 let dialogueAudioContext = null;
 let dialogueSoundEnabled = localStorage.getItem(soundPreferenceKey) !== "off";
+let nextDialogueInputAt = Number.NEGATIVE_INFINITY;
 const activeDialogueOscillators = new Set();
 let resolveInitialHistory;
 const initialHistoryReady = new Promise(resolve => { resolveInitialHistory = resolve; });
@@ -847,6 +849,7 @@ function finishTyping() {
     advanceButton.disabled = false;
   }
   if (scene.ending) showCompletion();
+  updateDialogueInteractionState();
 }
 
 function typeText(text) {
@@ -858,6 +861,7 @@ function typeText(text) {
   playLineCue();
   advanceButton.disabled = false;
   advanceLabelEl.textContent = "Reveal";
+  updateDialogueInteractionState();
   startTalking();
 
   if (reducedMotion) {
@@ -1144,6 +1148,7 @@ function restartScenario() {
   pendingNext = null;
   fullText = "";
   isTyping = false;
+  nextDialogueInputAt = Number.NEGATIVE_INFINITY;
   completionShown = false;
   hideChoices();
   reflectionPanelEl.hidden = true;
@@ -1160,6 +1165,7 @@ function restartScenario() {
   setText("Every day, someone has to speak. And someone has to listen.");
   setSceneEnvironment({ tone: "neutral" });
   setCharacters({ speaker: "Scene" });
+  updateDialogueInteractionState();
   window.requestAnimationFrame(() => {
     const roleTitle = document.getElementById("roleTitle");
     roleTitle?.setAttribute("tabindex", "-1");
@@ -1226,6 +1232,45 @@ function advanceScene() {
   }
 
   restartScenario();
+}
+
+function dialogueHasSelectedText() {
+  const selection = window.getSelection();
+  if (!selection || selection.isCollapsed || selection.rangeCount === 0) return false;
+  return dialoguePanelEl.contains(selection.getRangeAt(0).commonAncestorContainer);
+}
+
+function dialogueTargetIsInteractive(target) {
+  return target instanceof Element && Boolean(target.closest(
+    "button, a, input, textarea, select, label, [contenteditable='true'], [role='button'], [role='link']"
+  ));
+}
+
+function dialogueCanAdvance() {
+  const scene = scenes[currentSceneId];
+  return Boolean(
+    scenario
+    && reflectionPanelEl.hidden
+    && !document.body.matches('[data-scenario-state="complete"]')
+    && !advanceButton.disabled
+    && (isTyping || (!scene?.choices && !scene?.ending))
+  );
+}
+
+function updateDialogueInteractionState() {
+  const canAdvance = dialogueCanAdvance();
+  dialoguePanelEl.classList.toggle("is-clickable", canAdvance);
+  dialoguePanelEl.tabIndex = canAdvance ? 0 : -1;
+  dialoguePanelEl.setAttribute("aria-disabled", String(!canAdvance));
+}
+
+function requestDialogueAdvance() {
+  if (!dialogueCanAdvance()) return false;
+  const now = performance.now();
+  if (now < nextDialogueInputAt) return false;
+  nextDialogueInputAt = now + dialogueInputCooldownMs;
+  advanceScene();
+  return true;
 }
 
 async function saveReflection(event) {
@@ -1317,7 +1362,14 @@ function bindEvents() {
     if (button) selectRole(button.dataset.role);
   });
 
-  advanceButton.addEventListener("click", advanceScene);
+  advanceButton.addEventListener("click", event => {
+    event.stopPropagation();
+    requestDialogueAdvance();
+  });
+  dialoguePanelEl.addEventListener("click", event => {
+    if (dialogueTargetIsInteractive(event.target) || dialogueHasSelectedText()) return;
+    requestDialogueAdvance();
+  });
   reflectionFormEl.addEventListener("submit", saveReflection);
   document.querySelector('[data-action="retry-sync"]')?.addEventListener("click", () => {
     syncPendingScenarioRecords().catch(() => setRoleMessage("Cloud sync is still unavailable. Local progress is safe.", "error"));
@@ -1351,9 +1403,9 @@ function bindEvents() {
       return;
     }
 
-    if (event.key === "Enter" || event.key === " ") {
+    if ((event.key === "Enter" || event.key === " ") && !event.repeat) {
       event.preventDefault();
-      advanceScene();
+      requestDialogueAdvance();
     }
   });
 }

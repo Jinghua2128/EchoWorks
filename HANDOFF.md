@@ -1,6 +1,6 @@
 # EchoWorks Project Handoff
 
-Updated: 2026-07-24 (Asia/Singapore)
+Updated: 2026-07-25 (Asia/Singapore)
 
 Chinese handoff: [HANDOFF.zh-CN.md](HANDOFF.zh-CN.md)
 
@@ -9,6 +9,7 @@ Chinese handoff: [HANDOFF.zh-CN.md](HANDOFF.zh-CN.md)
 - This is a static HTML, CSS, and JavaScript application intended for GitHub Pages and optional Firebase Hosting.
 - Always read this file before changing the project.
 - If the user says `handoff`, update this file before ending the task.
+- When user-visible website work is complete, run the release checks, build, commit and push the intended files to `main`, wait for GitHub Pages to deploy, and provide the live URL unless the user explicitly requests local-only work.
 - Preserve unrelated working-tree changes. Do not reset or overwrite the user's work.
 - Scenario, survey, scoring, and AR content stays in local JSON files. Firebase stores only accounts, authorization profiles, progress, attempts, scores, reflections, and timestamps.
 - Never flip visual-novel character images. Keep the intended 5px visual edge spacing.
@@ -30,13 +31,13 @@ Principal routes:
 - `admin.html`: protected dashboard; never place this link in Settings.
 - `privacy.html`: data-handling and support notice.
 
-Final production preview:
+Local production preview:
 
-- `http://127.0.0.1:4177/`
-- `http://127.0.0.1:4177/scenario.html`
-- `http://127.0.0.1:4177/admin.html`
+- `http://127.0.0.1:4176/`
+- `http://127.0.0.1:4176/scenario.html`
+- `http://127.0.0.1:4176/admin.html`
 
-The source preview on port 4176 was stopped. Port 4177 serves the final `public/` build. Stop that server before running another clean build on Windows because its working directory can lock `public/`.
+Use port 4176 for the current production preview when running locally. Stop that server before running another clean build on Windows because its working directory can lock `public/`.
 
 ## Audit Architecture
 
@@ -105,7 +106,7 @@ Full setup instructions:
 - [FIREBASE_GITHUB_PAGES.md](FIREBASE_GITHUB_PAGES.md)
 - [FIREBASE_GITHUB_PAGES.zh-CN.md](FIREBASE_GITHUB_PAGES.zh-CN.md)
 
-The deterministic sample pack is implemented but has not been written to the live project. It contains 12 synthetic learners, 61 scenario result records, 4 drop-offs, 8 replay attempts, 41 reflections, and both-path completions. All sample addresses use the non-deliverable echoworks.invalid domain.
+The deterministic sample pack was written to the live `echoworks-e3b4d` project on 2026-07-24. It contains 12 synthetic learners, 61 scenario result records, 4 drop-offs, 8 replay attempts, 41 reflections, 53 latest-progress records, and both-path completions. All sample addresses use the non-deliverable `echoworks.invalid` domain.
 
 Important files:
 
@@ -126,9 +127,9 @@ npm run sample:seed -- --write --project=echoworks-e3b4d --confirm-project=echow
 
 Never commit, publish, or share the service-account file. The public firebase-config.js is not a private credential.
 
-GitHub Pages deployment is already defined in .github/workflows/pages.yml. Set repository Settings > Pages > Source to GitHub Actions, then push the release to main. Add the GitHub Pages host to Firebase Authentication > Settings > Authorized domains.
+GitHub Pages is live at `https://jinghua2128.github.io/EchoWorks/`; both the app and `admin.html` returned HTTP 200 on 2026-07-24. Deployment remains defined in `.github/workflows/pages.yml`.
 
-The updated rules and indexes passed local tests but are not deployed. The synthetic data has not been uploaded from this task. After deployment, use disposable accounts to verify live reset/verification emails, cross-device merge, cloud deletion, owner access, viewer access, and viewer management.
+Firestore rules and indexes were deployed successfully to `echoworks-e3b4d` on 2026-07-24. Firebase Authentication has email/password enabled and authorizes `jinghua2128.github.io`. The active Authentication account `liuguangxuan1230@gmail.com` has a matching `dashboardAdminEmails` owner profile. A REST batch read verified all 168 expected records: 1 owner profile plus 167 deterministic sample documents.
 
 ## Authoritative Scenario Content
 
@@ -172,6 +173,8 @@ The pulse survey and game competency dimensions are reported separately; do not 
 
 ## Dialogue and AR Invariants
 
+- The dialogue panel and existing button share the same guarded progression path. Preserve panel click/tap, Enter/Space, text-selection protection, nested-control protection, and the 260ms cooldown.
+
 - Dialogue has a subtle line cue plus quiet typing blips after user interaction.
 - The sound toggle persists under `feedbackPlaybook.dialogueSound` and must respect autoplay restrictions.
 - Screen-reader output announces each complete line once with the speaker; do not restore character-by-character live announcements.
@@ -187,18 +190,16 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - `npm test`: 11/11 passed.
 - `npm run test:rules`: 5/5 Firestore emulator suites passed.
 - `npm run test:browser`: passed in Chrome 150.0.7871.184 and Edge 150.0.4078.83.
-- Browser coverage includes auth errors/reset/signup verification/logout, guest mode, optional survey/AR retry, four pulse answers, progress deletion dialog, both roles, reflection/replay, dashboard denial/owner access/filters/detail/viewer management, keyboard flow, and reduced motion.
+- Browser coverage includes auth errors/reset/signup verification/logout, guest mode, optional survey/AR retry, four pulse answers, progress deletion dialog, both roles, reflection/replay, dialogue panel click/tap, text-selection protection, input cooldown, dashboard denial/owner access/filters/detail/viewer management, keyboard flow, and reduced motion.
 - Axe serious/critical violations: 0 on app, scenario, and dashboard.
 - Responsive checks passed at 320px, 390px, short landscape, 768px, 1024px, 1440px, and 200%/400% equivalent reflow widths with 44px controls and no horizontal overflow.
 - Dashboard fixture: 75 learners and 300 result records rendered in about 40-50ms.
-- Firestore sample pack: 12 synthetic learners, 61 attempts, 4 drop-offs, 8 replays, 41 reflections, and 53 latest-progress records; dry run passed.
+- Firestore sample pack: 12 synthetic learners, 61 attempts, 4 drop-offs, 8 replays, 41 reflections, and 53 latest-progress records; dry run and all 168 live-document checks passed.
 - `npm audit --omit=dev --audit-level=moderate`: 0 vulnerabilities after `protobufjs` 7.6.5 patch.
 - Final build: 55 runtime files, all public routes returned HTTP 200.
 
 ## Known Limits
 
-- Firestore rules and indexes are local only until an authorized owner deploys them.
-- The deterministic sample pack is generated locally but has not been written to the live Firestore project.
 - Live Firebase email, cross-device, cloud deletion, and dashboard account flows need disposable production-project tests.
 - Firefox is not installed here; Safari is unavailable on Windows.
 - Automated zoom checks use equivalent CSS viewport widths; actual browser zoom still needs a manual pass.
@@ -207,15 +208,11 @@ The pulse survey and game competency dimensions are reported separately; do not 
 
 ## Working Tree
 
-The audit intentionally changed application, rules, tests, deployment, and documentation files listed in `AUDIT_REPORT.md`. `public/`, `node_modules/`, test artifacts, and logs are ignored. No git commit or deployment was created.
+The reviewed release is published on GitHub Pages. Firestore rules, indexes, owner access, authorized production domain, and sample data are live. At the time of this handoff, `.firebaserc` and `firebase.json` contain existing uncommitted Firebase CLI changes; preserve and review them rather than resetting them.
 
 ## Next Steps
 
-1. Read FIREBASE_GITHUB_PAGES.md or FIREBASE_GITHUB_PAGES.zh-CN.md.
-2. Store a newly generated service-account key outside the repository on D: and set GOOGLE_APPLICATION_CREDENTIALS only in the trusted PowerShell session.
-3. Deploy Firestore rules and indexes with Application Default Credentials.
-4. Run the sample seed write command, sign in as the owner, and verify dashboard metrics and reflection detail.
-5. Push the reviewed release to main and set GitHub Pages source to GitHub Actions.
-6. Add the GitHub Pages host to Firebase Authentication authorized domains and run disposable-account live checks.
-7. Run Firefox/Safari keyboard and zoom checks, then test the printed AR card on physical Android and iOS devices over HTTPS.
-8. Review the working tree and commit the release as one intentional change.
+1. Sign in at the live site as `liuguangxuan1230@gmail.com`, refresh once if the session predates the permission update, and verify the Dashboard link, metrics, reflection detail, and viewer management.
+2. Use disposable accounts to test verification/reset email, cross-device merge, cloud deletion, and owner/viewer access end to end.
+3. Run Firefox/Safari keyboard and zoom checks, then test the printed AR card on physical Android and iOS devices over HTTPS.
+4. Review the existing `.firebaserc`, `firebase.json`, and handoff changes before the next intentional commit.
