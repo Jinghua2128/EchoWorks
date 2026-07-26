@@ -1522,3 +1522,31 @@ body.novel-page .role-card {
     animation: none;
   }
 }
+
+/* Generated character model cutouts */
+.role-portrait img {
+  top: -6px;
+  bottom: auto;
+  left: 50%;
+  width: auto;
+  height: 148%;
+}
+
+.role-card[data-role="manager"] .role-portrait img {
+  left: 50%;
+}
+
+.character.manager {
+  right: 5px;
+}
+
+.character.sarah {
+  left: 5px;
+}
+/* Generated model mobile framing */
+@media (max-width: 760px) {
+  .character {
+    bottom: 170px;
+    height: 38vh;
+  }
+}

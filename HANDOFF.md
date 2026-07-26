@@ -1,6 +1,6 @@
 # EchoWorks Project Handoff
 
-Updated: 2026-07-25 (Asia/Singapore)
+Updated: 2026-07-26 (Asia/Singapore)
 
 Chinese handoff: [HANDOFF.zh-CN.md](HANDOFF.zh-CN.md)
 
@@ -180,6 +180,7 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - Screen-reader output announces each complete line once with the speaker; do not restore character-by-character live announcements.
 - Keep the existing screen-swipe transition and reduced-motion fallback.
 - Do not flip character images.
+- Scenario characters currently use lightweight pre-rendered 3D model frames configured in assets/characters/character-models.js; replace the four manager/employee idle/talk paths there. This is not a real-time Three.js character runtime.
 - Current AR is web-based card recognition/manual learning, not a Unity package or world-anchored AR.
 - Camera code remains lazy and requires HTTPS or localhost.
 - Always retain manual card selection when camera/MindAR/BarcodeDetector is unavailable.
@@ -187,7 +188,7 @@ The pulse survey and game competency dimensions are reported separately; do not 
 ## Verification Completed
 
 - `npm run check`: passed.
-- `npm test`: 11/11 passed.
+- `npm test`: 12/12 passed.
 - `npm run test:rules`: 5/5 Firestore emulator suites passed.
 - `npm run test:browser`: passed in Chrome 150.0.7871.184 and Edge 150.0.4078.83.
 - Browser coverage includes auth errors/reset/signup verification/logout, guest mode, optional survey/AR retry, four pulse answers, progress deletion dialog, both roles, reflection/replay, dialogue panel click/tap, text-selection protection, input cooldown, dashboard denial/owner access/filters/detail/viewer management, keyboard flow, and reduced motion.
@@ -196,7 +197,7 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - Dashboard fixture: 75 learners and 300 result records rendered in about 40-50ms.
 - Firestore sample pack: 12 synthetic learners, 61 attempts, 4 drop-offs, 8 replays, 41 reflections, and 53 latest-progress records; dry run and all 168 live-document checks passed.
 - `npm audit --omit=dev --audit-level=moderate`: 0 vulnerabilities after `protobufjs` 7.6.5 patch.
-- Final build: 55 runtime files, all public routes returned HTTP 200.
+- Final build: 61 runtime files, including four optimized transparent model frames; all public routes returned HTTP 200.
 
 ## Known Limits
 

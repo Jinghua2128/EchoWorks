@@ -21,3 +21,13 @@ test("public routes include production metadata and safe scenario redirect", asy
   assert.equal(firebase.includes('"public":  "public"') || firebase.includes('"public": "public"'), true);
   await access(new URL("assets/vendor/gsap/gsap.min.js", root));
 });
+test("generated character model frames are centralized and deployable", async () => {
+  const { characterModels } = await import("../assets/characters/character-models.js");
+  const scenario = await text("scenario.html");
+  assert.match(scenario, /data-character-model="manager"/);
+  assert.match(scenario, /data-character-model="employee"/);
+  for (const model of Object.values(characterModels)) {
+    await access(new URL(model.idle, root));
+    await access(new URL(model.talk, root));
+  }
+});

@@ -1,6 +1,6 @@
 # EchoWorks 项目交接文档
 
-更新日期：2026-07-25（Asia/Singapore）
+更新日期：2026-07-26（Asia/Singapore）
 
 English handoff: [HANDOFF.md](HANDOFF.md)
 
@@ -152,12 +152,13 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 
 - 对话框与原有按钮共用同一套受保护的推进逻辑；保留点击/触摸、Enter/Space、文字选择保护、内部控件保护和 260ms 输入冷却。
 - 保留屏幕滑动转场、打字音效、静音设置和减少动态效果支持。
+- 当前情景角色使用轻量预渲染 3D 模型帧，统一配置在 assets/characters/character-models.js；以后只需在那里更换经理/员工的 idle 与 talk 四个路径。这不是实时 Three.js 角色系统。
 - 不要翻转角色图片；相机识别不可用时继续提供 AR 手动选卡。
 
 ## 已通过测试
 
 - npm run check：通过。
-- npm test：11/11 通过。
+- npm test：12/12 通过。
 - npm run test:rules：5/5 Firestore 模拟器套件通过。
 - npm run test:browser：Chrome 与 Edge 通过，包括对话框点击/触摸、文字选择保护、键盘操作和输入冷却。
 - app、scenario、dashboard 的 Axe serious/critical 问题：0。

@@ -1,5 +1,6 @@
 import { ensureFirestore, loadFirebaseAuthClient } from "./firebase-client.js";
 import { choiceClassification, prepareVisibleSceneLines } from "./scenario-engine.js";
+import { characterModels } from "../characters/character-models.js";
 import {
   completionForRole,
   mergeCloudScenarioRecords,
@@ -593,6 +594,19 @@ function preloadImage(src) {
   image.src = src;
 }
 
+function applyCharacterModels() {
+  Object.entries(characterModels).forEach(([character, assets]) => {
+    document.querySelectorAll(`[data-character-model="${character}"]`).forEach(element => {
+      element.src = assets.idle;
+      if (element.classList.contains("character")) {
+        element.dataset.idle = assets.idle;
+        element.dataset.talk = assets.talk;
+      }
+    });
+    preloadImage(assets.idle);
+    preloadImage(assets.talk);
+  });
+}
 function sceneToneFor(scene) {
   return scene?.tone || "neutral";
 }
@@ -1410,6 +1424,7 @@ function bindEvents() {
   });
 }
 
+applyCharacterModels();
 bindEvents();
 restartScenario();
 initFirebase();
