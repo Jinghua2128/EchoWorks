@@ -1,6 +1,6 @@
 import { ensureFirestore, loadFirebaseAuthClient } from "./firebase-client.js";
 import { choiceClassification, prepareVisibleSceneLines } from "./scenario-engine.js";
-import { characterModels } from "../characters/character-models.js";
+import { characterModels } from "../characters/character-models.js?v=20260726-lowpoly";
 import {
   completionForRole,
   mergeCloudScenarioRecords,

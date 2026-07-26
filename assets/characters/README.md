@@ -1,6 +1,6 @@
 # Character Model Assets
 
-The scenario currently uses lightweight pre-rendered 3D character frames. This keeps loading fast on phones while preserving the existing idle/speaking image swap.
+The scenario uses lightweight pre-rendered low-poly 3D frames based directly on the original manager and Sarah artwork. This keeps loading fast on phones while preserving the existing idle/speaking image swap.
 
 ## Replace A Model
 
@@ -11,6 +11,13 @@ The four active paths are defined in [character-models.js](character-models.js):
 - employee.idle
 - employee.talk
 
-For the simplest replacement, overwrite the four WebP files with the same names and no code changes are needed. If the filenames change, edit only character-models.js.
+The current files are:
 
-Keep each asset as a transparent WebP with one full-body character, consistent framing between idle and talk frames, and no mirrored image. The speaking frame should keep the same identity, scale, lighting, and body placement so the swap does not jump.
+- manager-lowpoly-idle.webp
+- manager-lowpoly-talk.webp
+- sarah-lowpoly-idle.webp
+- sarah-lowpoly-talk.webp
+
+For the simplest replacement, overwrite those four WebP files with the same names and no code changes are needed. If the filenames change, edit only character-models.js.
+
+Keep each asset as a transparent 1024 by 1536 WebP with one full-body character. Idle and talking frames must keep identical framing, pose, orientation, lighting, and geometry; only the mouth should change. Never mirror either character.
