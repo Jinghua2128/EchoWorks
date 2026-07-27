@@ -1225,7 +1225,7 @@ function renderPrintableArCards() {
 }
 
 async function loadArCards() {
-  const response = await fetch(`${arCardsFile}?v=20260724`);
+  const response = await fetch(`${arCardsFile}?v=20260727-ar8`);
   if (!response.ok) throw new Error("AR card content could not be loaded.");
 
   const data = await response.json();
@@ -1285,8 +1285,12 @@ function setCameraButtonBusy(busy) {
   button.textContent = busy ? button.dataset.busyLabel : "Start camera";
 }
 
-function imageTargetCard() {
-  return arCardData?.cards.find(card => card.imageTarget?.src);
+function imageTargetCards() {
+  const cards = arCardData?.cards.filter(card => card.imageTarget?.src) || [];
+  if (!cards.length) return [];
+
+  const targetSource = cards[0].imageTarget.src;
+  return cards.filter(card => card.imageTarget.src === targetSource);
 }
 
 function stopMindarTracking() {
@@ -1339,7 +1343,7 @@ function handleImageTargetLost() {
   mindarLostTimer = window.setTimeout(() => {
     if (mindarTargetVisible || arCameraMode !== "image") return;
     if (arOverlay) arOverlay.hidden = true;
-    setMessage("cameraMessage", "Card lost. Hold the Recognise artwork steady inside the frame.");
+    setMessage("cameraMessage", "Card lost. Hold a CARE or REAL card steady inside the frame.");
   }, 700);
 }
 
@@ -1349,15 +1353,14 @@ function cameraCancellationError() {
   return error;
 }
 
-async function startImageTargetCamera(card) {
+async function startImageTargetCamera(cards) {
   const { MindARThree } = await import("mindar-image-three");
-  const targetIndex = Number.isInteger(card.imageTarget.targetIndex)
-    ? card.imageTarget.targetIndex
-    : 0;
+  const targetSource = cards[0]?.imageTarget?.src;
+  if (!targetSource) throw new Error("AR image targets are unavailable.");
 
   const tracker = new MindARThree({
     container: arMindarSurface,
-    imageTargetSrc: card.imageTarget.src,
+    imageTargetSrc: targetSource,
     maxTrack: 1,
     uiLoading: "no",
     uiScanning: "no",
@@ -1369,16 +1372,21 @@ async function startImageTargetCamera(card) {
   mindarTracker = tracker;
   mindarRenderer = renderer;
 
-  const anchor = tracker.addAnchor(targetIndex);
-  anchor.onTargetFound = () => handleImageTargetFound(card);
-  anchor.onTargetLost = handleImageTargetLost;
+  cards.forEach(card => {
+    const targetIndex = Number.isInteger(card.imageTarget.targetIndex)
+      ? card.imageTarget.targetIndex
+      : 0;
+    const anchor = tracker.addAnchor(targetIndex);
+    anchor.onTargetFound = () => handleImageTargetFound(card);
+    anchor.onTargetLost = handleImageTargetLost;
+  });
 
   if (arOverlay) arOverlay.hidden = true;
   cameraPreview.hidden = true;
   cameraEmpty.hidden = true;
   arCameraMode = "image";
   arCameraFrame.classList.add("camera-active", "image-tracking");
-  setMessage("cameraMessage", "Requesting camera access to scan the REAL Recognise card.");
+  setMessage("cameraMessage", "Requesting camera access to scan the CARE and REAL cards.");
 
   try {
     await tracker.start();
@@ -1412,7 +1420,7 @@ async function startImageTargetCamera(card) {
 
   setMessage(
     "cameraMessage",
-    "Camera is active. Hold the REAL Recognise artwork flat inside the frame.",
+    "Camera is active. Hold any CARE or REAL card flat inside the frame.",
     "success"
   );
 }
@@ -1468,11 +1476,11 @@ async function startCamera() {
   setCameraButtonBusy(true);
   try {
     stopCamera({ cancelPending: false });
-    const targetCard = imageTargetCard();
+    const targetCards = imageTargetCards();
 
-    if (targetCard && "WebGLRenderingContext" in window) {
+    if (targetCards.length && "WebGLRenderingContext" in window) {
       try {
-        await startImageTargetCamera(targetCard);
+        await startImageTargetCamera(targetCards);
         return;
       } catch (error) {
         if (error?.cameraCancelled || startToken !== cameraStartToken) throw error;

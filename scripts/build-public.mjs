@@ -25,6 +25,9 @@ const runtimeFiles = [
 ];
 const runtimeDirectories = [
   "assets/ar",
+  "assets/ar-cards",
+  "assets/ar-models",
+  "assets/ar-targets",
   "assets/characters",
   "assets/css",
   "assets/data",

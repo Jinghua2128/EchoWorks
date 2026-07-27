@@ -28,7 +28,7 @@
   <title>Feedback Playbook | Singapore Red Cross</title>
   <link rel="preconnect" href="https://www.gstatic.com" />
   <link rel="preload" as="image" href="assets/office-vn.webp" />
-  <link rel="stylesheet" href="assets/css/app.css?v=20260724-layout3" />
+  <link rel="stylesheet" href="assets/css/app.css?v=20260727-ar8" />
   <script type="importmap">
     {
       "imports": {
@@ -38,7 +38,7 @@
       }
     }
   </script>
-  <script type="module" src="assets/js/app.js?v=20260724-layout3"></script>
+  <script type="module" src="assets/js/app.js?v=20260727-ar8"></script>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -366,7 +366,7 @@
           <div>
             <p class="section-label">Interactive workshop</p>
             <h1 id="arTitle">CARE and REAL AR cards</h1>
-            <p class="lead">Scan the REAL Recognise card to reveal its coaching prompt, or choose any framework card for the same experience without camera access.</p>
+            <p class="lead">Scan any CARE or REAL card to reveal its matching coaching prompt and character pose, or choose a card manually when camera recognition is unavailable.</p>
           </div>
         </header>
 
@@ -379,12 +379,12 @@
               <div class="camera-empty" id="cameraEmpty">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.4-2h7.2L17 8h3v11H4V8Zm8 8.2A3.2 3.2 0 1 0 12 9.8a3.2 3.2 0 0 0 0 6.4Z" /></svg>
                 <strong id="cameraTitle">AR card viewer</strong>
-                <span>Start the camera to scan the REAL Recognise card.</span>
+                <span>Start the camera to scan any CARE or REAL card.</span>
               </div>
               <div class="ar-reticle" aria-hidden="true"><span></span></div>
               <article class="ar-overlay" id="arOverlay" aria-live="polite" hidden>
                 <div class="ar-visual" id="arVisual">
-                  <img id="arCharacterImage" src="assets/manager.webp" alt="" width="1600" height="900" decoding="async" />
+                  <img id="arCharacterImage" src="assets/ar-models/REAL_R.webp" alt="" width="1024" height="1536" decoding="async" />
                   <span class="ar-effect" id="arEffect" aria-hidden="true"></span>
                 </div>
                 <div class="ar-overlay-copy">
@@ -414,7 +414,7 @@
               </div>
             </div>
             <div class="ar-card-picker" id="arCardPicker" aria-label="Available AR cards"></div>
-            <p class="ar-fallback-note" id="arSupportNote">Recognise supports artwork scanning. Choose another card to preview it without the camera.</p>
+            <p class="ar-fallback-note" id="arSupportNote">All eight cards support artwork scanning. Manual selection remains available on every device.</p>
           </aside>
         </div>
 

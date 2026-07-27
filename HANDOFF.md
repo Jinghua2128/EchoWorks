@@ -1,6 +1,6 @@
 # EchoWorks Project Handoff
 
-Updated: 2026-07-26 (Asia/Singapore)
+Updated: 2026-07-27 (Asia/Singapore)
 
 Chinese handoff: [HANDOFF.zh-CN.md](HANDOFF.zh-CN.md)
 
@@ -181,7 +181,8 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - Keep the existing screen-swipe transition and reduced-motion fallback.
 - Do not flip character images.
 - Scenario characters use lightweight pre-rendered low-poly 3D frames based directly on assets/manager.png, assets/manager_talk.png, assets/sarah.png, and assets/sarah_talk.png. Active paths are centralized in assets/characters/character-models.js. This is not a real-time Three.js character runtime.
-- Current AR is web-based card recognition/manual learning, not a Unity package or world-anchored AR.
+- Current AR is web-based card recognition/manual learning, not a Unity package or world-anchored AR. One local MindAR bundle at `assets/ar-targets/echoworks-cards.mind` recognizes all eight physical CARE/REAL artworks.
+- Physical card sources are in `assets/ar-cards`; matching transparent low-poly poses are in `assets/ar-models`. Filenames share the exact card IDs. Target indexes are fixed as REAL_R, REAL_E, REAL_A, REAL_L, CARE_C, CARE_A, CARE_R, CARE_E (0 through 7).
 - Camera code remains lazy and requires HTTPS or localhost.
 - Always retain manual card selection when camera/MindAR/BarcodeDetector is unavailable.
 
@@ -197,14 +198,14 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - Dashboard fixture: 75 learners and 300 result records rendered in about 40-50ms.
 - Firestore sample pack: 12 synthetic learners, 61 attempts, 4 drop-offs, 8 replays, 41 reflections, and 53 latest-progress records; dry run and all 168 live-document checks passed.
 - `npm audit --omit=dev --audit-level=moderate`: 0 vulnerabilities after `protobufjs` 7.6.5 patch.
-- Final build: 61 runtime files, including four optimized transparent low-poly frames faithful to the original character art; all public routes returned HTTP 200.
+- Final AR build: 81 runtime files, including eight supplied physical card artworks, eight card-specific transparent low-poly poses, and one locally compiled 2.44 MB MindAR version-2 bundle containing eight 2048px targets.
 
 ## Known Limits
 
 - Live Firebase email, cross-device, cloud deletion, and dashboard account flows need disposable production-project tests.
 - Firefox is not installed here; Safari is unavailable on Windows.
 - Automated zoom checks use equivalent CSS viewport widths; actual browser zoom still needs a manual pass.
-- A physical Android/iOS printed-card camera test over HTTPS remains required.
+- Physical Android/iOS camera tests of all eight printed cards over HTTPS remain required; automated checks verify target structure and manual previews, not real-world camera recognition.
 - Legacy Firestore attempts never rewritten may still contain embedded reflection text and may need an owner migration.
 
 ## Working Tree
@@ -215,5 +216,5 @@ The reviewed release is published on GitHub Pages. Firestore rules, indexes, own
 
 1. Sign in at the live site as `liuguangxuan1230@gmail.com`, refresh once if the session predates the permission update, and verify the Dashboard link, metrics, reflection detail, and viewer management.
 2. Use disposable accounts to test verification/reset email, cross-device merge, cloud deletion, and owner/viewer access end to end.
-3. Run Firefox/Safari keyboard and zoom checks, then test the printed AR card on physical Android and iOS devices over HTTPS.
+3. Run Firefox/Safari keyboard and zoom checks, then test all eight printed AR cards on physical Android and iOS devices over HTTPS.
 4. Review the existing `.firebaserc`, `firebase.json`, and handoff changes before the next intentional commit.

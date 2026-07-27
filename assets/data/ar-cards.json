@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-18-mdc-ar",
+  "version": "2026-07-27-eight-card-ar",
   "source": {
     "documentTitle": "MDC",
     "documentId": "1oGnbsktUpmwYl7eKtUz7RdCh4wBEwORAPmTJfrYEJw0",
@@ -18,12 +18,12 @@
       "letter": "R",
       "title": "Recognise",
       "imageTarget": {
-        "src": "assets/ar/recognise.mind",
-        "sourceImage": "assets/ar/Recognise.png",
+        "src": "assets/ar-targets/echoworks-cards.mind",
+        "sourceImage": "assets/ar-cards/REAL_R.png",
         "targetIndex": 0
       },
       "character": "Alex",
-      "characterImage": "assets/manager.webp",
+      "characterImage": "assets/ar-models/REAL_R.webp",
       "animation": "spotlight",
       "visual": "Alex holding a torch. The beam sweeps across and lights up a glowing figure.",
       "physicalText": "Name what they did. Specifically.",
@@ -43,7 +43,7 @@
       "letter": "E",
       "title": "Evaluate",
       "character": "Alex",
-      "characterImage": "assets/manager.webp",
+      "characterImage": "assets/ar-models/REAL_E.webp",
       "animation": "balance",
       "visual": "Alex holding a scale. It tips left, tips right, then slowly balances in the centre.",
       "physicalText": "Weigh evidence. Not feelings.",
@@ -53,7 +53,12 @@
         "Consistent with others?",
         "Both sides covered?"
       ],
-      "watchOut": "Don't let likeability tip the scale."
+      "watchOut": "Don't let likeability tip the scale.",
+      "imageTarget": {
+        "src": "assets/ar-targets/echoworks-cards.mind",
+        "sourceImage": "assets/ar-cards/REAL_E.png",
+        "targetIndex": 1
+      }
     },
     {
       "id": "real-a",
@@ -63,7 +68,7 @@
       "letter": "A",
       "title": "Advise",
       "character": "Alex",
-      "characterImage": "assets/manager.webp",
+      "characterImage": "assets/ar-models/REAL_A.webp",
       "animation": "compass",
       "visual": "Alex holding a compass. The needle spins then settles, Alex points forward.",
       "physicalText": "Ask first. Then guide.",
@@ -73,7 +78,12 @@
         "Is the next step specific?",
         "Does it feel doable?"
       ],
-      "watchOut": "Don't tell before you ask."
+      "watchOut": "Don't tell before you ask.",
+      "imageTarget": {
+        "src": "assets/ar-targets/echoworks-cards.mind",
+        "sourceImage": "assets/ar-cards/REAL_A.png",
+        "targetIndex": 2
+      }
     },
     {
       "id": "real-l",
@@ -83,7 +93,7 @@
       "letter": "L",
       "title": "Link",
       "character": "Alex",
-      "characterImage": "assets/manager.webp",
+      "characterImage": "assets/ar-models/REAL_L.webp",
       "animation": "bridge",
       "visual": "Alex standing on one side of a gap. A bridge extends forward and connects to the other side.",
       "physicalText": "Connect today to tomorrow.",
@@ -93,7 +103,12 @@
         "Connected to team impact?",
         "Did I leave room for growth?"
       ],
-      "watchOut": "Feedback without meaning won't stick."
+      "watchOut": "Feedback without meaning won't stick.",
+      "imageTarget": {
+        "src": "assets/ar-targets/echoworks-cards.mind",
+        "sourceImage": "assets/ar-cards/REAL_L.png",
+        "targetIndex": 3
+      }
     },
     {
       "id": "care-c",
@@ -103,7 +118,7 @@
       "letter": "C",
       "title": "Compose",
       "character": "Jamie",
-      "characterImage": "assets/sarah.webp",
+      "characterImage": "assets/ar-models/CARE_C.webp",
       "animation": "breathe",
       "visual": "Jamie seated, eyes closed. A slow visible breath in and out. Small ripple radiates outward.",
       "physicalText": "Pause. Breathe. Receive.",
@@ -113,7 +128,12 @@
         "Reacting or receiving?",
         "Feeling or fact?"
       ],
-      "watchOut": "Don't respond while triggered."
+      "watchOut": "Don't respond while triggered.",
+      "imageTarget": {
+        "src": "assets/ar-targets/echoworks-cards.mind",
+        "sourceImage": "assets/ar-cards/CARE_C.png",
+        "targetIndex": 4
+      }
     },
     {
       "id": "care-a",
@@ -123,7 +143,7 @@
       "letter": "A",
       "title": "Analyze",
       "character": "Jamie",
-      "characterImage": "assets/sarah.webp",
+      "characterImage": "assets/ar-models/CARE_A.webp",
       "animation": "magnify",
       "visual": "Jamie holding a magnifying glass over blurry text. It slowly sharpens into focus.",
       "physicalText": "Focus on what. Not who.",
@@ -133,7 +153,12 @@
         "Assuming intent?",
         "Separating relationship from content?"
       ],
-      "watchOut": "Don't let the relationship blur the message."
+      "watchOut": "Don't let the relationship blur the message.",
+      "imageTarget": {
+        "src": "assets/ar-targets/echoworks-cards.mind",
+        "sourceImage": "assets/ar-cards/CARE_A.png",
+        "targetIndex": 5
+      }
     },
     {
       "id": "care-r",
@@ -143,7 +168,7 @@
       "letter": "R",
       "title": "Resolve",
       "character": "Jamie",
-      "characterImage": "assets/sarah.webp",
+      "characterImage": "assets/ar-models/CARE_R.webp",
       "animation": "question",
       "visual": "Jamie with hand raised. A glowing question mark appears above them.",
       "physicalText": "Unclear? Ask. Privately.",
@@ -153,7 +178,12 @@
         "Asked for a specific example?",
         "Asked privately?"
       ],
-      "watchOut": "Silence leads to unchanged behaviour."
+      "watchOut": "Silence leads to unchanged behaviour.",
+      "imageTarget": {
+        "src": "assets/ar-targets/echoworks-cards.mind",
+        "sourceImage": "assets/ar-cards/CARE_R.png",
+        "targetIndex": 6
+      }
     },
     {
       "id": "care-e",
@@ -163,7 +193,7 @@
       "letter": "E",
       "title": "Execute",
       "character": "Jamie",
-      "characterImage": "assets/sarah.webp",
+      "characterImage": "assets/ar-models/CARE_E.webp",
       "animation": "steps",
       "visual": "Jamie at the bottom of a staircase. Steps light up one by one as Jamie climbs.",
       "physicalText": "Small steps. Real change.",
@@ -173,7 +203,12 @@
         "Timeline in place?",
         "Habit or one-time fix?"
       ],
-      "watchOut": "Don't wait for the next deadline to start."
+      "watchOut": "Don't wait for the next deadline to start.",
+      "imageTarget": {
+        "src": "assets/ar-targets/echoworks-cards.mind",
+        "sourceImage": "assets/ar-cards/CARE_E.png",
+        "targetIndex": 7
+      }
     }
   ],
   "workshop": {

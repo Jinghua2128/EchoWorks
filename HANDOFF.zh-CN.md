@@ -1,6 +1,6 @@
 # EchoWorks 项目交接文档
 
-更新日期：2026-07-26（Asia/Singapore）
+更新日期：2026-07-27（Asia/Singapore）
 
 English handoff: [HANDOFF.md](HANDOFF.md)
 
@@ -154,6 +154,8 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 - 保留屏幕滑动转场、打字音效、静音设置和减少动态效果支持。
 - 当前情景角色使用直接依据 assets/manager.png、assets/manager_talk.png、assets/sarah.png 和 assets/sarah_talk.png 制作的轻量预渲染低多边形 3D 帧。启用路径统一配置在 assets/characters/character-models.js。这不是实时 Three.js 角色系统。
 - 不要翻转角色图片；相机识别不可用时继续提供 AR 手动选卡。
+- `assets/ar-targets/echoworks-cards.mind` 是本地编译的单一 MindAR 目标包，可识别全部 8 张 CARE/REAL 实体卡。实体卡源图位于 `assets/ar-cards`，同名透明低多边形姿势图位于 `assets/ar-models`。
+- 目标索引固定为 REAL_R、REAL_E、REAL_A、REAL_L、CARE_C、CARE_A、CARE_R、CARE_E，对应索引 0 到 7；修改卡图或顺序后必须重新编译整个目标包。
 
 ## 已通过测试
 
@@ -163,6 +165,7 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 - npm run test:browser：Chrome 与 Edge 通过，包括对话框点击/触摸、文字选择保护、键盘操作和输入冷却。
 - app、scenario、dashboard 的 Axe serious/critical 问题：0。
 - 320px、390px、横屏、768px、1024px、1440px 和等效高倍缩放检查通过。
+- AR 生产构建包含 81 个文件；8 张实体卡、8 张不同姿势透明角色图和一个 2.44 MB MindAR v2 目标包均已通过结构、透明度、手动预览和响应式检查。
 - 示例数据导出、dry run 和 168 份正式文档逐一检查通过。
 - 生产构建只包含白名单运行文件。
 
@@ -170,12 +173,12 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 
 - 需要使用临时真实账号测试验证邮件、密码重设、跨设备合并、云端删除和 owner/viewer 权限。
 - Windows 环境没有完成 Firefox 和 Safari 测试。
-- 需要在真实 Android/iOS 设备上通过 HTTPS 测试实体 AR 卡。
+- 仍需在真实 Android/iOS 设备上通过 HTTPS 测试全部 8 张实体 AR 卡；自动测试只验证目标包和手动预览，不代表真实相机识别已经验证。
 - 旧 Firestore 记录可能仍含内嵌 reflectionAnswers，需要 owner 后续迁移。
 
 ## 下一步
 
 1. 在正式网站使用 `liuguangxuan1230@gmail.com` 登录；如果登录状态早于权限更新，刷新一次，然后检查 Dashboard 导航、指标、反思详情和 viewer 管理。
 2. 使用临时真实账号完成验证邮件、密码重设、跨设备合并、云端删除和 owner/viewer 权限测试。
-3. 完成 Firefox、Safari、键盘、高倍缩放和实体手机 AR 卡测试。
+3. 完成 Firefox、Safari、键盘、高倍缩放和全部 8 张实体手机 AR 卡测试。
 4. 下次提交前检查现有的 `.firebaserc`、`firebase.json` 和交接文档修改，不要直接重置。
