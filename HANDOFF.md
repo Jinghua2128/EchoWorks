@@ -180,7 +180,8 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - Screen-reader output announces each complete line once with the speaker; do not restore character-by-character live announcements.
 - Keep the existing screen-swipe transition and reduced-motion fallback.
 - Do not flip character images.
-- Scenario characters use lightweight pre-rendered low-poly 3D frames based directly on assets/manager.png, assets/manager_talk.png, assets/sarah.png, and assets/sarah_talk.png. Active paths are centralized in assets/characters/character-models.js. This is not a real-time Three.js character runtime.
+- Scenario characters use 12 lightweight pre-rendered low-poly frames: three synchronized idle/talk pose pairs per character. Paths are centralized in `assets/characters/character-models.js`; speaker, mood, tone, and turn-based pose selection live in `assets/js/novel.js`. This is not a real-time Three.js character runtime.
+- Each scenario has a location background from `assets/scenes` (meeting room, review office, corridor, or planning workspace). Coach feedback may switch to the existing success/tense/mentor backdrop while preserving the screen-swipe transition.
 - Current AR is web-based card recognition/manual learning, not a Unity package or world-anchored AR. One local MindAR bundle at `assets/ar-targets/echoworks-cards.mind` recognizes all eight physical CARE/REAL artworks.
 - Physical card sources are in `assets/ar-cards`; matching transparent low-poly poses are in `assets/ar-models`. Filenames share the exact card IDs. Target indexes are fixed as REAL_R, REAL_E, REAL_A, REAL_L, CARE_C, CARE_A, CARE_R, CARE_E (0 through 7).
 - Camera code remains lazy and requires HTTPS or localhost.
@@ -198,7 +199,7 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - Dashboard fixture: 75 learners and 300 result records rendered in about 40-50ms.
 - Firestore sample pack: 12 synthetic learners, 61 attempts, 4 drop-offs, 8 replays, 41 reflections, and 53 latest-progress records; dry run and all 168 live-document checks passed.
 - `npm audit --omit=dev --audit-level=moderate`: 0 vulnerabilities after `protobufjs` 7.6.5 patch.
-- Final AR build: 81 runtime files, including eight supplied physical card artworks, eight card-specific transparent low-poly poses, and one locally compiled 2.44 MB MindAR version-2 bundle containing eight 2048px targets.
+- Final build: 93 runtime files, including 12 scenario character frames, four location backgrounds, eight supplied physical card artworks, eight card-specific AR poses, and one locally compiled 2.44 MB MindAR version-2 bundle.
 
 ## Known Limits
 

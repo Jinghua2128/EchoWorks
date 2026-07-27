@@ -21,13 +21,25 @@ test("public routes include production metadata and safe scenario redirect", asy
   assert.equal(firebase.includes('"public":  "public"') || firebase.includes('"public": "public"'), true);
   await access(new URL("assets/vendor/gsap/gsap.min.js", root));
 });
-test("generated character model frames are centralized and deployable", async () => {
+test("dynamic character poses and scenario backgrounds are centralized and deployable", async () => {
   const { characterModels } = await import("../assets/characters/character-models.js");
-  const scenario = await text("scenario.html");
-  assert.match(scenario, /data-character-model="manager"/);
-  assert.match(scenario, /data-character-model="employee"/);
+  const scenarioMarkup = await text("scenario.html");
+  const scenarioLibrary = JSON.parse(await text("assets/data/scenarios/scenario-library.json"));
+  assert.match(scenarioMarkup, /data-character-model="manager"/);
+  assert.match(scenarioMarkup, /data-character-model="employee"/);
+
   for (const model of Object.values(characterModels)) {
-    await access(new URL(model.idle, root));
-    await access(new URL(model.talk, root));
+    assert.ok(model.poses[model.defaultPose]);
+    assert.ok(Object.keys(model.poses).length >= 3);
+    for (const pose of Object.values(model.poses)) {
+      await access(new URL(pose.idle, root));
+      await access(new URL(pose.talk, root));
+    }
+  }
+
+  const sceneBackgrounds = scenarioLibrary.scenarios.map(scenario => scenario.background);
+  assert.equal(new Set(sceneBackgrounds).size, 4);
+  for (const background of new Set(sceneBackgrounds)) {
+    await access(new URL(scenarioLibrary.assets.backgrounds[background], root));
   }
 });

@@ -32,6 +32,7 @@ const runtimeDirectories = [
   "assets/css",
   "assets/data",
   "assets/js",
+  "assets/scenes",
   "assets/vendor/gsap",
   "assets/vendor/mindar"
 ];

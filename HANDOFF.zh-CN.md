@@ -152,8 +152,9 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 
 - 对话框与原有按钮共用同一套受保护的推进逻辑；保留点击/触摸、Enter/Space、文字选择保护、内部控件保护和 260ms 输入冷却。
 - 保留屏幕滑动转场、打字音效、静音设置和减少动态效果支持。
-- 当前情景角色使用直接依据 assets/manager.png、assets/manager_talk.png、assets/sarah.png 和 assets/sarah_talk.png 制作的轻量预渲染低多边形 3D 帧。启用路径统一配置在 assets/characters/character-models.js。这不是实时 Three.js 角色系统。
+- 当前情景角色使用 12 张轻量预渲染低多边形帧：每个角色各有 3 组对齐的静止/说话姿势。资源路径统一配置在 `assets/characters/character-models.js`，说话者、情绪、语气和轮次姿势选择位于 `assets/js/novel.js`。这不是实时 Three.js 角色系统。
 - 不要翻转角色图片；相机识别不可用时继续提供 AR 手动选卡。
+- 每个情景使用 `assets/scenes` 中的地点背景（会议室、绩效面谈办公室、走廊或规划工作区）；教练反馈可切换为原有 success/tense/mentor 背景，同时保留屏幕滑动转场。
 - `assets/ar-targets/echoworks-cards.mind` 是本地编译的单一 MindAR 目标包，可识别全部 8 张 CARE/REAL 实体卡。实体卡源图位于 `assets/ar-cards`，同名透明低多边形姿势图位于 `assets/ar-models`。
 - 目标索引固定为 REAL_R、REAL_E、REAL_A、REAL_L、CARE_C、CARE_A、CARE_R、CARE_E，对应索引 0 到 7；修改卡图或顺序后必须重新编译整个目标包。
 
@@ -165,7 +166,7 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 - npm run test:browser：Chrome 与 Edge 通过，包括对话框点击/触摸、文字选择保护、键盘操作和输入冷却。
 - app、scenario、dashboard 的 Axe serious/critical 问题：0。
 - 320px、390px、横屏、768px、1024px、1440px 和等效高倍缩放检查通过。
-- AR 生产构建包含 81 个文件；8 张实体卡、8 张不同姿势透明角色图和一个 2.44 MB MindAR v2 目标包均已通过结构、透明度、手动预览和响应式检查。
+- 生产构建包含 93 个文件；其中包括 12 张情景角色帧、4 张地点背景、8 张实体卡、8 张 AR 姿势图和一个 2.44 MB MindAR v2 目标包。
 - 示例数据导出、dry run 和 168 份正式文档逐一检查通过。
 - 生产构建只包含白名单运行文件。
 

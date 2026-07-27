@@ -1,6 +1,6 @@
 import { ensureFirestore, loadFirebaseAuthClient } from "./firebase-client.js";
 import { choiceClassification, prepareVisibleSceneLines } from "./scenario-engine.js";
-import { characterModels } from "../characters/character-models.js?v=20260726-lowpoly";
+import { characterModels } from "../characters/character-models.js?v=20260727-scenes";
 import {
   completionForRole,
   mergeCloudScenarioRecords,
@@ -76,6 +76,7 @@ let sceneOrder = [];
 let currentSceneId = "";
 let typingTimer = null;
 let talkingTimer = null;
+let characterPoseTurns = { manager: 0, employee: 0 };
 let pendingNext = null;
 let fullText = "";
 let typedIndex = 0;
@@ -559,6 +560,7 @@ function buildRuntimeScenario(entry, library, scriptLibrary) {
     followUpThreshold: 50,
     startScene,
     assets: library.assets,
+    defaultBackground: entry.background || "neutral",
     reflectionPrompts: roleSettings.reflectionPrompts,
     sceneOrder: Object.keys(scenes),
     scenes,
@@ -571,8 +573,8 @@ function buildRuntimeScenario(entry, library, scriptLibrary) {
 async function loadScenario(role) {
   if (!scenarioLibrary || !fullGameScript) {
     const [libraryResponse, scriptResponse] = await Promise.all([
-      fetch(`${scenarioLibraryFile}?v=20260724`),
-      fetch(`${fullGameScriptFile}?v=20260724`)
+      fetch(`${scenarioLibraryFile}?v=20260727-scenes`),
+      fetch(`${fullGameScriptFile}?v=20260727-scenes`)
     ]);
     if (!libraryResponse.ok) throw new Error("Scenario library could not be loaded.");
     if (!scriptResponse.ok) throw new Error("The FULL GAME SCRIPT could not be loaded.");
@@ -594,17 +596,37 @@ function preloadImage(src) {
   image.src = src;
 }
 
+function poseAssets(model, poseName) {
+  const defaultPose = model?.defaultPose || "neutral";
+  return model?.poses?.[poseName] || model?.poses?.[defaultPose] || model;
+}
+
+function setCharacterPose(element, modelKey, poseName) {
+  const model = characterModels[modelKey];
+  const resolvedPose = model?.poses?.[poseName] ? poseName : model?.defaultPose || "neutral";
+  const assets = poseAssets(model, resolvedPose);
+  if (!assets?.idle || !assets?.talk) return;
+
+  element.dataset.pose = resolvedPose;
+  element.dataset.idle = assets.idle;
+  element.dataset.talk = assets.talk;
+  element.src = assets.idle;
+}
+
 function applyCharacterModels() {
-  Object.entries(characterModels).forEach(([character, assets]) => {
+  Object.entries(characterModels).forEach(([character, model]) => {
+    const defaultAssets = poseAssets(model, model.defaultPose);
     document.querySelectorAll(`[data-character-model="${character}"]`).forEach(element => {
-      element.src = assets.idle;
+      element.src = defaultAssets.idle;
       if (element.classList.contains("character")) {
-        element.dataset.idle = assets.idle;
-        element.dataset.talk = assets.talk;
+        setCharacterPose(element, character, model.defaultPose);
       }
     });
-    preloadImage(assets.idle);
-    preloadImage(assets.talk);
+
+    Object.values(model.poses || { neutral: defaultAssets }).forEach(assets => {
+      preloadImage(assets.idle);
+      preloadImage(assets.talk);
+    });
   });
 }
 function sceneToneFor(scene) {
@@ -613,7 +635,15 @@ function sceneToneFor(scene) {
 
 function backgroundForScene(scene) {
   const backgrounds = scenario?.assets?.backgrounds || {};
-  return backgrounds[sceneToneFor(scene)] || backgrounds.neutral || "assets/office-vn.webp";
+  const tone = sceneToneFor(scene);
+  const isCoachScene = scene?.speaker === "HR Mentor" || / Coach$/.test(scene?.speaker || "");
+  const backgroundKey = scene?.background
+    || (isCoachScene ? tone : scenario?.defaultBackground)
+    || tone;
+  return backgrounds[backgroundKey]
+    || backgrounds[tone]
+    || backgrounds.neutral
+    || "assets/office-vn.webp";
 }
 
 function preloadSceneAssets(sceneId) {
@@ -752,26 +782,53 @@ function clearTimers() {
 }
 
 function speakerToCharacter(speaker, focus) {
+  if (focus === "employee") return "sarah";
   if (focus) return focus;
-  if (speaker === "Sarah") return "sarah";
-  if (speaker === "Manager") return "manager";
+
+  const normalizedSpeaker = String(speaker || "").trim().toLowerCase();
+  const managerName = String(scenario?.characters?.manager?.name || "Alex").toLowerCase();
+  const employeeName = String(scenario?.characters?.employee?.name || "Sarah").toLowerCase();
+  if (normalizedSpeaker === "manager" || normalizedSpeaker === managerName) return "manager";
+  if (normalizedSpeaker === "sarah" || normalizedSpeaker === "employee" || normalizedSpeaker === employeeName) return "sarah";
   return null;
 }
 
-function resetCharacter(element) {
+function poseForScene(scene, modelKey) {
+  const model = characterModels[modelKey];
+  const explicitPose = typeof scene?.pose === "string" ? scene.pose : scene?.pose?.[modelKey];
+  if (explicitPose && model?.poses?.[explicitPose]) return explicitPose;
+
+  if (scene?.mood === "frustrated") return modelKey === "employee" ? "attentive" : "reflect";
+  if (scene?.mood === "happy") return modelKey === "employee" ? "confident" : "explain";
+
+  const turn = characterPoseTurns[modelKey] || 0;
+  characterPoseTurns[modelKey] = turn + 1;
+  const tone = sceneToneFor(scene);
+  const tonePoses = {
+    tense: modelKey === "employee" ? ["attentive", "neutral"] : ["reflect", "neutral"],
+    success: modelKey === "employee" ? ["confident", "neutral"] : ["explain", "neutral"],
+    mentor: modelKey === "employee" ? ["confident", "attentive"] : ["reflect", "explain"]
+  };
+  const speakingPoses = tonePoses[tone] || model?.speakingPoses || [model?.defaultPose || "neutral"];
+  return speakingPoses[turn % speakingPoses.length];
+}
+
+function resetCharacter(element, modelKey) {
   element.classList.remove("active", "inactive", "visible", "happy", "frustrated", "decision-ready");
-  element.src = element.dataset.idle;
+  setCharacterPose(element, modelKey, characterModels[modelKey].defaultPose);
 }
 
 function setCharacters(scene) {
   const activeCharacter = speakerToCharacter(scene.speaker, scene.focus);
-  resetCharacter(managerEl);
-  resetCharacter(sarahEl);
+  resetCharacter(managerEl, "manager");
+  resetCharacter(sarahEl, "employee");
 
   if (activeCharacter === "manager") {
+    setCharacterPose(managerEl, "manager", poseForScene(scene, "manager"));
     managerEl.classList.add("visible", "active");
     sarahEl.classList.add("visible", "inactive");
   } else if (activeCharacter === "sarah") {
+    setCharacterPose(sarahEl, "employee", poseForScene(scene, "employee"));
     sarahEl.classList.add("visible", "active");
     managerEl.classList.add("visible", "inactive");
   } else if (Array.isArray(scene.choices) && scene.choices.length) {
@@ -1159,6 +1216,7 @@ function restartScenario() {
   scenes = {};
   sceneOrder = [];
   currentSceneId = "";
+  characterPoseTurns = { manager: 0, employee: 0 };
   pendingNext = null;
   fullText = "";
   isTyping = false;
@@ -1199,6 +1257,7 @@ async function selectRole(role) {
     ]);
     const nextScenario = await loadScenario(role);
     scenario = nextScenario;
+    characterPoseTurns = { manager: 0, employee: 0 };
     scenes = nextScenario.scenes;
     sceneOrder = nextScenario.sceneOrder || Object.keys(scenes);
     scenarioTitleEl.textContent = nextScenario.title;

@@ -1,12 +1,16 @@
 {
-  "version": "2026-07-17-mdc",
+  "version": "2026-07-27-dynamic-scenes",
   "source": "MDC Google Drive document / FULL GAME SCRIPT tab",
   "assets": {
     "backgrounds": {
       "neutral": "assets/office-vn.webp",
       "success": "assets/office-success.webp",
       "tense": "assets/office-tense.webp",
-      "mentor": "assets/office-mentor.webp"
+      "mentor": "assets/office-mentor.webp",
+      "meeting-room": "assets/scenes/meeting-room.webp",
+      "review-office": "assets/scenes/review-office.webp",
+      "office-corridor": "assets/scenes/office-corridor.webp",
+      "planning-workspace": "assets/scenes/planning-workspace.webp"
     }
   },
   "frameworks": {
@@ -14,10 +18,22 @@
       "id": "REAL",
       "name": "REAL feedback framework",
       "dimensions": [
-        { "id": "R", "label": "Recognise" },
-        { "id": "E", "label": "Evaluate" },
-        { "id": "A", "label": "Advise" },
-        { "id": "L", "label": "Link" }
+        {
+          "id": "R",
+          "label": "Recognise"
+        },
+        {
+          "id": "E",
+          "label": "Evaluate"
+        },
+        {
+          "id": "A",
+          "label": "Advise"
+        },
+        {
+          "id": "L",
+          "label": "Link"
+        }
       ],
       "feedback": {
         "R": {
@@ -46,10 +62,22 @@
       "id": "CARE",
       "name": "CARE feedback response framework",
       "dimensions": [
-        { "id": "C", "label": "Compose" },
-        { "id": "A", "label": "Analyze" },
-        { "id": "R", "label": "Resolve" },
-        { "id": "E", "label": "Execute" }
+        {
+          "id": "C",
+          "label": "Compose"
+        },
+        {
+          "id": "A",
+          "label": "Analyze"
+        },
+        {
+          "id": "R",
+          "label": "Resolve"
+        },
+        {
+          "id": "E",
+          "label": "Execute"
+        }
       ],
       "feedback": {
         "C": {
@@ -80,16 +108,28 @@
       "roleLabel": "Manager",
       "frameworkId": "REAL",
       "reflectionPrompts": [
-        { "id": "effective", "label": "What made your response effective or ineffective?" },
-        { "id": "next", "label": "What would you do in the next conversation?" }
+        {
+          "id": "effective",
+          "label": "What made your response effective or ineffective?"
+        },
+        {
+          "id": "next",
+          "label": "What would you do in the next conversation?"
+        }
       ]
     },
     "employee": {
       "roleLabel": "Employee",
       "frameworkId": "CARE",
       "reflectionPrompts": [
-        { "id": "learning", "label": "What part of the feedback became clearer?" },
-        { "id": "next", "label": "What will you practise next?" }
+        {
+          "id": "learning",
+          "label": "What part of the feedback became clearer?"
+        },
+        {
+          "id": "next",
+          "label": "What will you practise next?"
+        }
       ]
     }
   },
@@ -100,6 +140,7 @@
       "role": "manager",
       "frameworkId": "REAL",
       "focusDimension": "R",
+      "background": "meeting-room",
       "description": "Recognise a strong contribution before discussing a repeated punctuality concern.",
       "profile": {
         "name": "Jamie",
@@ -178,6 +219,7 @@
       "role": "manager",
       "frameworkId": "REAL",
       "focusDimension": "E",
+      "background": "review-office",
       "description": "Evaluate a popular high performer using evidence rather than enthusiasm or labels.",
       "profile": {
         "name": "Jordan",
@@ -255,6 +297,7 @@
       "role": "manager",
       "frameworkId": "REAL",
       "focusDimension": "A",
+      "background": "planning-workspace",
       "description": "Turn a participation gap into a practical and supportive next step.",
       "profile": {
         "name": "Priya",
@@ -334,6 +377,7 @@
       "role": "manager",
       "frameworkId": "REAL",
       "focusDimension": "L",
+      "background": "review-office",
       "description": "Reconnect a high performer with purpose and future leadership impact.",
       "profile": {
         "name": "Marcus",
@@ -412,6 +456,7 @@
       "role": "employee",
       "frameworkId": "CARE",
       "focusDimension": "C",
+      "background": "office-corridor",
       "description": "Regulate an exhausted first reaction and stay present for difficult feedback.",
       "profile": {
         "name": "Jamie",
@@ -491,6 +536,7 @@
       "role": "employee",
       "frameworkId": "CARE",
       "focusDimension": "A",
+      "background": "review-office",
       "description": "Separate disappointment from evidence when a performance rating feels unfair.",
       "profile": {
         "name": "Jamie",
@@ -569,6 +615,7 @@
       "role": "employee",
       "frameworkId": "CARE",
       "focusDimension": "R",
+      "background": "meeting-room",
       "description": "Clarify vague group feedback privately and respectfully.",
       "profile": {
         "name": "Jamie",
@@ -646,6 +693,7 @@
       "role": "employee",
       "frameworkId": "CARE",
       "focusDimension": "E",
+      "background": "planning-workspace",
       "description": "Convert clear writing feedback into small, trackable improvement steps.",
       "profile": {
         "name": "Jamie",
