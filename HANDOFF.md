@@ -33,6 +33,15 @@ The confirmed production audit is implemented locally.
 - Settings uses a clearly red-tinted danger panel.
 - Cache-busting for this release is 20260728-guided-home on app.css and app.js.
 
+### Scenario voice-over release (2026-07-28)
+
+- Scenario narration and character dialogue now use the browser Web Speech API after the learner's first pointer or keyboard interaction.
+- Narrator, manager, employee, and coach lines use separate rate, pitch, volume, and preferred English voice profiles; the browser falls back to its available English/default voice when a preferred voice is unavailable.
+- The existing sound button now controls all scenario audio, persists under `feedbackPlaybook.dialogueSound`, stops active speech immediately when muted, and reads the current line when re-enabled.
+- Every scene transition, restart, tab hide, and page exit cancels active speech before another line can start. Leading bracketed or parenthetical acting directions are excluded from spoken output without changing the displayed script.
+- No generated audio files or external speech service are required. If speech synthesis is unavailable, the existing line cue and typing blips continue to work where Web Audio is supported.
+- The scenario script cache version is `20260728-voiceover`.
+
 The deployable output is generated in ignored `public/` by `npm run build`.
 
 Principal routes:
@@ -188,7 +197,9 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - The dialogue panel and existing button share the same guarded progression path. Preserve panel click/tap, Enter/Space, text-selection protection, nested-control protection, and the 260ms cooldown.
 
 - Dialogue has a subtle line cue plus quiet typing blips after user interaction.
-- The sound toggle persists under `feedbackPlaybook.dialogueSound` and must respect autoplay restrictions.
+- Browser voice-over speaks visible scenario lines after user interaction, uses speaker-specific voice profiles where available, and must cancel before the next scene starts.
+- The sound toggle persists under `feedbackPlaybook.dialogueSound`, controls speech and dialogue tones together, and must respect autoplay restrictions.
+- Do not commit generated voice files for this implementation. Browser speech synthesis is the deployment-friendly source, with the existing tones as its fallback.
 - Screen-reader output announces each complete line once with the speaker; do not restore character-by-character live announcements.
 - Keep the existing screen-swipe transition and reduced-motion fallback.
 - Do not flip character images.
@@ -205,7 +216,7 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - `npm test`: 13/13 passed.
 - `npm run test:rules`: 5/5 Firestore emulator suites passed.
 - `npm run test:browser`: passed in Chrome 150.0.7871.184 and Edge 150.0.4078.83.
-- Browser coverage includes auth errors/reset/signup verification/logout, first-time tutorial, pre-pulse prerequisite routing, guest mode, optional survey/AR retry, AR disclosures, sticky mobile header, four pulse answers, progress deletion dialog, both roles, reflection/replay, dialogue panel click/tap, text-selection protection, input cooldown, dashboard denial/owner access/filters/detail/viewer management, keyboard flow, and reduced motion.
+- Browser coverage includes auth errors/reset/signup verification/logout, first-time tutorial, pre-pulse prerequisite routing, guest mode, optional survey/AR retry, AR disclosures, sticky mobile header, four pulse answers, progress deletion dialog, both roles, reflection/replay, dialogue panel click/tap, text-selection protection, input cooldown, deterministic voice-over/mute/cancellation/speaker-profile checks, dashboard denial/owner access/filters/detail/viewer management, keyboard flow, and reduced motion.
 - Axe serious/critical violations: 0 on app, scenario, and dashboard.
 - Responsive checks passed at 320px, 390px, short landscape, 768px, 1024px, 1440px, and 200%/400% equivalent reflow widths with 44px controls and no horizontal overflow.
 - Dashboard fixture: 75 learners and 300 result records rendered in about 40-50ms.
@@ -217,6 +228,7 @@ The pulse survey and game competency dimensions are reported separately; do not 
 
 - Live Firebase email, cross-device, cloud deletion, and dashboard account flows need disposable production-project tests.
 - Firefox is not installed here; Safari is unavailable on Windows.
+- Voice timbre and available accents depend on the browser and operating-system speech voices. Automated QA verifies speech routing, profiles, muting, and cancellation with a deterministic speech engine, but cannot judge real-device voice quality or loudness.
 - Automated zoom checks use equivalent CSS viewport widths; actual browser zoom still needs a manual pass.
 - Physical Android/iOS camera tests of all eight printed cards over HTTPS remain required; automated checks verify target structure and manual previews, not real-world camera recognition.
 - Legacy Firestore attempts never rewritten may still contain embedded reflection text and may need an owner migration.

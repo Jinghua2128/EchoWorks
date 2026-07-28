@@ -316,7 +316,43 @@ export async function ensureFirestore() { return sdk; }
 
 {
   const context = await browser.newContext({ bypassCSP: true, viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
-  await context.addInitScript(() => localStorage.clear());
+  await context.addInitScript(() => {
+    localStorage.clear();
+    const state = { spoken: [], cancelled: 0, speaking: false };
+    const voices = [
+      { name: "Microsoft Aria", lang: "en-SG", localService: true },
+      { name: "Microsoft Guy", lang: "en-SG", localService: true }
+    ];
+    class QaSpeechSynthesisUtterance {
+      constructor(text) {
+        this.text = text;
+      }
+      addEventListener() {}
+    }
+    const synthesis = {
+      get speaking() { return state.speaking; },
+      get pending() { return false; },
+      getVoices() { return voices; },
+      addEventListener() {},
+      speak(utterance) {
+        state.speaking = true;
+        state.spoken.push({
+          text: utterance.text,
+          lang: utterance.lang,
+          rate: utterance.rate,
+          pitch: utterance.pitch,
+          voice: utterance.voice?.name || null
+        });
+      },
+      cancel() {
+        state.cancelled += 1;
+        state.speaking = false;
+      }
+    };
+    Object.defineProperty(window, "__qaSpeech", { value: state, configurable: true });
+    Object.defineProperty(window, "SpeechSynthesisUtterance", { value: QaSpeechSynthesisUtterance, configurable: true });
+    Object.defineProperty(window, "speechSynthesis", { value: synthesis, configurable: true });
+  });
   const page = await context.newPage();
   const errors = watchErrors(page);
   await page.goto(`${baseUrl}/test3.html`, { waitUntil: "domcontentloaded" });
@@ -343,10 +379,25 @@ export async function ensureFirestore() { return sdk; }
     assert.equal(await page.locator(".dialogue-panel").getAttribute("tabindex"), "0");
     assert.equal(await page.locator(".dialogue-panel").evaluate(element => element.classList.contains("is-clickable")), true);
     const firstLine = await page.locator("#dialogueText").textContent();
+    const openingSpeech = await page.evaluate(() => ({ ...window.__qaSpeech, spoken: [...window.__qaSpeech.spoken] }));
+    assert.equal(openingSpeech.spoken.at(-1)?.text, firstLine.trim());
+    assert.equal(openingSpeech.spoken.at(-1)?.voice, "Microsoft Aria");
+    assert.equal(await page.locator("#soundToggle").getAttribute("aria-pressed"), "true");
+
+    await page.click("#soundToggle");
+    assert.equal(await page.locator("#soundToggle").getAttribute("aria-pressed"), "false");
+    const speechCountWhileMuted = await page.evaluate(() => window.__qaSpeech.spoken.length);
     await page.locator(".dialogue-panel").click({ position: { x: 24, y: 42 } });
     await page.waitForTimeout(280);
     const secondLine = await page.locator("#dialogueText").textContent();
     assert.notEqual(secondLine, firstLine);
+    assert.equal(await page.evaluate(() => window.__qaSpeech.spoken.length), speechCountWhileMuted);
+    assert.ok(await page.evaluate(() => window.__qaSpeech.cancelled) >= 1);
+
+    await page.click("#soundToggle");
+    await page.waitForFunction(expected => window.__qaSpeech.spoken.length > expected, speechCountWhileMuted);
+    assert.equal(await page.locator("#soundToggle").getAttribute("aria-pressed"), "true");
+    assert.equal(await page.evaluate(() => window.__qaSpeech.spoken.at(-1)?.text), secondLine.trim());
     await page.evaluate(() => {
       const text = document.querySelector("#dialogueText");
       const range = document.createRange();
@@ -397,6 +448,7 @@ export async function ensureFirestore() { return sdk; }
   await completeCurrentScenario();
   await page.click('[data-action="restart-route"]');
   await page.waitForFunction(() => !document.querySelector("#rolePanel")?.hidden);
+  await page.waitForFunction(() => document.activeElement?.id === "roleTitle");
   assert.equal(await page.locator("#roleTitle").evaluate(element => element === document.activeElement), true);
   await startAndReachChoice("employee");
 
@@ -426,7 +478,11 @@ export async function ensureFirestore() { return sdk; }
   assert.ok(mobile.choiceBottomGap >= 208);
   assert.ok(mobile.choiceTargets.every(height => height >= 44));
   report.accessibility.scenario = await seriousAxe(page, "#scenarioMain");
-  report.scenario = { legacyRedirect: page.url(), liveState, mobile, responsive: await responsiveSweep(page, "scenario"), errors };
+  const voiceOverlay = await page.evaluate(() => ({ ...window.__qaSpeech, spoken: [...window.__qaSpeech.spoken] }));
+  assert.ok(voiceOverlay.spoken.some(line => line.voice === "Microsoft Guy" && line.pitch < 1));
+  assert.ok(voiceOverlay.spoken.some(line => line.voice === "Microsoft Aria" && line.pitch > 1));
+  assert.equal(voiceOverlay.spoken.some(line => /^\([^)]{1,80}\)/.test(line.text)), false);
+  report.scenario = { legacyRedirect: page.url(), liveState, voiceOverlay, mobile, responsive: await responsiveSweep(page, "scenario"), errors };
   await page.screenshot({ path: join(output, "scenario-mobile.png"), fullPage: false });
   await context.close();
 }

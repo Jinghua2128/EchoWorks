@@ -100,6 +100,9 @@ let triedOtherRole = false;
 let exitPoint = "role_selection";
 let dialogueAudioContext = null;
 let dialogueSoundEnabled = localStorage.getItem(soundPreferenceKey) !== "off";
+let dialogueSpeechUnlocked = false;
+let dialogueVoices = [];
+let activeDialogueUtterance = null;
 let nextDialogueInputAt = Number.NEGATIVE_INFINITY;
 const activeDialogueOscillators = new Set();
 let resolveInitialHistory;
@@ -114,14 +117,27 @@ function audioContextConstructor() {
   return window.AudioContext || window.webkitAudioContext || null;
 }
 
+function dialogueSpeechSynthesis() {
+  return typeof window.speechSynthesis === "object" ? window.speechSynthesis : null;
+}
+
+function dialogueSpeechSupported() {
+  return Boolean(dialogueSpeechSynthesis() && typeof window.SpeechSynthesisUtterance === "function");
+}
+
+function refreshDialogueVoices() {
+  const synthesis = dialogueSpeechSynthesis();
+  dialogueVoices = synthesis?.getVoices?.() || [];
+}
+
 function updateSoundToggle() {
   if (!soundToggleEl) return;
-  const supported = Boolean(audioContextConstructor());
+  const supported = Boolean(audioContextConstructor() || dialogueSpeechSupported());
   soundToggleEl.disabled = !supported;
   soundToggleEl.setAttribute("aria-pressed", String(dialogueSoundEnabled && supported));
   const label = supported
-    ? (dialogueSoundEnabled ? "Mute dialogue sounds" : "Play dialogue sounds")
-    : "Dialogue sounds are not supported in this browser";
+    ? (dialogueSoundEnabled ? "Mute scenario audio" : "Play scenario audio")
+    : "Scenario audio is not supported in this browser";
   soundToggleEl.setAttribute("aria-label", label);
   soundToggleEl.title = label;
 }
@@ -147,6 +163,116 @@ function stopDialogueSounds() {
     }
   });
   activeDialogueOscillators.clear();
+}
+
+function stopDialogueVoice() {
+  const synthesis = dialogueSpeechSynthesis();
+  if (!synthesis) return;
+  if (!activeDialogueUtterance && !synthesis.speaking && !synthesis.pending) return;
+
+  activeDialogueUtterance = null;
+  try {
+    synthesis.cancel();
+  } catch {
+    // Some embedded browsers expose speech synthesis without a working engine.
+  }
+}
+
+function dialogueVoiceProfile(scene) {
+  const speaker = String(scene?.speaker || "").trim().toLowerCase();
+  const character = speakerToCharacter(scene?.speaker, scene?.focus);
+
+  if (character === "manager") {
+    return {
+      rate: 0.93,
+      pitch: 0.9,
+      volume: 0.9,
+      preferredNames: ["guy", "david", "mark", "george", "daniel", "james"]
+    };
+  }
+  if (character === "sarah") {
+    return {
+      rate: 0.98,
+      pitch: 1.08,
+      volume: 0.9,
+      preferredNames: ["aria", "jenny", "sonia", "zira", "samantha", "victoria"]
+    };
+  }
+  if (speaker.includes("coach") || speaker.includes("mentor")) {
+    return {
+      rate: 0.9,
+      pitch: 0.96,
+      volume: 0.86,
+      preferredNames: ["sonia", "aria", "george", "daniel", "samantha"]
+    };
+  }
+  return {
+    rate: 0.95,
+    pitch: 1,
+    volume: 0.82,
+    preferredNames: ["aria", "sonia", "samantha", "daniel", "george"]
+  };
+}
+
+function selectDialogueVoice(profile) {
+  if (!dialogueVoices.length) refreshDialogueVoices();
+  const englishVoices = dialogueVoices.filter(voice => /^en\b/i.test(voice.lang || ""));
+  const candidates = englishVoices.length ? englishVoices : dialogueVoices;
+  if (!candidates.length) return null;
+
+  const preferredVoice = profile.preferredNames
+    .map(name => candidates.find(voice => String(voice.name || "").toLowerCase().includes(name)))
+    .find(Boolean);
+  return preferredVoice || candidates.find(voice => voice.localService) || candidates[0];
+}
+
+function spokenDialogueText(text) {
+  return String(text || "")
+    .replace(/\[[^\]]*\]/g, " ")
+    .replace(/^\s*\([^)]{1,80}\)\s*/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function speakDialogue(scene, text) {
+  if (!dialogueSoundEnabled || !dialogueSpeechUnlocked || !dialogueSpeechSupported()) return false;
+  const spokenText = spokenDialogueText(text);
+  if (!spokenText) return false;
+
+  const synthesis = dialogueSpeechSynthesis();
+  const profile = dialogueVoiceProfile(scene);
+  const utterance = new window.SpeechSynthesisUtterance(spokenText);
+  const voice = selectDialogueVoice(profile);
+  if (voice) {
+    utterance.voice = voice;
+    utterance.lang = voice.lang || "en-SG";
+  } else {
+    utterance.lang = "en-SG";
+  }
+  utterance.rate = profile.rate;
+  utterance.pitch = profile.pitch;
+  utterance.volume = profile.volume;
+  utterance.addEventListener?.("end", () => {
+    if (activeDialogueUtterance === utterance) activeDialogueUtterance = null;
+  }, { once: true });
+  utterance.addEventListener?.("error", () => {
+    if (activeDialogueUtterance === utterance) activeDialogueUtterance = null;
+  }, { once: true });
+
+  try {
+    stopDialogueVoice();
+    activeDialogueUtterance = utterance;
+    synthesis.speak(utterance);
+    return true;
+  } catch {
+    activeDialogueUtterance = null;
+    return false;
+  }
+}
+
+async function unlockScenarioAudio() {
+  dialogueSpeechUnlocked = true;
+  return unlockDialogueAudio();
 }
 
 function playDialogueTone(frequency, duration, volume, type = "sine", delay = 0) {
@@ -184,9 +310,12 @@ async function toggleDialogueSound() {
   localStorage.setItem(soundPreferenceKey, dialogueSoundEnabled ? "on" : "off");
   if (!dialogueSoundEnabled) {
     stopDialogueSounds();
+    stopDialogueVoice();
   } else {
-    await unlockDialogueAudio();
+    await unlockScenarioAudio();
     playLineCue();
+    const scene = scenes[currentSceneId];
+    if (scenario && scene) speakDialogue(scene, scene.displayText || scene.text);
   }
   updateSoundToggle();
 }
@@ -1028,6 +1157,7 @@ function hideChoices() {
 
 function renderScene(id) {
   const scene = scenes[id] || scenes[scenario.startScene];
+  stopDialogueVoice();
   currentSceneId = id;
   pendingNext = scene.next || null;
 
@@ -1061,7 +1191,9 @@ function renderScene(id) {
   if (Array.isArray(scene.choices)) scene.choices.forEach(choice => preloadSceneAssets(choice.next));
   setCharacters(scene);
   updateScoreHud();
-  typeText(scene.displayText || scene.text);
+  const dialogueText = scene.displayText || scene.text;
+  typeText(dialogueText);
+  speakDialogue(scene, dialogueText);
   if (phaseChanged) saveScenarioRecord("in_progress");
 }
 
@@ -1209,6 +1341,7 @@ function showCompletion() {
 }
 function restartScenario() {
   clearTimers();
+  stopDialogueVoice();
   document.body.dataset.scenarioState = "role";
   dialoguePanelEl.classList.remove("is-speaking");
   sceneCueEl.hidden = true;
@@ -1425,9 +1558,11 @@ async function initFirebase() {
   }
 }
 function bindEvents() {
+  refreshDialogueVoices();
+  dialogueSpeechSynthesis()?.addEventListener?.("voiceschanged", refreshDialogueVoices);
   updateSoundToggle();
-  document.addEventListener("pointerdown", () => { unlockDialogueAudio(); }, { once: true, capture: true });
-  document.addEventListener("keydown", () => { unlockDialogueAudio(); }, { once: true, capture: true });
+  document.addEventListener("pointerdown", () => { unlockScenarioAudio(); }, { once: true, capture: true });
+  document.addEventListener("keydown", () => { unlockScenarioAudio(); }, { once: true, capture: true });
   soundToggleEl?.addEventListener("click", () => { toggleDialogueSound(); });
 
   rolePanelEl.addEventListener("click", event => {
@@ -1480,6 +1615,11 @@ function bindEvents() {
       event.preventDefault();
       requestDialogueAdvance();
     }
+  });
+
+  window.addEventListener("pagehide", stopDialogueVoice);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopDialogueVoice();
   });
 }
 
