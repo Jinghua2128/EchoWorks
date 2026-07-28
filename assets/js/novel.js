@@ -167,6 +167,7 @@ function stopDialogueSounds() {
 }
 
 function stopDialogueVoice() {
+  stopTalking();
   const synthesis = dialogueSpeechSynthesis();
   if (!synthesis) return;
   if (!activeDialogueUtterance && !synthesis.speaking && !synthesis.pending) return;
@@ -227,12 +228,18 @@ function selectDialogueVoice(profile) {
   return preferredVoice || candidates.find(voice => voice.localService) || candidates[0];
 }
 
-function spokenDialogueText(text) {
+function cleanScenarioDialogue(text) {
   return String(text || "")
-    .replace(/\[[^\]]*\]/g, " ")
-    .replace(/^\s*\([^)]{1,80}\)\s*/, "")
-    .replace(/\s+/g, " ")
+    .replace(/\[([^\]]*)\]/g, "$1")
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/[\[\]()]/g, "")
+    .replace(/\s+([,.;!?])/g, "$1")
+    .replace(/\s{2,}/g, " ")
     .trim();
+}
+
+function spokenDialogueText(text) {
+  return cleanScenarioDialogue(text);
 }
 
 function speakDialogue(scene, text) {
@@ -253,11 +260,18 @@ function speakDialogue(scene, text) {
   utterance.rate = profile.rate;
   utterance.pitch = profile.pitch;
   utterance.volume = profile.volume;
+  utterance.addEventListener?.("start", () => {
+    if (activeDialogueUtterance === utterance) startTalking();
+  }, { once: true });
   utterance.addEventListener?.("end", () => {
-    if (activeDialogueUtterance === utterance) activeDialogueUtterance = null;
+    if (activeDialogueUtterance !== utterance) return;
+    activeDialogueUtterance = null;
+    stopTalking();
   }, { once: true });
   utterance.addEventListener?.("error", () => {
-    if (activeDialogueUtterance === utterance) activeDialogueUtterance = null;
+    if (activeDialogueUtterance !== utterance) return;
+    activeDialogueUtterance = null;
+    stopTalking();
   }, { once: true });
 
   try {
@@ -982,6 +996,7 @@ function getActiveCharacterElement() {
 }
 
 function startTalking() {
+  stopTalking();
   if (reducedMotion) return;
   const activeElement = getActiveCharacterElement();
   if (!activeElement) return;
@@ -1037,7 +1052,6 @@ function finishTyping() {
   window.clearTimeout(typingTimer);
   setText(fullText);
   isTyping = false;
-  stopTalking();
   if (dialogueAnnouncementEl) {
     const speaker = speakerNameEl.textContent.trim();
     dialogueAnnouncementEl.textContent = speaker ? `${speaker}: ${fullText}` : fullText;
@@ -1066,7 +1080,6 @@ function typeText(text) {
   advanceButton.disabled = false;
   advanceLabelEl.textContent = "Reveal";
   updateDialogueInteractionState();
-  startTalking();
 
   if (reducedMotion) {
     finishTyping();
@@ -1195,7 +1208,7 @@ function renderScene(id) {
   if (Array.isArray(scene.choices)) scene.choices.forEach(choice => preloadSceneAssets(choice.next));
   setCharacters(scene);
   updateScoreHud();
-  const dialogueText = scene.displayText || scene.text;
+  const dialogueText = cleanScenarioDialogue(scene.displayText || scene.text);
   typeText(dialogueText);
   speakDialogue(scene, dialogueText);
   if (phaseChanged) saveScenarioRecord("in_progress");

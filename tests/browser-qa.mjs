@@ -356,8 +356,59 @@ export async function ensureFirestore() { return sdk; }
     }
     Object.defineProperty(window, "__qaTypingAudio", { value: state, configurable: true });
     Object.defineProperty(window, "AudioContext", { value: QaAudioContext, configurable: true });
-    Object.defineProperty(window, "speechSynthesis", { value: undefined, configurable: true });
-    Object.defineProperty(window, "SpeechSynthesisUtterance", { value: undefined, configurable: true });
+    const voiceState = { started: 0, ended: 0, cancelled: 0, active: null, speaking: false };
+    class QaSpeechSynthesisUtterance {
+      constructor(text) {
+        this.text = text;
+        this.listeners = new Map();
+      }
+      addEventListener(type, listener) {
+        this.listeners.set(type, [...(this.listeners.get(type) || []), listener]);
+      }
+      emit(type) {
+        (this.listeners.get(type) || []).forEach(listener => listener());
+      }
+    }
+    const synthesis = {
+      get speaking() { return voiceState.speaking; },
+      get pending() { return false; },
+      getVoices() {
+        return [
+          { name: "Microsoft Aria", lang: "en-SG", localService: true },
+          { name: "Microsoft Guy", lang: "en-SG", localService: true }
+        ];
+      },
+      addEventListener() {},
+      speak(utterance) {
+        voiceState.active = utterance;
+        voiceState.speaking = true;
+        voiceState.started += 1;
+        utterance.emit("start");
+      },
+      cancel() {
+        voiceState.cancelled += 1;
+        voiceState.speaking = false;
+        const active = voiceState.active;
+        voiceState.active = null;
+        active?.emit("end");
+      }
+    };
+    Object.defineProperty(window, "__qaVoiceAnimation", {
+      value: {
+        state: voiceState,
+        finish() {
+          const active = voiceState.active;
+          if (!active) return;
+          voiceState.active = null;
+          voiceState.speaking = false;
+          voiceState.ended += 1;
+          active.emit("end");
+        }
+      },
+      configurable: true
+    });
+    Object.defineProperty(window, "SpeechSynthesisUtterance", { value: QaSpeechSynthesisUtterance, configurable: true });
+    Object.defineProperty(window, "speechSynthesis", { value: synthesis, configurable: true });
   });
   const page = await context.newPage();
   const errors = watchErrors(page);
@@ -376,8 +427,40 @@ export async function ensureFirestore() { return sdk; }
   const afterMute = await page.evaluate(() => ({ ...window.__qaTypingAudio }));
   assert.equal(afterMute.starts, startsAfterMute);
   assert.equal(await page.locator("#soundToggle").getAttribute("aria-pressed"), "false");
+
+  await page.click("#soundToggle");
+  assert.equal(await page.locator("#soundToggle").getAttribute("aria-pressed"), "true");
+  for (let index = 0; index < 30; index += 1) {
+    const characterIsSpeaking = await page.evaluate(() => Boolean(
+      document.querySelector(".character.active")
+      && document.querySelector(".dialogue-panel")?.classList.contains("is-speaking")
+    ));
+    if (characterIsSpeaking) break;
+    await page.click('[data-action="advance"]');
+    await page.waitForTimeout(280);
+  }
+  assert.equal(await page.locator(".dialogue-panel").evaluate(element => element.classList.contains("is-speaking")), true);
+  await page.waitForFunction(() => document.querySelector("#advanceLabel")?.textContent !== "Reveal");
+  assert.equal(await page.locator(".dialogue-panel").evaluate(element => element.classList.contains("is-speaking")), true);
+  await page.waitForFunction(() => {
+    const active = document.querySelector(".character.active");
+    return active && active.getAttribute("src") === active.dataset.talk;
+  });
+  await page.evaluate(() => window.__qaVoiceAnimation.finish());
+  await page.waitForFunction(() => !document.querySelector(".dialogue-panel")?.classList.contains("is-speaking"));
+  const voiceAnimation = await page.evaluate(() => {
+    const active = document.querySelector(".character.active");
+    return {
+      ...window.__qaVoiceAnimation.state,
+      active: null,
+      returnedToIdle: Boolean(active && active.getAttribute("src") === active.dataset.idle)
+    };
+  });
+  assert.equal(voiceAnimation.returnedToIdle, true);
+  assert.ok(voiceAnimation.started >= 1);
+  assert.ok(voiceAnimation.ended >= 1);
   assert.deepEqual(errors, []);
-  typingAudioReport = { beforeMute, afterMute };
+  typingAudioReport = { beforeMute, afterMute, voiceAnimation };
   await context.close();
 }
 
@@ -439,6 +522,7 @@ export async function ensureFirestore() { return sdk; }
       };
     });
     assert.ok(openingNarration.text);
+    assert.doesNotMatch(openingNarration.text, /[\[\]()]/);
     assert.equal(openingNarration.speaker, "Narrator");
     assert.notEqual(openingNarration.metaDisplay, "none");
     assert.equal(openingNarration.sceneCueHidden, false);
@@ -548,7 +632,7 @@ export async function ensureFirestore() { return sdk; }
   const voiceOverlay = await page.evaluate(() => ({ ...window.__qaSpeech, spoken: [...window.__qaSpeech.spoken] }));
   assert.ok(voiceOverlay.spoken.some(line => line.voice === "Microsoft Guy" && line.pitch < 1));
   assert.ok(voiceOverlay.spoken.some(line => line.voice === "Microsoft Aria" && line.pitch > 1));
-  assert.equal(voiceOverlay.spoken.some(line => /^\([^)]{1,80}\)/.test(line.text)), false);
+  assert.equal(voiceOverlay.spoken.some(line => /[\[\]()]/.test(line.text)), false);
   report.scenario = { legacyRedirect: page.url(), liveState, voiceOverlay, typingAudio: typingAudioReport, mobile, responsive: await responsiveSweep(page, "scenario"), errors };
   await page.screenshot({ path: join(output, "scenario-mobile.png"), fullPage: false });
   await context.close();
