@@ -21,7 +21,19 @@ Chinese handoff: [HANDOFF.zh-CN.md](HANDOFF.zh-CN.md)
 
 ## Current State
 
-The confirmed production audit is implemented locally. The deployable output is generated in ignored `public/` by `npm run build`.
+The confirmed production audit is implemented locally.
+
+### Learner UI release (2026-07-28)
+
+- The home page now uses Your progress as the progress heading, removes the duplicate learning-path/next-action/quick-tools copy, shows 5 min / scenario, and reports scenario status as Not Done until all eight scenarios are complete.
+- Continue learning opens the pre-pulse when the learner has no pre-pulse answer. After any pre-pulse attempt, it resumes the existing scenario route.
+- The responsive header keeps the home cross icon, adds a red AR icon shortcut, labels the menu Quick Access, includes a Scenario entry, and remains sticky across the full mobile/tablet breakpoint.
+- First-time guests and first-time signed-in accounts receive a two-step, keyboard-accessible tutorial. Completion is stored per guest/profile under feedbackPlaybook.tutorialSeen.v1.*.
+- The AR page keeps camera and manual selection, removes the redundant changing learning-detail panel, uses an icon-only retry control, and presents facilitator flow and scannable card materials as collapsed native disclosures.
+- Settings uses a clearly red-tinted danger panel.
+- Cache-busting for this release is 20260728-guided-home on app.css and app.js.
+
+The deployable output is generated in ignored `public/` by `npm run build`.
 
 Principal routes:
 
@@ -193,7 +205,7 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - `npm test`: 13/13 passed.
 - `npm run test:rules`: 5/5 Firestore emulator suites passed.
 - `npm run test:browser`: passed in Chrome 150.0.7871.184 and Edge 150.0.4078.83.
-- Browser coverage includes auth errors/reset/signup verification/logout, guest mode, optional survey/AR retry, four pulse answers, progress deletion dialog, both roles, reflection/replay, dialogue panel click/tap, text-selection protection, input cooldown, dashboard denial/owner access/filters/detail/viewer management, keyboard flow, and reduced motion.
+- Browser coverage includes auth errors/reset/signup verification/logout, first-time tutorial, pre-pulse prerequisite routing, guest mode, optional survey/AR retry, AR disclosures, sticky mobile header, four pulse answers, progress deletion dialog, both roles, reflection/replay, dialogue panel click/tap, text-selection protection, input cooldown, dashboard denial/owner access/filters/detail/viewer management, keyboard flow, and reduced motion.
 - Axe serious/critical violations: 0 on app, scenario, and dashboard.
 - Responsive checks passed at 320px, 390px, short landscape, 768px, 1024px, 1440px, and 200%/400% equivalent reflow widths with 44px controls and no horizontal overflow.
 - Dashboard fixture: 75 learners and 300 result records rendered in about 40-50ms.

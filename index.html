@@ -28,7 +28,7 @@
   <title>Feedback Playbook | Singapore Red Cross</title>
   <link rel="preconnect" href="https://www.gstatic.com" />
   <link rel="preload" as="image" href="assets/office-vn.webp" />
-  <link rel="stylesheet" href="assets/css/app.css?v=20260728-scenario3d" />
+  <link rel="stylesheet" href="assets/css/app.css?v=20260728-guided-home" />
   <script type="importmap">
     {
       "imports": {
@@ -38,7 +38,7 @@
       }
     }
   </script>
-  <script type="module" src="assets/js/app.js?v=20260728-scenario3d"></script>
+  <script type="module" src="assets/js/app.js?v=20260728-guided-home"></script>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -72,18 +72,19 @@
             <path d="M13 4h6v9h9v6h-9v9h-6v-9H4v-6h9V4Z" />
           </svg>
         </span>
-        <span>
-          <strong>Feedback Playbook</strong>
-          <small>Singapore Red Cross</small>
-        </span>
       </a>
 
-      <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-controls="primaryNav" aria-expanded="false" aria-label="Open navigation">
-        <span class="mobile-nav-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14" /></svg>
-        </span>
-        <span>Menu</span>
-      </button>
+      <div class="mobile-header-actions">
+        <button class="header-ar-button" type="button" data-route="ar" aria-label="Open AR cards" title="AR cards">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.4-2h7.2L17 8h3v11H4V8Zm8 8.2A3.2 3.2 0 1 0 12 9.8a3.2 3.2 0 0 0 0 6.4Z" /></svg>
+        </button>
+        <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-controls="primaryNav" aria-expanded="false" aria-label="Open quick access">
+          <span class="mobile-nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14" /></svg>
+          </span>
+          <span>Quick Access</span>
+        </button>
+      </div>
 
       <nav class="nav-list" id="primaryNav" aria-label="Main sections">
         <button class="nav-button" type="button" data-route="home">
@@ -98,6 +99,12 @@
           </span>
           Survey
         </button>
+        <a class="nav-button" href="scenario.html">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M6 4h12a2 2 0 0 1 2 2v12H8a4 4 0 0 0-4 2V6a2 2 0 0 1 2-2Zm2 4h8M8 12h6" /></svg>
+          </span>
+          Scenario
+        </a>
         <button class="nav-button" type="button" data-route="ar">
           <span class="icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M4 8h3l1.4-2h7.2L17 8h3v11H4V8Zm8 8.2A3.2 3.2 0 1 0 12 9.8a3.2 3.2 0 0 0 0 6.4Z" /></svg>
@@ -213,18 +220,17 @@
               Practise randomized workplace conversations with the CARE and REAL frameworks, then compare your pre- and post-pulse reflections.
             </p>
           </div>
-          <a class="button primary fit" href="scenario.html">
+          <button class="button primary fit" type="button" data-action="continue-learning">
             Continue learning
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
-          </a>
+          </button>
         </header>
 
         <div class="dashboard-grid">
           <section class="panel progress-panel" aria-labelledby="progressTitle">
             <div class="panel-heading">
               <div>
-                <p class="section-label">Your progress</p>
-                <h2 id="progressTitle">Learning path</h2>
+                <h2 id="progressTitle">Your progress</h2>
               </div>
               <strong class="progress-value" id="progressPercent">0%</strong>
             </div>
@@ -266,27 +272,19 @@
           </section>
 
           <section class="panel next-panel" aria-labelledby="nextTitle">
-            <div class="panel-heading">
-              <div>
-                <p class="section-label">Next action</p>
-                <h2 id="nextTitle">Practise a randomized case</h2>
-              </div>
-              <span class="status-dot" aria-hidden="true"></span>
-            </div>
             <div class="scenario-card compact">
               <div>
-                <strong>CARE and REAL scenario library</strong>
+                <strong id="nextTitle">CARE and REAL scenario library</strong>
                 <span>Choose Manager or Employee and receive one of four role-specific workplace cases.</span>
               </div>
               <dl class="scenario-meta">
-                <div><dt>Duration</dt><dd>4-6 min each</dd></div>
-                <div><dt>Status</dt><dd id="scenarioStatus">Not started</dd></div>
+                <div><dt>Duration</dt><dd>5 min / scenario</dd></div>
+                <div><dt>Status</dt><dd id="scenarioStatus">Not Done</dd></div>
                 <div><dt>Latest score</dt><dd id="latestScenarioScore">-</dd></div>
               </dl>
             </div>
             <div class="split-actions">
               <a class="button secondary fit" href="scenario.html">Start interactive scenario</a>
-              <button class="button subtle fit" type="button" data-route="survey">Open pulse surveys</button>
             </div>
           </section>
 
@@ -294,40 +292,13 @@
             <div class="panel-heading">
               <div>
                 <p class="section-label">Pulse surveys</p>
-                <h2 id="unitsTitle">Choose a pre- or post-pulse</h2>
+                <h2 id="unitsTitle">Complete the pre and post survey</h2>
               </div>
             </div>
             <div class="unit-list" id="unitList"></div>
           </section>
 
-          <section class="panel support-panel" aria-labelledby="supportTitle">
-            <div class="panel-heading">
-              <div>
-                <p class="section-label">Quick tools</p>
-                <h2 id="supportTitle">Reference and settings</h2>
-              </div>
-            </div>
-            <div class="quick-actions">
-              <button class="tool-card" type="button" data-route="ar">
-                <span class="tool-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24"><path d="M4 8h3l1.4-2h7.2L17 8h3v11H4V8Zm8 8.2A3.2 3.2 0 1 0 12 9.8a3.2 3.2 0 0 0 0 6.4Z" /></svg>
-                </span>
-                <span>
-                  <strong>AR card workshop</strong>
-                  <small>Scan CARE and REAL cards to reveal animated coaching prompts.</small>
-                </span>
-              </button>
-              <button class="tool-card" type="button" data-route="settings">
-                <span class="tool-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24"><path d="M12 8.2a3.8 3.8 0 1 1 0 7.6 3.8 3.8 0 0 1 0-7.6Zm8.5 4.2-.1 1.4-2.1.7-.6 1.4 1 2-1 1-2-1-.6.3-1 .3-.7 2.1h-1.4l-.7-2.1-1.5-.6-1.9 1-1-1 1-2-.6-1.4-2.1-.7v-1.4l2.1-.7.6-1.4-1-2 1-1 2 1 1.4-.6.7-2.1h1.4l.7 2.1 1.4.6 2-1 1 1-1 2 .6 1.4 2.2.7Z" /></svg>
-                </span>
-                <span>
-                  <strong>Settings</strong>
-                  <small>Review account mode and reset progress.</small>
-                </span>
-              </button>
-            </div>
-          </section>
+
         </div>
       </section>
 
@@ -366,7 +337,7 @@
           <div>
             <p class="section-label">Interactive workshop</p>
             <h1 id="arTitle">CARE and REAL AR cards</h1>
-            <p class="lead">Scan any CARE or REAL card to reveal its matching coaching prompt and character pose, or choose a card manually when camera recognition is unavailable.</p>
+            <p class="lead">Scan any CARE or REAL card to learn more or choose a card manually when camera recognition is unavailable.</p>
           </div>
         </header>
 
@@ -395,18 +366,21 @@
               </article>
             </div>
             <p class="form-message" id="cameraMessage" aria-live="polite"></p>
-            <button class="button secondary fit" type="button" data-action="retry-ar" hidden>Retry AR content</button>
-            <div class="split-actions">
-              <button class="button primary fit" type="button" data-action="start-camera" data-busy-label="Starting camera...">Start camera</button>
-              <button class="button subtle fit" type="button" data-action="stop-camera">Stop camera</button>
+            <div class="ar-camera-controls">
+              <button class="ar-retry-button" type="button" data-action="retry-ar" aria-label="Retry AR content" title="Retry AR content" hidden>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" /></svg>
+              </button>
+              <div class="split-actions">
+                <button class="button primary fit" type="button" data-action="start-camera" data-busy-label="Starting camera...">Start camera</button>
+                <button class="button subtle fit" type="button" data-action="stop-camera">Stop camera</button>
+              </div>
             </div>
           </section>
 
           <aside class="panel ar-card-browser" aria-labelledby="arCardsTitle">
             <div class="panel-heading">
               <div>
-                <p class="section-label">Framework cards</p>
-                <h2 id="arCardsTitle">Choose a card</h2>
+                <h2 id="arCardsTitle">Manually choose a card</h2>
               </div>
               <div class="segmented-control" aria-label="Filter framework cards">
                 <button type="button" data-ar-role="manager" aria-pressed="true">REAL</button>
@@ -418,48 +392,27 @@
           </aside>
         </div>
 
-        <section class="panel ar-learning-panel" id="arLearningPanel" aria-labelledby="arLearningTitle">
-          <header class="ar-learning-header">
-            <span class="ar-learning-letter" id="arLearningLetter">R</span>
-            <span>
-              <p class="section-label" id="arLearningFramework">REAL framework</p>
-              <h2 id="arLearningTitle">Recognise</h2>
-              <strong id="arPhysicalText">Name what they did. Specifically.</strong>
-            </span>
-          </header>
-          <div class="ar-learning-grid">
-            <blockquote id="arSpeechBubble">Shine the spotlight before raising anything.</blockquote>
-            <section aria-labelledby="arChecklistTitle">
-              <h3 id="arChecklistTitle">Check yourself</h3>
-              <ul class="ar-checklist" id="arChecklist"></ul>
-            </section>
-            <aside class="ar-watchout">
-              <span>Watch out</span>
-              <strong id="arWatchOut">Don't open with the problem.</strong>
-            </aside>
+        <details class="panel disclosure-panel ar-workshop-panel">
+          <summary>
+            <h2>Facilitator flow</h2>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5 5 5-5" /></svg>
+          </summary>
+          <div class="disclosure-content">
+            <h3>45-minute AR workshop</h3>
+            <div class="ar-workshop-timeline" id="arWorkshopTimeline"></div>
           </div>
-        </section>
+        </details>
 
-        <section class="panel ar-workshop-panel" aria-labelledby="arWorkshopTitle">
-          <div class="panel-heading">
-            <div>
-              <p class="section-label">Facilitator flow</p>
-              <h2 id="arWorkshopTitle">45-minute AR workshop</h2>
-            </div>
+        <details class="panel disclosure-panel ar-print-panel">
+          <summary>
+            <h2>Workshop materials</h2>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5 5 5-5" /></svg>
+          </summary>
+          <div class="disclosure-content">
+            <h3>Scannable REAL CARE cards</h3>
+            <div class="ar-print-grid" id="arPrintableCards"></div>
           </div>
-          <div class="ar-workshop-timeline" id="arWorkshopTimeline"></div>
-        </section>
-
-        <section class="panel ar-print-panel" aria-labelledby="arPrintTitle">
-          <div class="panel-heading">
-            <div>
-              <p class="section-label">Workshop materials</p>
-              <h2 id="arPrintTitle">Printable scan cards</h2>
-            </div>
-            <button class="button subtle fit" type="button" data-action="print-ar-cards">Print cards</button>
-          </div>
-          <div class="ar-print-grid" id="arPrintableCards"></div>
-        </section>
+        </details>
       </section>
 
       <section class="page app-view" id="settings" aria-labelledby="settingsTitle">
@@ -517,7 +470,41 @@
         <button class="button danger fit" value="confirm">Delete progress</button>
       </div>
     </form>
-  </dialog>  <div class="completion-wipe" id="screenWipe" hidden aria-live="polite">
+  </dialog>
+  <dialog class="tutorial-dialog" id="tutorialDialog" aria-label="Getting started tutorial">
+    <div class="tutorial-shell">
+      <header class="tutorial-header">
+        <span class="tutorial-step-count" id="tutorialStepCount">1 of 2</span>
+        <button class="tutorial-close" type="button" data-action="tutorial-close" aria-label="Close tutorial" title="Close tutorial">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+        </button>
+      </header>
+      <section class="tutorial-step" data-tutorial-step="0">
+        <p class="section-label">Welcome</p>
+        <h2 id="tutorialTitle">Your learning tools</h2>
+        <p>Use Quick Access to move between each part of your learning journey.</p>
+        <div class="tutorial-destinations" aria-label="Learning destinations">
+          <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16l-3-2-3 2-3-2-3 2V4Zm3 5h6M9 13h6" /></svg><strong>Survey</strong></span>
+          <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12a2 2 0 0 1 2 2v12H8a4 4 0 0 0-4 2V6a2 2 0 0 1 2-2Zm2 4h8M8 12h6" /></svg><strong>Scenario</strong></span>
+          <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.4-2h7.2L17 8h3v11H4V8Zm8 8.2A3.2 3.2 0 1 0 12 9.8a3.2 3.2 0 0 0 0 6.4Z" /></svg><strong>AR cards</strong></span>
+        </div>
+      </section>
+      <section class="tutorial-step" data-tutorial-step="1" hidden>
+        <p class="section-label">Pick up where you stopped</p>
+        <h2>Continue learning</h2>
+        <p>The Continue learning button checks your pre-pulse first, then takes you back to scenario practice when you are ready.</p>
+        <div class="tutorial-continue-preview" aria-hidden="true">
+          <span>Continue learning</span>
+          <svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
+        </div>
+      </section>
+      <footer class="tutorial-actions">
+        <button class="button subtle fit" type="button" data-action="tutorial-back" hidden>Back</button>
+        <button class="button primary fit" type="button" data-action="tutorial-next">Next</button>
+      </footer>
+    </div>
+  </dialog>
+  <div class="completion-wipe" id="screenWipe" hidden aria-live="polite">
     <div class="completion-wipe-surface">
       <span class="completion-wipe-check" aria-hidden="true">
         <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg>

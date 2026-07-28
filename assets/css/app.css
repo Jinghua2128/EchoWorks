@@ -2645,110 +2645,6 @@ body.app-page .progress-track span {
   line-height: 1.45;
 }
 
-.ar-learning-panel,
-.ar-workshop-panel,
-.ar-print-panel {
-  margin-top: 16px;
-}
-
-.ar-learning-header {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  padding-bottom: 18px;
-  border-bottom: 1px solid #dbe1e8;
-}
-
-.ar-learning-letter {
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 8px;
-  background: var(--red);
-  color: #fff;
-  font-size: 2rem;
-  font-weight: 950;
-}
-
-.ar-learning-header h2 {
-  margin: 2px 0 5px;
-  font-size: 1.45rem;
-}
-
-.ar-learning-header strong {
-  color: var(--ink);
-}
-
-.ar-learning-grid {
-  display: grid;
-  grid-template-columns: 1.15fr 1fr .8fr;
-  gap: 22px;
-  align-items: start;
-  padding-top: 20px;
-}
-
-.ar-learning-grid blockquote {
-  margin: 0;
-  padding: 4px 0 4px 18px;
-  border-left: 4px solid var(--red);
-  color: var(--charcoal);
-  font-size: 1.35rem;
-  font-weight: 850;
-  line-height: 1.35;
-}
-
-.ar-learning-grid h3 {
-  margin: 0 0 10px;
-  font-size: .92rem;
-}
-
-.ar-checklist {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.ar-checklist li {
-  position: relative;
-  padding-left: 22px;
-  color: var(--ink);
-  font-size: .88rem;
-  line-height: 1.4;
-}
-
-.ar-checklist li::before {
-  content: "✓";
-  position: absolute;
-  left: 0;
-  color: var(--teal);
-  font-weight: 950;
-}
-
-.ar-watchout {
-  display: grid;
-  gap: 6px;
-  padding: 14px;
-  border-left: 3px solid #d99a24;
-  background: #fff8e8;
-}
-
-.ar-watchout span {
-  color: #805b16;
-  font-size: .72rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.ar-watchout strong {
-  color: #49340e;
-  font-size: .88rem;
-  line-height: 1.4;
-}
-
 .ar-workshop-timeline {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2920,14 +2816,6 @@ body.app-page .progress-track span {
     grid-template-columns: 1fr;
   }
 
-  .ar-learning-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .ar-learning-grid blockquote {
-    grid-column: 1 / -1;
-  }
-
   .ar-print-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2936,7 +2824,6 @@ body.app-page .progress-track span {
 @media (max-width: 720px) {
   .ar-camera-panel,
   .ar-card-browser,
-  .ar-learning-panel,
   .ar-workshop-panel,
   .ar-print-panel {
     padding: 14px;
@@ -2997,24 +2884,8 @@ body.app-page .progress-track span {
     min-width: 142px;
   }
 
-  .ar-learning-header {
-    align-items: flex-start;
-  }
-
-  .ar-learning-letter {
-    width: 52px;
-    height: 52px;
-    font-size: 1.55rem;
-  }
-
-  .ar-learning-grid,
   .ar-workshop-timeline {
     grid-template-columns: 1fr;
-  }
-
-  .ar-learning-grid blockquote {
-    grid-column: auto;
-    font-size: 1.12rem;
   }
 
   .ar-workshop-step {
@@ -3030,48 +2901,6 @@ body.app-page .progress-track span {
   .ar-effect *,
   .ar-overlay {
     animation: none !important;
-  }
-}
-
-@media print {
-  body.printing-ar-cards {
-    background: #fff;
-  }
-
-  body.printing-ar-cards .sidebar,
-  body.printing-ar-cards #ar > :not(.ar-print-panel),
-  body.printing-ar-cards .ar-print-panel .panel-heading .button {
-    display: none !important;
-  }
-
-  body.printing-ar-cards .workspace,
-  body.printing-ar-cards #ar {
-    display: block !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  body.printing-ar-cards .ar-print-panel {
-    display: block !important;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    box-shadow: none;
-  }
-
-  body.printing-ar-cards .ar-print-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10mm;
-  }
-
-  body.printing-ar-cards .print-ar-card {
-    min-height: 118mm;
-    padding: 8mm;
-    border: 1.5px solid #1b2029;
-  }
-
-  body.printing-ar-cards .print-ar-card img {
-    width: 48mm;
   }
 }
 
@@ -3536,5 +3365,350 @@ textarea {
   body.app-page .app-shell:not(.auth-mode) .nav-button[aria-current="page"] {
     background: var(--red-soft);
     color: var(--red-dark);
+  }
+}
+/* 2026-07 guided home, compact mobile header, and simplified AR controls. */
+.app-shell {
+  overflow-x: clip;
+}
+
+.mobile-header-actions,
+.header-ar-button {
+  display: none;
+}
+
+.ar-retry-button[hidden],
+.tutorial-actions .button[hidden],
+.tutorial-step[hidden] {
+  display: none !important;
+}
+
+.danger-panel {
+  border-color: rgba(180, 35, 24, .34);
+  background: #fff0f1;
+}
+
+.ar-camera-controls {
+  display: grid;
+  justify-items: start;
+  gap: 18px;
+  margin-top: 8px;
+}
+
+.ar-retry-button,
+.tutorial-close {
+  width: 44px;
+  height: 44px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.ar-retry-button {
+  background: var(--red);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(180, 35, 24, .2);
+}
+
+.ar-retry-button:hover {
+  background: var(--red-dark);
+}
+
+.ar-retry-button:focus-visible,
+.header-ar-button:focus-visible,
+.tutorial-close:focus-visible,
+.disclosure-panel summary:focus-visible {
+  outline: 3px solid rgba(215, 25, 32, .25);
+  outline-offset: 3px;
+}
+
+.ar-retry-button svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ar-retry-button[aria-busy="true"] svg {
+  animation: arRetrySpin .8s linear infinite;
+}
+
+@keyframes arRetrySpin {
+  to { transform: rotate(360deg); }
+}
+
+.disclosure-panel {
+  margin-top: 16px;
+  padding: 0;
+}
+
+.disclosure-panel summary {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.disclosure-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.disclosure-panel summary h2,
+.disclosure-panel .disclosure-content h3 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.disclosure-panel summary h2 {
+  font-size: 1.15rem;
+}
+
+.disclosure-panel summary svg {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: var(--red-dark);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform .2s var(--ease);
+}
+
+.disclosure-panel[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.disclosure-panel .disclosure-content {
+  display: grid;
+  gap: 16px;
+  padding: 20px 22px 22px;
+  border-top: 1px solid #dbe1e8;
+}
+
+.disclosure-panel .disclosure-content h3 {
+  font-size: .95rem;
+  color: var(--muted);
+}
+
+.tutorial-dialog {
+  width: min(92vw, 620px);
+  max-height: min(88vh, 720px);
+  overflow: auto;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--charcoal);
+  box-shadow: 0 30px 90px rgba(16, 24, 40, .3);
+}
+
+.tutorial-dialog::backdrop {
+  background: rgba(16, 24, 40, .62);
+}
+
+.tutorial-shell {
+  display: grid;
+  gap: 20px;
+  padding: 22px;
+}
+
+.tutorial-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.tutorial-step-count {
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 850;
+}
+
+.tutorial-close {
+  background: var(--surface-muted);
+  color: var(--charcoal);
+}
+
+.tutorial-close:hover {
+  background: var(--red-soft);
+  color: var(--red-dark);
+}
+
+.tutorial-close svg,
+.tutorial-destinations svg,
+.tutorial-continue-preview svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tutorial-step h2,
+.tutorial-step p {
+  margin-top: 0;
+}
+
+.tutorial-step h2 {
+  margin-bottom: 8px;
+  font-size: 1.65rem;
+}
+
+.tutorial-step > p:last-of-type {
+  max-width: 58ch;
+  margin-bottom: 18px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.tutorial-destinations {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tutorial-destinations > span {
+  min-height: 88px;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-tint);
+  color: var(--red-dark);
+  text-align: center;
+}
+
+.tutorial-destinations strong {
+  color: var(--charcoal);
+  font-size: .88rem;
+}
+
+.tutorial-continue-preview {
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: var(--red);
+  color: #fff;
+  font-weight: 850;
+  box-shadow: 0 14px 30px rgba(143, 17, 24, .2);
+}
+
+.tutorial-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 980px) {
+  body.app-page .app-shell:not(.auth-mode) .sidebar {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-self: start;
+  }
+
+  body.app-page .app-shell:not(.auth-mode) .brand {
+    width: 44px;
+    min-width: 44px;
+  }
+
+  .mobile-header-actions {
+    display: flex;
+    justify-self: end;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .header-ar-button {
+    width: 44px;
+    height: 44px;
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: var(--radius);
+    background: var(--red);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(180, 35, 24, .2);
+  }
+
+  .header-ar-button:hover {
+    background: var(--red-dark);
+  }
+
+  .header-ar-button svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  body.app-page .app-shell:not(.auth-mode) .mobile-nav-toggle {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 520px) {
+  body.app-page .app-shell:not(.auth-mode) .sidebar {
+    height: 64px;
+    padding: 9px 10px;
+  }
+
+  body.app-page .app-shell:not(.auth-mode) .mobile-nav-toggle {
+    gap: 6px;
+    padding-inline: 10px;
+    font-size: .8rem;
+  }
+
+  .tutorial-shell {
+    gap: 16px;
+    padding: 18px;
+  }
+
+  .tutorial-destinations {
+    grid-template-columns: 1fr;
+  }
+
+  .tutorial-destinations > span {
+    min-height: 58px;
+    grid-template-columns: auto 1fr;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .disclosure-panel summary,
+  .disclosure-panel .disclosure-content {
+    padding-inline: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ar-retry-button[aria-busy="true"] svg {
+    animation: none;
   }
 }

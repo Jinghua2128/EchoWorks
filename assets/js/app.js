@@ -19,7 +19,8 @@ const storageKeys = {
   email: "feedbackPlaybook.userEmail",
   legacyEmail: "userEmail",
   mode: "feedbackPlaybook.mode",
-  scenarioResults: "feedbackPlaybook.scenarioResults"
+  scenarioResults: "feedbackPlaybook.scenarioResults",
+  tutorialSeen: "feedbackPlaybook.tutorialSeen.v1"
 };
 
 const protectedRoutes = new Set(["home", "survey", "ar", "settings"]);
@@ -71,6 +72,8 @@ let mindarTargetVisible = false;
 let mindarLostTimer = null;
 let arCameraMode = null;
 let cameraStartToken = 0;
+let tutorialStep = 0;
+let tutorialPromptedForKey = "";
 
 const appShell = document.getElementById("appShell");
 const mobileNavToggle = document.getElementById("mobileNavToggle");
@@ -103,13 +106,6 @@ const arOverlayTitle = document.getElementById("arOverlayTitle");
 const arOverlaySpeech = document.getElementById("arOverlaySpeech");
 const arCardPicker = document.getElementById("arCardPicker");
 const arSupportNote = document.getElementById("arSupportNote");
-const arLearningLetter = document.getElementById("arLearningLetter");
-const arLearningFramework = document.getElementById("arLearningFramework");
-const arLearningTitle = document.getElementById("arLearningTitle");
-const arPhysicalText = document.getElementById("arPhysicalText");
-const arSpeechBubble = document.getElementById("arSpeechBubble");
-const arChecklist = document.getElementById("arChecklist");
-const arWatchOut = document.getElementById("arWatchOut");
 const arWorkshopTimeline = document.getElementById("arWorkshopTimeline");
 const arPrintableCards = document.getElementById("arPrintableCards");
 const completedScenariosEl = document.getElementById("completedScenarios");
@@ -125,6 +121,10 @@ const pathAchievementEl = document.getElementById("pathAchievement");
 const screenWipeEl = document.getElementById("screenWipe");
 const screenWipeLabelEl = document.getElementById("screenWipeLabel");
 const screenWipeTitleEl = document.getElementById("screenWipeTitle");
+const tutorialDialog = document.getElementById("tutorialDialog");
+const tutorialStepCount = document.getElementById("tutorialStepCount");
+const tutorialBackButton = document.querySelector('[data-action="tutorial-back"]');
+const tutorialNextButton = document.querySelector('[data-action="tutorial-next"]');
 const completionMotionMedia = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 function isSignedIn() {
@@ -137,7 +137,7 @@ function setMobileNav(open) {
 
   if (mobileNavToggle) {
     mobileNavToggle.setAttribute("aria-expanded", String(shouldOpen));
-    mobileNavToggle.setAttribute("aria-label", shouldOpen ? "Close navigation" : "Open navigation");
+    mobileNavToggle.setAttribute("aria-label", shouldOpen ? "Close quick access" : "Open quick access");
   }
 
   if (primaryNav) {
@@ -909,6 +909,69 @@ function openSurvey(index) {
   goTo("survey");
 }
 
+async function continueLearning() {
+  await surveyDataReady;
+  const preSurveyIndex = surveyDefinitions.findIndex(survey => survey.stage === "pre");
+  const hasAttemptedPrePulse = surveyStageProgress("pre").answered > 0;
+
+  if (!hasAttemptedPrePulse && preSurveyIndex >= 0) {
+    openSurvey(preSurveyIndex);
+    return;
+  }
+
+  window.location.assign("scenario.html");
+}
+
+function tutorialStorageKey() {
+  const identity = isGuest
+    ? "guest"
+    : currentUser?.uid || normalizeEmail(currentUser?.email || "");
+
+  return identity ? `${storageKeys.tutorialSeen}.${identity}` : "";
+}
+
+function markTutorialSeen() {
+  const key = tutorialStorageKey();
+  if (key) localStorage.setItem(key, "true");
+}
+
+function setTutorialStep(step) {
+  tutorialStep = Math.max(0, Math.min(1, Number(step) || 0));
+
+  document.querySelectorAll("[data-tutorial-step]").forEach((element, index) => {
+    element.hidden = index !== tutorialStep;
+  });
+
+  if (tutorialStepCount) tutorialStepCount.textContent = `${tutorialStep + 1} of 2`;
+  if (tutorialBackButton) tutorialBackButton.hidden = tutorialStep === 0;
+  if (tutorialNextButton) tutorialNextButton.textContent = tutorialStep === 1 ? "Start learning" : "Next";
+}
+
+function closeTutorial() {
+  markTutorialSeen();
+  if (tutorialDialog?.open) tutorialDialog.close();
+}
+
+function advanceTutorial() {
+  if (tutorialStep === 0) {
+    setTutorialStep(1);
+    return;
+  }
+
+  closeTutorial();
+}
+
+function maybeShowTutorial() {
+  if (!tutorialDialog?.showModal || activeRoute !== "home" || !isSignedIn()) return;
+
+  const key = tutorialStorageKey();
+  if (!key || tutorialPromptedForKey === key || localStorage.getItem(key) === "true") return;
+
+  tutorialPromptedForKey = key;
+  setTutorialStep(0);
+  tutorialDialog.showModal();
+}
+
 async function submitSurvey(event) {
   event.preventDefault();
   if (surveyTransitioning) return;
@@ -965,7 +1028,7 @@ function updateUI() {
   if (completedScenariosEl) completedScenariosEl.textContent = String(completedScenarioCount);
   if (remainingScenariosEl) remainingScenariosEl.textContent = String(Math.max(0, scenarioTarget - completedScenarioCount));
   if (latestScoreSummaryEl) latestScoreSummaryEl.textContent = latestScenario?.scorePercent == null ? "-" : `${latestScenario.scorePercent}%`;
-  if (scenarioStatusEl) scenarioStatusEl.textContent = completedScenarioCount ? `${completedScenarioCount} of ${scenarioTarget} complete` : latestScenario ? "In progress" : "Not started";
+  if (scenarioStatusEl) scenarioStatusEl.textContent = scenarioTarget > 0 && completedScenarioCount >= scenarioTarget ? "Done" : "Not Done";
   if (latestScenarioScoreEl) latestScenarioScoreEl.textContent = latestScenario?.scorePercent == null ? "-" : `${latestScenario.scorePercent}%`;
   sidebarProgressText.textContent = `${progress}% complete`;
   renderLearningMilestones(completedScenarioCount);
@@ -1041,6 +1104,7 @@ function goTo(route, options = {}) {
       heading.setAttribute("tabindex", "-1");
       heading.focus({ preventScroll: true });
     }
+    if (resolvedRoute === "home") maybeShowTutorial();
   });
 
   const hash = `#${resolvedRoute}`;
@@ -1082,24 +1146,6 @@ function renderArOverlay(card) {
   arCameraFrame.classList.add("has-card-overlay");
 }
 
-function renderArLearning(card) {
-  if (!card) return;
-
-  arLearningLetter.textContent = card.letter;
-  arLearningLetter.dataset.framework = card.framework;
-  arLearningFramework.textContent = `${card.framework} framework`;
-  arLearningTitle.textContent = card.title;
-  arPhysicalText.textContent = card.physicalText;
-  arSpeechBubble.textContent = card.speechBubble;
-  arWatchOut.textContent = card.watchOut;
-  arChecklist.textContent = "";
-
-  card.checklist.forEach(item => {
-    const listItem = document.createElement("li");
-    listItem.textContent = item;
-    arChecklist.append(listItem);
-  });
-}
 
 function renderArCardPicker() {
   if (!arCardData || !arCardPicker) return;
@@ -1140,7 +1186,6 @@ function selectArCard(cardId, options = {}) {
     button.setAttribute("aria-pressed", String(button.dataset.arRole === activeArRole));
   });
   renderArCardPicker();
-  renderArLearning(card);
   renderArOverlay(card);
   notifyMotion("motion:content-added", { element: arOverlay });
 
@@ -1555,6 +1600,10 @@ function bindEvents() {
     });
   }
 
+  if (tutorialDialog) {
+    tutorialDialog.addEventListener("close", markTutorialSeen);
+  }
+
   if (typeof mobileNavMedia.addEventListener === "function") {
     mobileNavMedia.addEventListener("change", syncMobileNavState);
   } else if (typeof mobileNavMedia.addListener === "function") {
@@ -1603,10 +1652,10 @@ function bindEvents() {
     if (action === "retry-survey") initialiseSurveyData();
     if (action === "retry-ar") initialiseArData();
     if (action === "start-camera") startCamera();
-    if (action === "print-ar-cards") {
-      document.body.classList.add("printing-ar-cards");
-      window.print();
-    }
+    if (action === "continue-learning") continueLearning();
+    if (action === "tutorial-next") advanceTutorial();
+    if (action === "tutorial-back") setTutorialStep(tutorialStep - 1);
+    if (action === "tutorial-close") closeTutorial();
     if (action === "stop-camera") {
       stopCamera();
       setMessage("cameraMessage", "Camera stopped.", "success");
@@ -1618,9 +1667,6 @@ function bindEvents() {
     if (route !== activeRoute) goTo(route, { replace: true });
   });
 
-  window.addEventListener("afterprint", () => {
-    document.body.classList.remove("printing-ar-cards");
-  });
 
   document.addEventListener("visibilitychange", () => {
     if (document.hidden && (cameraStream || mindarTracker)) stopCamera();
@@ -1657,13 +1703,26 @@ async function initialiseScenarioDefinitions() {
 
 async function initialiseArData() {
   const retryButton = document.querySelector('[data-action="retry-ar"]');
-  if (retryButton) retryButton.hidden = true;
+  const isRetry = Boolean(retryButton && !retryButton.hidden);
+
+  if (retryButton) {
+    retryButton.hidden = !isRetry;
+    retryButton.disabled = true;
+    retryButton.setAttribute("aria-busy", "true");
+  }
+
   try {
     await loadArCards();
     setMessage("cameraMessage", "");
+    if (retryButton) retryButton.hidden = true;
   } catch (error) {
     setMessage("cameraMessage", error.message || "AR card content could not be loaded.");
     if (retryButton) retryButton.hidden = false;
+  } finally {
+    if (retryButton) {
+      retryButton.disabled = false;
+      retryButton.setAttribute("aria-busy", "false");
+    }
   }
 }
 

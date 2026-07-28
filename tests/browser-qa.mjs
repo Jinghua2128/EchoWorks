@@ -123,13 +123,19 @@ export async function ensureFirestore() { return sdk; }
   await page.keyboard.press("Enter");
   await page.waitForSelector("#home.active");
   assert.equal(await page.evaluate(() => sessionStorage.getItem("qaVerificationSent")), "true");
+  await page.waitForFunction(() => document.querySelector("#tutorialDialog")?.open);
+  assert.equal(await page.locator("[data-tutorial-step='0']").isVisible(), true);
+  await page.click('[data-action="tutorial-next"]');
+  assert.equal(await page.locator("[data-tutorial-step='1']").isVisible(), true);
+  await page.click('[data-action="tutorial-next"]');
+  assert.equal(await page.locator("#tutorialDialog").evaluate(dialog => dialog.open), false);
   await page.locator('[data-route="settings"]:visible').first().focus();
   await page.keyboard.press("Enter");
   await page.waitForSelector("#settings.active");
   await page.locator('[data-action="logout"]').focus();
   await page.keyboard.press("Enter");
   await page.waitForSelector("#login.active");
-  report.auth = { genericLoginError: loginError.trim(), reset: true, signupGuidance: true, verification: true, logout: true, keyboard: true, errors };
+  report.auth = { genericLoginError: loginError.trim(), reset: true, signupGuidance: true, verification: true, tutorial: true, logout: true, keyboard: true, errors };
   await context.close();
 }
 
@@ -140,7 +146,10 @@ export async function ensureFirestore() { return sdk; }
   let surveyRequests = 0;
   let arRequests = 0;
   const context = await browser.newContext({ bypassCSP: true, viewport: { width: 1024, height: 768 }, reducedMotion: "reduce" });
-  await context.addInitScript(() => localStorage.clear());
+  await context.addInitScript(() => {
+    localStorage.clear();
+    localStorage.setItem("feedbackPlaybook.tutorialSeen.v1.guest", "true");
+  });
   const page = await context.newPage();
   const errors = watchErrors(page);
   await page.route("**/assets/js/firebase-client.js*", route => route.fulfill({ status: 200, contentType: "application/javascript", body: offlineFirebaseModule }));
@@ -174,6 +183,23 @@ export async function ensureFirestore() { return sdk; }
   await page.click('[data-action="guest"]');
   await page.waitForSelector("#home.active");
   await page.waitForSelector('[data-survey-index="0"]');
+  await page.waitForFunction(() => document.querySelector("#tutorialDialog")?.open);
+  assert.equal(await page.locator("#tutorialStepCount").textContent(), "1 of 2");
+  assert.equal(await page.locator('[data-action="tutorial-back"]').isHidden(), true);
+  await page.click('[data-action="tutorial-next"]');
+  assert.equal(await page.locator("#tutorialStepCount").textContent(), "2 of 2");
+  await page.click('[data-action="tutorial-next"]');
+  assert.equal(await page.evaluate(() => localStorage.getItem("feedbackPlaybook.tutorialSeen.v1.guest")), "true");
+
+  await page.click('[data-action="continue-learning"]');
+  await page.waitForSelector("#survey.active");
+  assert.match(await page.locator("#surveyTitle").textContent(), /Pre-pulse/i);
+  await page.click('#survey [data-route="home"]');
+  await page.waitForSelector("#home.active");
+
+  assert.equal(await page.locator("#progressTitle").textContent(), "Your progress");
+  assert.equal(await page.locator("#unitsTitle").textContent(), "Complete the pre and post survey");
+  assert.equal(await page.locator(".support-panel").count(), 0);
 
   for (const surveyIndex of [0, 1]) {
     await page.click(`[data-survey-index="${surveyIndex}"]`);
@@ -207,11 +233,17 @@ export async function ensureFirestore() { return sdk; }
   assert.match(surveyState.progress, /4 of 4 pulse responses/);
   assert.equal(Object.values(surveyState.answers).flat().length, 4);
 
-  await page.click('[data-route="ar"]');
+  await page.locator('[data-route="ar"]:visible').first().click();
   await page.waitForSelector("#ar.active");
   await page.waitForSelector("[data-ar-card]");
   await page.locator("[data-ar-card]").nth(2).click();
-  assert.equal(await page.locator("#arLearningTitle").isVisible(), true);
+  assert.equal(await page.locator("#arLearningPanel").count(), 0);
+  assert.equal(await page.locator("#arCardsTitle").textContent(), "Manually choose a card");
+  assert.equal(await page.locator('[data-action="retry-ar"]').isHidden(), true);
+  assert.equal(await page.locator(".disclosure-panel").first().getAttribute("open"), null);
+  await page.locator(".disclosure-panel summary").first().focus();
+  await page.keyboard.press("Enter");
+  assert.equal(await page.locator(".disclosure-panel").first().getAttribute("open"), "");
 
   await page.click('[data-route="settings"]');
   await page.click('[data-action="reset-progress"]');
@@ -239,13 +271,46 @@ export async function ensureFirestore() { return sdk; }
   const mobile = await page.evaluate(() => ({
     width: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth,
-    target: document.querySelector("#mobileNavToggle").getBoundingClientRect().height
+    target: document.querySelector("#mobileNavToggle").getBoundingClientRect().height,
+    arTarget: document.querySelector(".header-ar-button").getBoundingClientRect().height
   }));
   assert.equal(mobile.scrollWidth, mobile.width);
   assert.ok(mobile.target >= 44);
+  assert.ok(mobile.arTarget >= 44);
+  await page.click("#mobileNavToggle");
+  await page.evaluate(() => { window.location.hash = "#home"; });
+  await page.waitForSelector("#home.active");
+  await page.evaluate(() => window.scrollTo(0, 700));
+  await page.waitForTimeout(60);
+  const stickyTop = await page.locator(".sidebar").evaluate(element => Math.round(element.getBoundingClientRect().top));
+  assert.ok(Math.abs(stickyTop) <= 1);
   report.accessibility.app = await seriousAxe(page, "#appShell");
-  report.app = { surveyProgress: surveyState.progress, intermediateNav, mobile, responsive: await responsiveSweep(page, "app"), errors };
+  report.app = { surveyProgress: surveyState.progress, intermediateNav, mobile, stickyTop, responsive: await responsiveSweep(page, "app"), errors };
   await page.screenshot({ path: join(output, "app-mobile.png"), fullPage: true });
+  await context.close();
+}
+
+{
+  const context = await browser.newContext({ bypassCSP: true, viewport: { width: 1024, height: 768 }, reducedMotion: "reduce" });
+  await context.addInitScript(() => {
+    localStorage.clear();
+    localStorage.setItem("feedbackPlaybook.tutorialSeen.v1.guest", "true");
+  });
+  const page = await context.newPage();
+  await page.goto(`${baseUrl}/index.html#login`, { waitUntil: "domcontentloaded" });
+  await page.click('[data-action="guest"]');
+  await page.waitForSelector("#home.active");
+  await page.click('[data-action="continue-learning"]');
+  await page.waitForSelector("#survey.active");
+  await page.check('input[name="comfort"][value="4"]');
+  await page.click('#surveyForm button[type="submit"]');
+  await page.click('#survey [data-route="home"]');
+  await page.waitForSelector("#home.active");
+  await Promise.all([
+    page.waitForURL(/scenario\.html/),
+    page.click('[data-action="continue-learning"]')
+  ]);
+  report.app.continueLearning = { prerequisite: true, resumedScenario: true };
   await context.close();
 }
 

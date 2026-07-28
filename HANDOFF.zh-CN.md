@@ -21,7 +21,19 @@ English handoff: [HANDOFF.md](HANDOFF.md)
 
 ## 当前状态
 
-生产审计和最近的视觉小说布局修改已在本地实现。npm run build 会把可发布内容生成到已忽略的 public 文件夹。
+生产审计和最近的视觉小说布局修改已在本地实现。
+
+### 学习者界面版本（2026-07-28）
+
+- 主页进度区现在直接使用 Your progress 标题，并删除重复的 learning path、next action、randomized case 和 quick tools 文案；时长显示为 5 min / scenario，八个情景未全部完成前状态为 Not Done。
+- Continue learning 会先检查 pre-pulse：没有任何 pre-pulse 答案时进入 pre-pulse；已有至少一次回答时继续原有 scenario 路线。
+- 手机和平板页头仅保留主页红十字图标，并新增红色 AR 图标快捷按钮；菜单改名为 Quick Access，加入 Scenario 入口，并在滚动时保持置顶。
+- 首次游客和首次登录账号会看到两步、可用键盘操作的导航教程；完成状态按游客/账号保存到 feedbackPlaybook.tutorialSeen.v1.*。
+- AR 页面保留相机与手动选卡，删除重复的动态详情区，重试按钮改为仅图标方形按钮；Facilitator flow 和 Workshop materials 改为默认折叠的原生下拉区。
+- Settings 的 Danger zone 使用更清晰的红色浅底。
+- 本版本 app.css 与 app.js 的缓存版本号为 20260728-guided-home。
+
+npm run build 会把可发布内容生成到已忽略的 public 文件夹。
 
 主要页面：
 
@@ -161,9 +173,9 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 ## 已通过测试
 
 - npm run check：通过。
-- npm test：12/12 通过。
+- npm test：13/13 通过。
 - npm run test:rules：5/5 Firestore 模拟器套件通过。
-- npm run test:browser：Chrome 与 Edge 通过，包括对话框点击/触摸、文字选择保护、键盘操作和输入冷却。
+- npm run test:browser：Chrome 与 Edge 通过，包括首次教程、pre-pulse 前置路由、AR 下拉区、手机置顶页头、对话框点击/触摸、文字选择保护、键盘操作和输入冷却。
 - app、scenario、dashboard 的 Axe serious/critical 问题：0。
 - 320px、390px、横屏、768px、1024px、1440px 和等效高倍缩放检查通过。
 - 生产构建包含 93 个文件；其中包括 12 张情景角色帧、4 张地点背景、8 张实体卡、8 张 AR 姿势图和一个 2.44 MB MindAR v2 目标包。
