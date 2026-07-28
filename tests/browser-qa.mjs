@@ -11,6 +11,7 @@ const chromePath = process.env.CHROME_PATH || "C:/Program Files/Google/Chrome/Ap
 const output = await mkdtemp(join(tmpdir(), "echoworks-browser-qa-"));
 const browser = await chromium.launch({ headless: true, executablePath: chromePath });
 const report = { auth: {}, resilience: {}, app: {}, scenario: {}, dashboard: {}, access: {}, performance: {}, accessibility: {} };
+let typingAudioReport = null;
 
 function watchErrors(page) {
   const errors = [];
@@ -315,6 +316,72 @@ export async function ensureFirestore() { return sdk; }
 }
 
 {
+  const context = await browser.newContext({ bypassCSP: true, viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
+  await context.addInitScript(() => {
+    localStorage.clear();
+    const state = { starts: 0, stops: 0 };
+    class QaOscillator {
+      constructor() {
+        this.frequency = { setValueAtTime() {} };
+        this.ended = null;
+      }
+      connect() {}
+      addEventListener(type, listener) {
+        if (type === "ended") this.ended = listener;
+      }
+      start() { state.starts += 1; }
+      stop() {
+        state.stops += 1;
+        queueMicrotask(() => this.ended?.());
+      }
+    }
+    class QaGain {
+      constructor() {
+        this.gain = { setValueAtTime() {}, exponentialRampToValueAtTime() {} };
+      }
+      connect() {}
+    }
+    class QaAudioContext {
+      constructor() {
+        this.currentTime = 0;
+        this.state = "running";
+        this.destination = {};
+      }
+      resume() {
+        this.state = "running";
+        return Promise.resolve();
+      }
+      createOscillator() { return new QaOscillator(); }
+      createGain() { return new QaGain(); }
+    }
+    Object.defineProperty(window, "__qaTypingAudio", { value: state, configurable: true });
+    Object.defineProperty(window, "AudioContext", { value: QaAudioContext, configurable: true });
+    Object.defineProperty(window, "speechSynthesis", { value: undefined, configurable: true });
+    Object.defineProperty(window, "SpeechSynthesisUtterance", { value: undefined, configurable: true });
+  });
+  const page = await context.newPage();
+  const errors = watchErrors(page);
+  await page.goto(`${baseUrl}/scenario.html`, { waitUntil: "domcontentloaded" });
+  await page.click('[data-role="manager"]');
+  await page.waitForFunction(() => document.querySelector("#rolePanel")?.hidden === true);
+  await page.waitForFunction(() => window.__qaTypingAudio.starts >= 5);
+  const beforeMute = await page.evaluate(() => ({
+    ...window.__qaTypingAudio,
+    visibleCharacters: document.querySelector("#dialogueText")?.textContent?.length || 0
+  }));
+  assert.ok(beforeMute.visibleCharacters >= 4);
+  await page.click("#soundToggle");
+  const startsAfterMute = await page.evaluate(() => window.__qaTypingAudio.starts);
+  await page.waitForTimeout(120);
+  const afterMute = await page.evaluate(() => ({ ...window.__qaTypingAudio }));
+  assert.equal(afterMute.starts, startsAfterMute);
+  assert.equal(await page.locator("#soundToggle").getAttribute("aria-pressed"), "false");
+  assert.deepEqual(errors, []);
+  typingAudioReport = { beforeMute, afterMute };
+  await context.close();
+}
+
+{
   const context = await browser.newContext({ bypassCSP: true, viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
   await context.addInitScript(() => {
     localStorage.clear();
@@ -482,7 +549,7 @@ export async function ensureFirestore() { return sdk; }
   assert.ok(voiceOverlay.spoken.some(line => line.voice === "Microsoft Guy" && line.pitch < 1));
   assert.ok(voiceOverlay.spoken.some(line => line.voice === "Microsoft Aria" && line.pitch > 1));
   assert.equal(voiceOverlay.spoken.some(line => /^\([^)]{1,80}\)/.test(line.text)), false);
-  report.scenario = { legacyRedirect: page.url(), liveState, voiceOverlay, mobile, responsive: await responsiveSweep(page, "scenario"), errors };
+  report.scenario = { legacyRedirect: page.url(), liveState, voiceOverlay, typingAudio: typingAudioReport, mobile, responsive: await responsiveSweep(page, "scenario"), errors };
   await page.screenshot({ path: join(output, "scenario-mobile.png"), fullPage: false });
   await context.close();
 }

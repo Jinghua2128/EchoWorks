@@ -80,6 +80,7 @@ let characterPoseTurns = { manager: 0, employee: 0 };
 let pendingNext = null;
 let fullText = "";
 let typedIndex = 0;
+let typedSoundIndex = 0;
 let isTyping = false;
 let scoreState = {};
 let totalScore = 0;
@@ -299,10 +300,12 @@ function playLineCue() {
   playDialogueTone(470, 0.07, 0.01, "sine", 0.025);
 }
 
-function playTypingBlip(character, index) {
-  if (!character || /\s/.test(character) || index % 3 !== 0) return;
-  const pitch = 390 + (character.codePointAt(0) % 8) * 18;
-  playDialogueTone(pitch, 0.022, 0.006, "triangle");
+function playTypingBlip(character) {
+  if (!character || /\s/.test(character)) return;
+  typedSoundIndex += 1;
+  if ((typedSoundIndex - 1) % 3 !== 0) return;
+  const pitch = 480 + (character.codePointAt(0) % 8) * 18;
+  playDialogueTone(pitch, 0.025, 0.012, "triangle");
 }
 
 async function toggleDialogueSound() {
@@ -1056,6 +1059,7 @@ function typeText(text) {
   clearTimers();
   fullText = text;
   typedIndex = 0;
+  typedSoundIndex = 0;
   isTyping = true;
   setText("");
   playLineCue();
@@ -1079,7 +1083,7 @@ function typeText(text) {
     typedIndex += 1;
     setText(fullText.slice(0, typedIndex));
     const previousCharacter = fullText[typedIndex - 1];
-    playTypingBlip(previousCharacter, typedIndex);
+    playTypingBlip(previousCharacter);
     typingTimer = window.setTimeout(tick, previousCharacter === "\n" ? 0 : textSpeed);
   }
 

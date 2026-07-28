@@ -39,8 +39,9 @@ The confirmed production audit is implemented locally.
 - Narrator, manager, employee, and coach lines use separate rate, pitch, volume, and preferred English voice profiles; the browser falls back to its available English/default voice when a preferred voice is unavailable.
 - The existing sound button now controls all scenario audio, persists under `feedbackPlaybook.dialogueSound`, stops active speech immediately when muted, and reads the current line when re-enabled.
 - Every scene transition, restart, tab hide, and page exit cancels active speech before another line can start. Leading bracketed or parenthetical acting directions are excluded from spoken output without changing the displayed script.
-- No generated audio files or external speech service are required. If speech synthesis is unavailable, the existing line cue and typing blips continue to work where Web Audio is supported.
-- The scenario script cache version is `20260728-voiceover`.
+- No generated audio files or external speech service are required. If speech synthesis is unavailable, the existing line cue and typing clicks continue to work where Web Audio is supported.
+- Typing now produces a consistent, clearly audible click on the first and every third visible character; whitespace no longer creates irregular silent cadence. Muting scenario audio stops new clicks immediately.
+- The scenario script cache version is `20260728-typing-audio`.
 
 The deployable output is generated in ignored `public/` by `npm run build`.
 
@@ -196,7 +197,7 @@ The pulse survey and game competency dimensions are reported separately; do not 
 
 - The dialogue panel and existing button share the same guarded progression path. Preserve panel click/tap, Enter/Space, text-selection protection, nested-control protection, and the 260ms cooldown.
 
-- Dialogue has a subtle line cue plus quiet typing blips after user interaction.
+- Dialogue has a subtle line cue plus restrained, audible typing clicks after user interaction.
 - Browser voice-over speaks visible scenario lines after user interaction, uses speaker-specific voice profiles where available, and must cancel before the next scene starts.
 - The sound toggle persists under `feedbackPlaybook.dialogueSound`, controls speech and dialogue tones together, and must respect autoplay restrictions.
 - Do not commit generated voice files for this implementation. Browser speech synthesis is the deployment-friendly source, with the existing tones as its fallback.
@@ -216,7 +217,7 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - `npm test`: 13/13 passed.
 - `npm run test:rules`: 5/5 Firestore emulator suites passed.
 - `npm run test:browser`: passed in Chrome 150.0.7871.184 and Edge 150.0.4078.83.
-- Browser coverage includes auth errors/reset/signup verification/logout, first-time tutorial, pre-pulse prerequisite routing, guest mode, optional survey/AR retry, AR disclosures, sticky mobile header, four pulse answers, progress deletion dialog, both roles, reflection/replay, dialogue panel click/tap, text-selection protection, input cooldown, deterministic voice-over/mute/cancellation/speaker-profile checks, dashboard denial/owner access/filters/detail/viewer management, keyboard flow, and reduced motion.
+- Browser coverage includes auth errors/reset/signup verification/logout, first-time tutorial, pre-pulse prerequisite routing, guest mode, optional survey/AR retry, AR disclosures, sticky mobile header, four pulse answers, progress deletion dialog, both roles, reflection/replay, dialogue panel click/tap, text-selection protection, input cooldown, deterministic voice-over/mute/cancellation/speaker-profile checks, real-motion typing-audio cadence and mute checks, dashboard denial/owner access/filters/detail/viewer management, keyboard flow, and reduced motion.
 - Axe serious/critical violations: 0 on app, scenario, and dashboard.
 - Responsive checks passed at 320px, 390px, short landscape, 768px, 1024px, 1440px, and 200%/400% equivalent reflow widths with 44px controls and no horizontal overflow.
 - Dashboard fixture: 75 learners and 300 result records rendered in about 40-50ms.
