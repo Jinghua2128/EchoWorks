@@ -1,6 +1,6 @@
 # EchoWorks 项目交接文档
 
-更新日期：2026-07-27（Asia/Singapore）
+更新日期：2026-07-28（Asia/Singapore）
 
 English handoff: [HANDOFF.md](HANDOFF.md)
 
@@ -155,7 +155,7 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 - 当前情景角色使用 12 张轻量预渲染低多边形帧：每个角色各有 3 组对齐的静止/说话姿势。资源路径统一配置在 `assets/characters/character-models.js`，说话者、情绪、语气和轮次姿势选择位于 `assets/js/novel.js`。这不是实时 Three.js 角色系统。
 - 不要翻转角色图片；相机识别不可用时继续提供 AR 手动选卡。
 - 每个情景使用 `assets/scenes` 中的地点背景（会议室、绩效面谈办公室、走廊或规划工作区）；教练反馈可切换为原有 success/tense/mentor 背景，同时保留屏幕滑动转场。
-- `assets/ar-targets/echoworks-cards.mind` 是本地编译的单一 MindAR 目标包，可识别全部 8 张 CARE/REAL 实体卡。实体卡源图位于 `assets/ar-cards`，同名透明低多边形姿势图位于 `assets/ar-models`。
+- `assets/ar-targets/echoworks-cards.mind` 是本地编译的单一 MindAR 目标包，可识别全部 8 张 CARE/REAL 实体卡。实体卡源图位于 `assets/ar-cards`，同名透明 AR 姿势图位于 `assets/ar-models`。这 8 张叠加图现在与情景角色采用相同的柔和低多边形 3D 设计：REAL 使用奶油色 Alex，CARE 使用棕色面罩的 Sarah/Jamie。
 - 目标索引固定为 REAL_R、REAL_E、REAL_A、REAL_L、CARE_C、CARE_A、CARE_R、CARE_E，对应索引 0 到 7；修改卡图或顺序后必须重新编译整个目标包。
 
 ## 已通过测试

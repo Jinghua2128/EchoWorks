@@ -43,3 +43,14 @@ test("dynamic character poses and scenario backgrounds are centralized and deplo
     await access(new URL(scenarioLibrary.assets.backgrounds[background], root));
   }
 });
+
+test("AR card overlays use local versioned character assets", async () => {
+  const arCards = JSON.parse(await text("assets/data/ar-cards.json"));
+  const app = await text("assets/js/app.js");
+  assert.equal(arCards.cards.length, 8);
+  assert.match(app, /const arAssetVersion = "20260728-scenario3d"/);
+  for (const card of arCards.cards) {
+    assert.match(card.characterImage, /^assets\/ar-models\/[A-Z]+_[A-Z]\.webp$/);
+    await access(new URL(card.characterImage, root));
+  }
+});

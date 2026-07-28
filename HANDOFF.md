@@ -1,6 +1,6 @@
 # EchoWorks Project Handoff
 
-Updated: 2026-07-27 (Asia/Singapore)
+Updated: 2026-07-28 (Asia/Singapore)
 
 Chinese handoff: [HANDOFF.zh-CN.md](HANDOFF.zh-CN.md)
 
@@ -183,14 +183,14 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - Scenario characters use 12 lightweight pre-rendered low-poly frames: three synchronized idle/talk pose pairs per character. Paths are centralized in `assets/characters/character-models.js`; speaker, mood, tone, and turn-based pose selection live in `assets/js/novel.js`. This is not a real-time Three.js character runtime.
 - Each scenario has a location background from `assets/scenes` (meeting room, review office, corridor, or planning workspace). Coach feedback may switch to the existing success/tense/mentor backdrop while preserving the screen-swipe transition.
 - Current AR is web-based card recognition/manual learning, not a Unity package or world-anchored AR. One local MindAR bundle at `assets/ar-targets/echoworks-cards.mind` recognizes all eight physical CARE/REAL artworks.
-- Physical card sources are in `assets/ar-cards`; matching transparent low-poly poses are in `assets/ar-models`. Filenames share the exact card IDs. Target indexes are fixed as REAL_R, REAL_E, REAL_A, REAL_L, CARE_C, CARE_A, CARE_R, CARE_E (0 through 7).
+- Physical card sources are in `assets/ar-cards`; matching transparent AR poses are in `assets/ar-models`. The eight overlays use the same soft low-poly 3D character design as the scenario models: cream Alex for REAL and brown-mask Sarah/Jamie for CARE. Filenames share the exact card IDs. Target indexes are fixed as REAL_R, REAL_E, REAL_A, REAL_L, CARE_C, CARE_A, CARE_R, CARE_E (0 through 7).
 - Camera code remains lazy and requires HTTPS or localhost.
 - Always retain manual card selection when camera/MindAR/BarcodeDetector is unavailable.
 
 ## Verification Completed
 
 - `npm run check`: passed.
-- `npm test`: 12/12 passed.
+- `npm test`: 13/13 passed.
 - `npm run test:rules`: 5/5 Firestore emulator suites passed.
 - `npm run test:browser`: passed in Chrome 150.0.7871.184 and Edge 150.0.4078.83.
 - Browser coverage includes auth errors/reset/signup verification/logout, guest mode, optional survey/AR retry, four pulse answers, progress deletion dialog, both roles, reflection/replay, dialogue panel click/tap, text-selection protection, input cooldown, dashboard denial/owner access/filters/detail/viewer management, keyboard flow, and reduced motion.

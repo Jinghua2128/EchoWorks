@@ -33,6 +33,7 @@ function notifyMotion(name, detail = {}) {
 
 const pulseSurveyFile = "assets/data/pulse-surveys.json";
 const arCardsFile = "assets/data/ar-cards.json";
+const arAssetVersion = "20260728-scenario3d";
 const scenarioLibraryFile = "assets/data/scenarios/scenario-library.json";
 let scenarioDefinitions = [];
 let scenarioIds = [];
@@ -1066,7 +1067,7 @@ function arEffectMarkup(animation) {
 function renderArOverlay(card) {
   if (!card || !arOverlay) return;
 
-  arCharacterImage.src = card.characterImage;
+  arCharacterImage.src = `${card.characterImage}?v=${arAssetVersion}`;
   arCharacterImage.alt = `${card.character} demonstrating ${card.title}`;
   arOverlayFramework.textContent = `${card.framework} · ${card.letter}`;
   arOverlayTitle.textContent = card.title;
@@ -1078,6 +1079,7 @@ function renderArOverlay(card) {
   void arOverlay.offsetWidth;
   arOverlay.classList.add("is-active");
   arCameraFrame.dataset.card = card.id;
+  arCameraFrame.classList.add("has-card-overlay");
 }
 
 function renderArLearning(card) {
@@ -1225,7 +1227,7 @@ function renderPrintableArCards() {
 }
 
 async function loadArCards() {
-  const response = await fetch(`${arCardsFile}?v=20260727-ar8`);
+  const response = await fetch(`${arCardsFile}?v=20260728-scenario3d`);
   if (!response.ok) throw new Error("AR card content could not be loaded.");
 
   const data = await response.json();

@@ -2178,10 +2178,16 @@ body.app-page .progress-track span {
   position: relative;
   z-index: 1;
   max-width: 32ch;
+  transition: opacity var(--motion-fast) var(--motion-ease), visibility var(--motion-fast) var(--motion-ease);
 }
 
 .ar-camera-frame .camera-empty[hidden] {
   display: none;
+}
+
+.ar-camera-frame.has-card-overlay .camera-empty {
+  visibility: hidden;
+  opacity: 0;
 }
 
 .ar-camera-frame .camera-empty strong {
@@ -2335,17 +2341,21 @@ body.app-page .progress-track span {
 
 .ar-effect {
   position: absolute;
-  top: 16%;
-  left: 16%;
+  top: 8%;
+  left: 6%;
   z-index: 2;
   width: 170px;
   height: 170px;
   color: #fff;
+  opacity: .46;
+  transform: scale(.58);
+  transform-origin: top left;
 }
 
 .ar-camera-frame[data-card^="care"] .ar-effect {
-  right: 16%;
+  right: 6%;
   left: auto;
+  transform-origin: top right;
 }
 
 .effect-person {
