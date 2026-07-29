@@ -34,7 +34,7 @@ function notifyMotion(name, detail = {}) {
 
 const pulseSurveyFile = "assets/data/pulse-surveys.json";
 const arCardsFile = "assets/data/ar-cards.json";
-const arAssetVersion = "20260729-scenario-lowpoly";
+const arAssetVersion = "20260729-consistent-ar-poses";
 const scenarioLibraryFile = "assets/data/scenarios/scenario-library.json";
 let scenarioDefinitions = [];
 let scenarioIds = [];
@@ -1272,7 +1272,7 @@ function renderPrintableArCards() {
 }
 
 async function loadArCards() {
-  const response = await fetch(`${arCardsFile}?v=20260729-scenario-lowpoly`);
+  const response = await fetch(`${arCardsFile}?v=20260729-consistent-ar-poses`);
   if (!response.ok) throw new Error("AR card content could not be loaded.");
 
   const data = await response.json();

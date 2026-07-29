@@ -244,7 +244,7 @@ export async function ensureFirestore() { return sdk; }
   });
   assert.match(
     await page.locator("#arCharacterImage").getAttribute("src"),
-    /assets\/characters\/manager-lowpoly-explain-idle\.webp\?v=20260729-scenario-lowpoly/
+    /assets\/ar-models\/real-a-lowpoly\.webp\?v=20260729-consistent-ar-poses/
   );
   assert.equal(await page.locator("#arLearningPanel").count(), 0);
   assert.equal(await page.locator("#arCardsTitle").textContent(), "Manually choose a card");

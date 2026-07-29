@@ -1,6 +1,6 @@
 # EchoWorks Project Handoff
 
-Updated: 2026-07-28 (Asia/Singapore)
+Updated: 2026-07-29 (Asia/Singapore)
 
 Chinese handoff: [HANDOFF.zh-CN.md](HANDOFF.zh-CN.md)
 
@@ -33,12 +33,15 @@ The confirmed production audit is implemented locally.
 - Settings uses a clearly red-tinted danger panel.
 - Cache-busting for the current learner app release is 20260729-clean-assets on app.css and app.js.
 
-### Asset cleanup and shared AR characters (2026-07-29)
+### Asset cleanup and consistent AR models (2026-07-29)
 
-- All eight AR overlays now reuse six existing idle poses from assets/characters: the same manager and Sarah low-poly files shown in the visual novel. The separate assets/ar-models renders were removed.
-- AR card JSON requires a physical source image and a valid shared character image for every card. The legacy single-card AR prototype and SVG fallback were removed; the eight-card MindAR bundle and manual card selection remain authoritative.
-- Removed 40 superseded files (13.96 MB): duplicate character PNG/WebP pairs, lossless office PNG sources, legacy AR prototypes/models, obsolete Sarah scenario JSON, unused design references, and redundant asset READMEs.
-- scripts/build-public.mjs now copies an exact 65-file runtime manifest instead of whole directories. The production package is 20.11 MB and excludes source/reference documents by construction.
+- The earlier cleanup removed 40 superseded files (13.96 MB), including duplicate character frames, legacy AR prototypes, lossless office sources, obsolete scenario data, and unused design references.
+- AR now has one audited, card-specific pose per framework letter in `assets/ar-models`: `real-r`, `real-e`, `real-a`, `real-l`, `care-c`, `care-a`, `care-r`, and `care-e`.
+- The four REAL renders share one locked Alex identity; the four CARE renders share one locked Jamie identity. Face geometry, clothing, color, low-poly material, lighting, camera, and canvas stay consistent while body language changes to match each card's learning action.
+- All eight AR models are transparent `1024x1536` WebP cutouts (about 52-73 KB each). The physical card artwork and the MindAR target bundle are unchanged.
+- Scenario characters remain the existing 12 idle/talking frames in `assets/characters`; this AR-only regeneration does not modify visual-novel presentation or audio-driven mouth timing.
+- `assets/data/ar-cards.json` maps every card directly to `assets/ar-models/<card-id>-lowpoly.webp`. The AR cache key is `20260729-consistent-ar-poses`.
+- `scripts/build-public.mjs` copies an exact 73-file runtime manifest. The production package is 20.61 MB and excludes source/reference documents by construction.
 ### Scenario voice-over release (2026-07-28)
 
 - Scenario narration and character dialogue now use the browser Web Speech API after the learner's first pointer or keyboard interaction.
@@ -215,7 +218,7 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - Scenario characters use 12 lightweight pre-rendered low-poly frames: three synchronized idle/talk pose pairs per character. Paths are centralized in `assets/characters/character-models.js`; speaker, mood, tone, and turn-based pose selection live in `assets/js/novel.js`. This is not a real-time Three.js character runtime.
 - Each scenario has a location background from `assets/scenes` (meeting room, review office, corridor, or planning workspace). Coach feedback may switch to the existing success/tense/mentor backdrop while preserving the screen-swipe transition.
 - Current AR is web-based card recognition/manual learning, not a Unity package or world-anchored AR. One local MindAR bundle at `assets/ar-targets/echoworks-cards.mind` recognizes all eight physical CARE/REAL artworks.
-- Physical card sources remain in assets/ar-cards. AR overlays point directly to existing idle poses in assets/characters; do not add a second AR-only character set. Target indexes remain fixed as REAL_R, REAL_E, REAL_A, REAL_L, CARE_C, CARE_A, CARE_R, CARE_E (0 through 7).
+- Physical card sources remain in `assets/ar-cards`. AR overlays use the dedicated, identity-locked card poses in `assets/ar-models`; keep the scenario pose system in `assets/characters` separate and unchanged. Target indexes remain fixed as REAL_R, REAL_E, REAL_A, REAL_L, CARE_C, CARE_A, CARE_R, CARE_E (0 through 7).
 - Camera code remains lazy and requires HTTPS or localhost.
 - Always retain manual card selection when camera/MindAR/BarcodeDetector is unavailable.
 
@@ -225,13 +228,13 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - `npm test`: 14/14 passed.
 - `npm run test:rules`: 5/5 Firestore emulator suites passed.
 - `npm run test:browser`: passed in Chrome 150.0.7871.184 and Edge 150.0.4078.83.
-- Browser coverage includes auth errors/reset/signup verification/logout, first-time tutorial, pre-pulse prerequisite routing, guest mode, optional survey/AR retry, AR disclosures, exact shared scenario pose loading in AR, sticky mobile header, four pulse answers, progress deletion dialog, both roles, reflection/replay, dialogue panel click/tap, text-selection protection, input cooldown, deterministic voice-over/mute/cancellation/speaker-profile checks, real-motion typing-audio cadence and mute checks, voice-driven mouth animation that outlives typing and stops on audio end, bracket-free visible/spoken dialogue, dashboard denial/owner access/filters/detail/viewer management, keyboard flow, and reduced motion.
+- Browser coverage includes auth errors/reset/signup verification/logout, first-time tutorial, pre-pulse prerequisite routing, guest mode, optional survey/AR retry, AR disclosures, exact card-specific AR pose loading, sticky mobile header, four pulse answers, progress deletion dialog, both roles, reflection/replay, dialogue panel click/tap, text-selection protection, input cooldown, deterministic voice-over/mute/cancellation/speaker-profile checks, real-motion typing-audio cadence and mute checks, voice-driven mouth animation that outlives typing and stops on audio end, bracket-free visible/spoken dialogue, dashboard denial/owner access/filters/detail/viewer management, keyboard flow, and reduced motion.
 - Axe serious/critical violations: 0 on app, scenario, and dashboard.
 - Responsive checks passed at 320px, 390px, short landscape, 768px, 1024px, 1440px, and 200%/400% equivalent reflow widths with 44px controls and no horizontal overflow.
 - Dashboard fixture: 75 learners and 300 result records rendered in about 40-50ms.
 - Firestore sample pack: 12 synthetic learners, 61 attempts, 4 drop-offs, 8 replays, 41 reflections, and 53 latest-progress records; dry run and all 168 live-document checks passed.
 - `npm audit --omit=dev --audit-level=moderate`: 0 vulnerabilities after `protobufjs` 7.6.5 patch.
-- Final build: 65 explicit runtime files (20.11 MB), including 12 shared scenario/AR character frames, four location backgrounds, eight supplied physical card artworks, and one locally compiled 2.44 MB MindAR version-2 bundle.
+- Final build: 73 explicit runtime files (20.61 MB), including 12 scenario character frames, eight dedicated transparent AR model poses, four location backgrounds, eight supplied physical card artworks, and one locally compiled 2.44 MB MindAR version-2 bundle.
 
 ## Known Limits
 

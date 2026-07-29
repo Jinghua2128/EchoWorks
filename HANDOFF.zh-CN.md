@@ -1,6 +1,6 @@
 # EchoWorks 项目交接文档
 
-更新日期：2026-07-28（Asia/Singapore）
+更新日期：2026-07-29（Asia/Singapore）
 
 English handoff: [HANDOFF.md](HANDOFF.md)
 
@@ -33,12 +33,15 @@ English handoff: [HANDOFF.md](HANDOFF.md)
 - Settings 的 Danger zone 使用更清晰的红色浅底。
 - 当前学习者页面的 app.css 与 app.js 缓存版本号为 20260729-clean-assets。
 
-### 资源清理与共享 AR 角色（2026-07-29）
+### 资源清理与统一 AR 角色模型（2026-07-29）
 
-- 全部八张 AR 叠加图现在直接复用 assets/characters 中六张现有静止姿势，也就是视觉小说正在使用的经理和 Sarah 低多边形角色；独立的 assets/ar-models 已移除。
-- AR 卡片数据现在要求每张卡都具备实体源图和有效的共享角色图。旧版单卡 AR 原型与 SVG 备用图已移除；八卡 MindAR 目标包和手动选卡仍是唯一正式流程。
-- 共移除 40 个已淘汰文件（13.96 MB）：重复角色 PNG/WebP、无损办公室 PNG 源图、旧 AR 原型与角色图、过期 Sarah 情景 JSON、未使用设计参考图和重复资源说明。
-- scripts/build-public.mjs 现在使用精确的 65 文件发布清单，不再整目录复制。生产包为 20.11 MB，并从构建层面排除源文件和参考文档。
+- 前一次清理共移除 40 个已淘汰文件（13.96 MB），包括重复角色帧、旧 AR 原型、无损办公室源图、过期情景数据和未使用的设计参考。
+- AR 现在为每个框架字母提供一张专属姿势，统一存放在 `assets/ar-models`：`real-r`、`real-e`、`real-a`、`real-l`、`care-c`、`care-a`、`care-r`、`care-e`。
+- 四张 REAL 图共用锁定的 Alex 角色身份；四张 CARE 图共用锁定的 Jamie 角色身份。脸部结构、服装、配色、低多边形材质、光照、镜头和画布保持一致，只改变与每张卡学习动作对应的身体姿势。
+- 八张 AR 角色图都是透明的 `1024x1536` WebP（每张约 52-73 KB）。实物卡图和 MindAR 识别目标包没有更改。
+- 情景页仍使用 `assets/characters` 中原有的 12 张静止/说话帧；本次只重做 AR，不修改视觉小说的角色呈现或由语音驱动的口型时序。
+- `assets/data/ar-cards.json` 将每张卡直接映射到 `assets/ar-models/<card-id>-lowpoly.webp`；AR 缓存版本为 `20260729-consistent-ar-poses`。
+- `scripts/build-public.mjs` 现在发布 73 个白名单运行文件；生产包大小为 20.61 MB，并继续排除源文件和参考文档。
 ### 情景语音版本（2026-07-28）
 
 - 情景旁白和角色对白现在会在学习者首次点击、触摸或键盘操作后，通过浏览器 Web Speech API 播放。
@@ -187,7 +190,7 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 - 当前情景角色使用 12 张轻量预渲染低多边形帧：每个角色各有 3 组对齐的静止/说话姿势。资源路径统一配置在 `assets/characters/character-models.js`，说话者、情绪、语气和轮次姿势选择位于 `assets/js/novel.js`。这不是实时 Three.js 角色系统。
 - 不要翻转角色图片；相机识别不可用时继续提供 AR 手动选卡。
 - 每个情景使用 `assets/scenes` 中的地点背景（会议室、绩效面谈办公室、走廊或规划工作区）；教练反馈可切换为原有 success/tense/mentor 背景，同时保留屏幕滑动转场。
-- assets/ar-targets/echoworks-cards.mind 仍是可识别全部八张 CARE/REAL 实体卡的本地 MindAR 目标包。实体卡源图保留在 assets/ar-cards；AR 叠加图直接使用 assets/characters 中的现有静止姿势，不能再建立第二套 AR 专用角色。
+- assets/ar-targets/echoworks-cards.mind 仍是可识别全部八张 CARE/REAL 实体卡的本地 MindAR 目标包。实体卡源图保留在 `assets/ar-cards`；AR 叠加图使用 `assets/ar-models` 中身份统一、按卡片区分的专属姿势。`assets/characters` 中的情景角色系统必须保持独立且不受本次修改影响。
 - 目标索引固定为 REAL_R、REAL_E、REAL_A、REAL_L、CARE_C、CARE_A、CARE_R、CARE_E，对应索引 0 到 7；修改卡图或顺序后必须重新编译整个目标包。
 
 ## 已通过测试
@@ -196,10 +199,10 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 - npm test：14/14 通过。
 - npm run test:rules：5/5 Firestore 模拟器套件通过。
 - npm run test:browser：Chrome 与 Edge 通过，包括首次教程、pre-pulse 前置路由、AR 下拉区、手机置顶页头、对话框点击/触摸、文字选择保护、键盘操作、输入冷却，以及固定语音引擎下的朗读、静音、取消、角色声音配置和真实打字动画音效检查。
-- 新增浏览器验证：AR 会加载与情景页面完全相同的低多边形姿势；角色口型在文字完成后仍随语音继续，并在语音结束时恢复静止；可见对白和朗读对白均不含方括号或圆括号。
+- 新增浏览器验证：AR 会为每张卡加载对应的专属低多边形姿势；角色口型在文字完成后仍随语音继续，并在语音结束时恢复静止；可见对白和朗读对白均不含方括号或圆括号。
 - app、scenario、dashboard 的 Axe serious/critical 问题：0。
 - 320px、390px、横屏、768px、1024px、1440px 和等效高倍缩放检查通过。
-- 生产构建包含 65 个精确列出的运行文件（20.11 MB）；其中包括 12 张情景与 AR 共用角色帧、4 张地点背景、8 张实体卡和一个 2.44 MB MindAR v2 目标包。
+- 生产构建包含 73 个精确列出的运行文件（20.61 MB）；其中包括 12 张情景角色帧、8 张专属透明 AR 模型姿势、4 张地点背景、8 张实体卡和一个 2.44 MB MindAR v2 目标包。
 - 示例数据导出、dry run 和 168 份正式文档逐一检查通过。
 - 生产构建只包含白名单运行文件。
 
