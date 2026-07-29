@@ -1554,17 +1554,6 @@ body.novel-page .role-card {
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .character.is-talking {
-    animation: characterSpeakingPulse .52s ease-in-out infinite alternate;
-  }
-}
-
-@keyframes characterSpeakingPulse {
-  from { transform: translateY(0) scale(1); }
-  to { transform: translateY(-6px) scale(1.012); }
-}
-
 /* Generated model mobile framing */
 @media (max-width: 760px) {
   .character {

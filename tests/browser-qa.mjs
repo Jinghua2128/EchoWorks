@@ -448,6 +448,7 @@ export async function ensureFirestore() { return sdk; }
   }
   assert.equal(await page.locator(".dialogue-panel").evaluate(element => element.classList.contains("is-speaking")), true);
   assert.equal(await page.locator(".character.active").evaluate(element => element.classList.contains("is-talking")), true);
+  assert.equal(await page.locator(".character.active").evaluate(element => element.getAnimations().length > 0), true);
   const laptopCharacterInset = await page.evaluate(() => ({
     manager: Number.parseFloat(getComputedStyle(document.querySelector("#manager")).right),
     employee: Number.parseFloat(getComputedStyle(document.querySelector("#sarah")).left)
@@ -456,6 +457,10 @@ export async function ensureFirestore() { return sdk; }
   assert.ok(laptopCharacterInset.employee >= 70);
   await page.waitForFunction(() => document.querySelector("#advanceLabel")?.textContent !== "Reveal");
   assert.equal(await page.locator(".dialogue-panel").evaluate(element => element.classList.contains("is-speaking")), true);
+  await page.waitForFunction(() => {
+    const active = document.querySelector(".character.active");
+    return active && active.getAttribute("src") === active.dataset.idle;
+  });
   await page.waitForFunction(() => {
     const active = document.querySelector(".character.active");
     return active && active.getAttribute("src") === active.dataset.talk;

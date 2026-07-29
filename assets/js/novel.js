@@ -75,7 +75,6 @@ let scenes = {};
 let sceneOrder = [];
 let currentSceneId = "";
 let typingTimer = null;
-let talkingTimer = null;
 let characterPoseTurns = { manager: 0, employee: 0 };
 let pendingNext = null;
 let fullText = "";
@@ -108,6 +107,89 @@ let nextDialogueInputAt = Number.NEGATIVE_INFINITY;
 const activeDialogueOscillators = new Set();
 let resolveInitialHistory;
 const initialHistoryReady = new Promise(resolve => { resolveInitialHistory = resolve; });
+
+function createCharacterSpeechAnimator({ panel, characters, reducedMotionEnabled }) {
+  const characterList = Array.from(characters || []).filter(Boolean);
+  const movementKeyframes = [
+    { transform: "translateY(0) scale(1)" },
+    { transform: "translateY(-3px) scale(1.006)" }
+  ];
+  const movementOptions = {
+    duration: 520,
+    direction: "alternate",
+    easing: "ease-in-out",
+    iterations: Infinity
+  };
+  const mouthFrameMs = 170;
+  let activeCharacter = null;
+  let animationFrameId = null;
+  let movementAnimation = null;
+  let generation = 0;
+
+  function setImage(character, state) {
+    const source = character?.dataset?.[state];
+    if (source) character.src = source;
+  }
+
+  function stop() {
+    generation += 1;
+    if (animationFrameId !== null) window.cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+    movementAnimation?.cancel();
+    movementAnimation = null;
+    activeCharacter = null;
+    panel?.classList.remove("is-speaking");
+
+    characterList.forEach(character => {
+      character.classList.remove("is-talking");
+      setImage(character, "idle");
+    });
+  }
+
+  function start(character) {
+    if (!characterList.includes(character)) return false;
+    if (activeCharacter === character && panel?.classList.contains("is-speaking")) return true;
+
+    stop();
+    const animationGeneration = generation;
+    activeCharacter = character;
+    panel?.classList.add("is-speaking");
+    character.classList.add("is-talking");
+    setImage(character, "talk");
+
+    if (reducedMotionEnabled) return true;
+    if (typeof character.animate === "function") {
+      movementAnimation = character.animate(movementKeyframes, movementOptions);
+    }
+
+    let talkFrameVisible = true;
+    let lastSwapAt = null;
+    const updateMouth = timestamp => {
+      if (generation !== animationGeneration || activeCharacter !== character) return;
+      if (lastSwapAt === null) lastSwapAt = timestamp;
+
+      const elapsed = timestamp - lastSwapAt;
+      if (elapsed >= mouthFrameMs) {
+        const swaps = Math.floor(elapsed / mouthFrameMs);
+        if (swaps % 2 === 1) talkFrameVisible = !talkFrameVisible;
+        lastSwapAt += swaps * mouthFrameMs;
+        setImage(character, talkFrameVisible ? "talk" : "idle");
+      }
+
+      animationFrameId = window.requestAnimationFrame(updateMouth);
+    };
+    animationFrameId = window.requestAnimationFrame(updateMouth);
+    return true;
+  }
+
+  return Object.freeze({ start, stop });
+}
+
+const characterSpeechAnimator = createCharacterSpeechAnimator({
+  panel: dialoguePanelEl,
+  characters: [managerEl, sarahEl],
+  reducedMotionEnabled: reducedMotion
+});
 
 function notifyMotion(name, detail = {}) {
   window.dispatchEvent(new CustomEvent(name, { detail }));
@@ -167,7 +249,7 @@ function stopDialogueSounds() {
 }
 
 function stopDialogueVoice() {
-  stopTalking();
+  characterSpeechAnimator.stop();
   const synthesis = dialogueSpeechSynthesis();
   if (!synthesis) return;
   if (!activeDialogueUtterance && !synthesis.speaking && !synthesis.pending) return;
@@ -262,7 +344,7 @@ function speakDialogue(scene, text) {
   utterance.volume = profile.volume;
   const beginVoiceAnimation = () => {
     if (activeDialogueUtterance !== utterance) return;
-    if (!dialoguePanelEl.classList.contains("is-speaking")) startTalking();
+    characterSpeechAnimator.start(getActiveCharacterElement());
   };
   utterance.addEventListener?.("start", () => {
     beginVoiceAnimation();
@@ -270,12 +352,12 @@ function speakDialogue(scene, text) {
   utterance.addEventListener?.("end", () => {
     if (activeDialogueUtterance !== utterance) return;
     activeDialogueUtterance = null;
-    stopTalking();
+    characterSpeechAnimator.stop();
   }, { once: true });
   utterance.addEventListener?.("error", () => {
     if (activeDialogueUtterance !== utterance) return;
     activeDialogueUtterance = null;
-    stopTalking();
+    characterSpeechAnimator.stop();
   }, { once: true });
 
   try {
@@ -286,7 +368,7 @@ function speakDialogue(scene, text) {
     return true;
   } catch {
     activeDialogueUtterance = null;
-    stopTalking();
+    characterSpeechAnimator.stop();
     return false;
   }
 }
@@ -928,9 +1010,7 @@ function renderFrameworkStrip() {
 
 function clearTimers() {
   window.clearTimeout(typingTimer);
-  window.clearInterval(talkingTimer);
   typingTimer = null;
-  talkingTimer = null;
 }
 
 function speakerToCharacter(speaker, focus) {
@@ -999,33 +1079,6 @@ function getActiveCharacterElement() {
   if (managerEl.classList.contains("active")) return managerEl;
   if (sarahEl.classList.contains("active")) return sarahEl;
   return null;
-}
-
-function startTalking() {
-  stopTalking();
-  const activeElement = getActiveCharacterElement();
-  if (!activeElement) return;
-
-  dialoguePanelEl.classList.add("is-speaking");
-  activeElement.classList.add("is-talking");
-  activeElement.src = activeElement.dataset.talk;
-  if (reducedMotion) return;
-
-  let talking = true;
-  talkingTimer = window.setInterval(() => {
-    talking = !talking;
-    activeElement.src = talking ? activeElement.dataset.talk : activeElement.dataset.idle;
-  }, 170);
-}
-
-function stopTalking() {
-  window.clearInterval(talkingTimer);
-  talkingTimer = null;
-  dialoguePanelEl.classList.remove("is-speaking");
-  [managerEl, sarahEl].forEach(element => {
-    element.classList.remove("is-talking");
-    element.src = element.dataset.idle;
-  });
 }
 
 function setText(value) {
@@ -1370,7 +1423,6 @@ function restartScenario() {
   clearTimers();
   stopDialogueVoice();
   document.body.dataset.scenarioState = "role";
-  dialoguePanelEl.classList.remove("is-speaking");
   sceneCueEl.hidden = true;
   scenario = null;
   scenes = {};
