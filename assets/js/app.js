@@ -34,7 +34,7 @@ function notifyMotion(name, detail = {}) {
 
 const pulseSurveyFile = "assets/data/pulse-surveys.json";
 const arCardsFile = "assets/data/ar-cards.json";
-const arAssetVersion = "20260728-scenario3d";
+const arAssetVersion = "20260729-scenario-lowpoly";
 const scenarioLibraryFile = "assets/data/scenarios/scenario-library.json";
 let scenarioDefinitions = [];
 let scenarioIds = [];
@@ -1256,7 +1256,7 @@ function renderPrintableArCards() {
     prompt.textContent = card.physicalText;
 
     const scanImage = document.createElement("img");
-    scanImage.src = card.imageTarget?.sourceImage || `assets/ar/${card.id}.svg`;
+    scanImage.src = card.imageTarget.sourceImage;
     scanImage.alt = card.imageTarget
       ? `Physical ${card.framework} ${card.title} card artwork`
       : `Scan code for ${card.framework} ${card.title}`;
@@ -1272,11 +1272,11 @@ function renderPrintableArCards() {
 }
 
 async function loadArCards() {
-  const response = await fetch(`${arCardsFile}?v=20260728-scenario3d`);
+  const response = await fetch(`${arCardsFile}?v=20260729-scenario-lowpoly`);
   if (!response.ok) throw new Error("AR card content could not be loaded.");
 
   const data = await response.json();
-  if (!Array.isArray(data.cards) || data.cards.length !== 8) {
+  if (!Array.isArray(data.cards) || data.cards.length !== 8 || data.cards.some(card => !card.imageTarget?.sourceImage || !card.characterImage)) {
     throw new Error("AR card content is incomplete.");
   }
 

@@ -14,27 +14,62 @@ const runtimeFiles = [
   "robots.txt",
   "sitemap.xml",
   "assets/favicon.svg",
-  "assets/manager.webp",
-  "assets/manager_talk.webp",
-  "assets/sarah.webp",
-  "assets/sarah_talk.webp",
   "assets/office-vn.webp",
   "assets/office-success.webp",
   "assets/office-tense.webp",
-  "assets/office-mentor.webp"
-];
-const runtimeDirectories = [
-  "assets/ar",
-  "assets/ar-cards",
-  "assets/ar-models",
-  "assets/ar-targets",
-  "assets/characters",
-  "assets/css",
-  "assets/data",
-  "assets/js",
-  "assets/scenes",
-  "assets/vendor/gsap",
-  "assets/vendor/mindar"
+  "assets/office-mentor.webp",
+  "assets/ar-cards/CARE_A.png",
+  "assets/ar-cards/CARE_C.png",
+  "assets/ar-cards/CARE_E.png",
+  "assets/ar-cards/CARE_R.png",
+  "assets/ar-cards/REAL_A.png",
+  "assets/ar-cards/REAL_E.png",
+  "assets/ar-cards/REAL_L.png",
+  "assets/ar-cards/REAL_R.png",
+  "assets/ar-targets/echoworks-cards.mind",
+  "assets/characters/character-models.js",
+  "assets/characters/manager-lowpoly-explain-idle.webp",
+  "assets/characters/manager-lowpoly-explain-talk.webp",
+  "assets/characters/manager-lowpoly-idle.webp",
+  "assets/characters/manager-lowpoly-reflect-idle.webp",
+  "assets/characters/manager-lowpoly-reflect-talk.webp",
+  "assets/characters/manager-lowpoly-talk.webp",
+  "assets/characters/sarah-lowpoly-attentive-idle.webp",
+  "assets/characters/sarah-lowpoly-attentive-talk.webp",
+  "assets/characters/sarah-lowpoly-confident-idle.webp",
+  "assets/characters/sarah-lowpoly-confident-talk.webp",
+  "assets/characters/sarah-lowpoly-idle.webp",
+  "assets/characters/sarah-lowpoly-talk.webp",
+  "assets/css/admin.css",
+  "assets/css/app.css",
+  "assets/css/novel-visual.css",
+  "assets/css/novel.css",
+  "assets/css/tokens.css",
+  "assets/data/ar-cards.json",
+  "assets/data/pulse-surveys.json",
+  "assets/data/scenarios/full-game-script.json",
+  "assets/data/scenarios/scenario-library.json",
+  "assets/js/admin.js",
+  "assets/js/app.js",
+  "assets/js/firebase-client.js",
+  "assets/js/motion.js",
+  "assets/js/novel.js",
+  "assets/js/progress-store.js",
+  "assets/js/scenario-engine.js",
+  "assets/js/scenario-redirect.js",
+  "assets/scenes/meeting-room.webp",
+  "assets/scenes/office-corridor.webp",
+  "assets/scenes/planning-workspace.webp",
+  "assets/scenes/review-office.webp",
+  "assets/vendor/gsap/NOTICE.txt",
+  "assets/vendor/gsap/gsap.min.js",
+  "assets/vendor/mindar/MINDAR-LICENSE.txt",
+  "assets/vendor/mindar/THREE-LICENSE.txt",
+  "assets/vendor/mindar/addons/renderers/CSS3DRenderer.js",
+  "assets/vendor/mindar/controller-mGt1s8dJ.js",
+  "assets/vendor/mindar/mindar-image-three.prod.js",
+  "assets/vendor/mindar/three.module.js",
+  "assets/vendor/mindar/ui-fBadYuor.js"
 ];
 
 await rm(output, { recursive: true, force: true });
@@ -45,8 +80,5 @@ for (const file of runtimeFiles) {
   await mkdir(dirname(destination), { recursive: true });
   await cp(join(root, file), destination);
 }
-for (const directory of runtimeDirectories) {
-  await cp(join(root, directory), join(output, directory), { recursive: true });
-}
 
-console.log(`Built ${output} with runtime files only.`);
+console.log("Built " + output + " with " + runtimeFiles.length + " runtime files.");

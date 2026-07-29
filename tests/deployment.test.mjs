@@ -44,13 +44,21 @@ test("dynamic character poses and scenario backgrounds are centralized and deplo
   }
 });
 
-test("AR card overlays use local versioned character assets", async () => {
+test("AR card overlays reuse the scenario low-poly character assets", async () => {
   const arCards = JSON.parse(await text("assets/data/ar-cards.json"));
   const app = await text("assets/js/app.js");
+  const characterImages = new Set(arCards.cards.map(card => card.characterImage));
   assert.equal(arCards.cards.length, 8);
-  assert.match(app, /const arAssetVersion = "20260728-scenario3d"/);
+  assert.equal(characterImages.size, 6);
+  assert.match(app, /const arAssetVersion = "20260729-scenario-lowpoly"/);
   for (const card of arCards.cards) {
-    assert.match(card.characterImage, /^assets\/ar-models\/[A-Z]+_[A-Z]\.webp$/);
+    assert.match(card.characterImage, /^assets\/characters\/(manager|sarah)-lowpoly-(?:(?:explain|reflect|attentive|confident)-)?idle\.webp$/);
     await access(new URL(card.characterImage, root));
   }
+});
+
+test("production manifest excludes retired prototypes and source-only artwork", async () => {
+  const build = await text("scripts/build-public.mjs");
+  assert.doesNotMatch(build, /runtimeDirectories|assets\/ar-models|assets\/ar\//);
+  assert.doesNotMatch(build, /sarah-(manager|employee)\.json|assets\/design|\.png".*office-/);
 });

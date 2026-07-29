@@ -2289,17 +2289,6 @@ body.app-page .progress-track span {
   left: var(--ar-character-edge, 2%);
 }
 
-.ar-camera-frame[data-card="real-e"],
-.ar-camera-frame[data-card="real-l"] {
-  --ar-character-width: 61%;
-}
-
-.ar-camera-frame[data-card="care-c"] {
-  --ar-character-edge: 5%;
-  --ar-character-bottom: 4%;
-  --ar-character-width: 58%;
-  --ar-character-height: 72%;
-}
 
 .ar-overlay-copy {
   position: absolute;
@@ -2845,17 +2834,6 @@ body.app-page .progress-track span {
     --ar-character-height: 72%;
   }
 
-  .ar-camera-frame[data-card="real-e"],
-  .ar-camera-frame[data-card="real-l"] {
-    --ar-character-width: 82%;
-  }
-
-  .ar-camera-frame[data-card="care-c"] {
-    --ar-character-edge: -2%;
-    --ar-character-bottom: 8%;
-    --ar-character-width: 76%;
-    --ar-character-height: 60%;
-  }
 
   .ar-effect,
   .ar-camera-frame[data-card^="care"] .ar-effect {

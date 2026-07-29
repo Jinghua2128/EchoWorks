@@ -238,6 +238,14 @@ export async function ensureFirestore() { return sdk; }
   await page.waitForSelector("#ar.active");
   await page.waitForSelector("[data-ar-card]");
   await page.locator("[data-ar-card]").nth(2).click();
+  await page.waitForFunction(() => {
+    const image = document.querySelector("#arCharacterImage");
+    return image?.complete && image.naturalWidth > 0;
+  });
+  assert.match(
+    await page.locator("#arCharacterImage").getAttribute("src"),
+    /assets\/characters\/manager-lowpoly-explain-idle\.webp\?v=20260729-scenario-lowpoly/
+  );
   assert.equal(await page.locator("#arLearningPanel").count(), 0);
   assert.equal(await page.locator("#arCardsTitle").textContent(), "Manually choose a card");
   assert.equal(await page.locator('[data-action="retry-ar"]').isHidden(), true);

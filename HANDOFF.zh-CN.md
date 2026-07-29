@@ -31,8 +31,14 @@ English handoff: [HANDOFF.md](HANDOFF.md)
 - 首次游客和首次登录账号会看到两步、可用键盘操作的导航教程；完成状态按游客/账号保存到 feedbackPlaybook.tutorialSeen.v1.*。
 - AR 页面保留相机与手动选卡，删除重复的动态详情区，重试按钮改为仅图标方形按钮；Facilitator flow 和 Workshop materials 改为默认折叠的原生下拉区。
 - Settings 的 Danger zone 使用更清晰的红色浅底。
-- 本版本 app.css 与 app.js 的缓存版本号为 20260728-guided-home。
+- 当前学习者页面的 app.css 与 app.js 缓存版本号为 20260729-clean-assets。
 
+### 资源清理与共享 AR 角色（2026-07-29）
+
+- 全部八张 AR 叠加图现在直接复用 assets/characters 中六张现有静止姿势，也就是视觉小说正在使用的经理和 Sarah 低多边形角色；独立的 assets/ar-models 已移除。
+- AR 卡片数据现在要求每张卡都具备实体源图和有效的共享角色图。旧版单卡 AR 原型与 SVG 备用图已移除；八卡 MindAR 目标包和手动选卡仍是唯一正式流程。
+- 共移除 40 个已淘汰文件（13.96 MB）：重复角色 PNG/WebP、无损办公室 PNG 源图、旧 AR 原型与角色图、过期 Sarah 情景 JSON、未使用设计参考图和重复资源说明。
+- scripts/build-public.mjs 现在使用精确的 65 文件发布清单，不再整目录复制。生产包为 20.11 MB，并从构建层面排除源文件和参考文档。
 ### 情景语音版本（2026-07-28）
 
 - 情景旁白和角色对白现在会在学习者首次点击、触摸或键盘操作后，通过浏览器 Web Speech API 播放。
@@ -181,19 +187,19 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 - 当前情景角色使用 12 张轻量预渲染低多边形帧：每个角色各有 3 组对齐的静止/说话姿势。资源路径统一配置在 `assets/characters/character-models.js`，说话者、情绪、语气和轮次姿势选择位于 `assets/js/novel.js`。这不是实时 Three.js 角色系统。
 - 不要翻转角色图片；相机识别不可用时继续提供 AR 手动选卡。
 - 每个情景使用 `assets/scenes` 中的地点背景（会议室、绩效面谈办公室、走廊或规划工作区）；教练反馈可切换为原有 success/tense/mentor 背景，同时保留屏幕滑动转场。
-- `assets/ar-targets/echoworks-cards.mind` 是本地编译的单一 MindAR 目标包，可识别全部 8 张 CARE/REAL 实体卡。实体卡源图位于 `assets/ar-cards`，同名透明 AR 姿势图位于 `assets/ar-models`。这 8 张叠加图现在与情景角色采用相同的柔和低多边形 3D 设计：REAL 使用奶油色 Alex，CARE 使用棕色面罩的 Sarah/Jamie。
+- assets/ar-targets/echoworks-cards.mind 仍是可识别全部八张 CARE/REAL 实体卡的本地 MindAR 目标包。实体卡源图保留在 assets/ar-cards；AR 叠加图直接使用 assets/characters 中的现有静止姿势，不能再建立第二套 AR 专用角色。
 - 目标索引固定为 REAL_R、REAL_E、REAL_A、REAL_L、CARE_C、CARE_A、CARE_R、CARE_E，对应索引 0 到 7；修改卡图或顺序后必须重新编译整个目标包。
 
 ## 已通过测试
 
 - npm run check：通过。
-- npm test：13/13 通过。
+- npm test：14/14 通过。
 - npm run test:rules：5/5 Firestore 模拟器套件通过。
 - npm run test:browser：Chrome 与 Edge 通过，包括首次教程、pre-pulse 前置路由、AR 下拉区、手机置顶页头、对话框点击/触摸、文字选择保护、键盘操作、输入冷却，以及固定语音引擎下的朗读、静音、取消、角色声音配置和真实打字动画音效检查。
-- 新增浏览器验证：角色口型在文字完成后仍随语音继续，并在语音结束时恢复静止；可见对白和朗读对白均不含方括号或圆括号。
+- 新增浏览器验证：AR 会加载与情景页面完全相同的低多边形姿势；角色口型在文字完成后仍随语音继续，并在语音结束时恢复静止；可见对白和朗读对白均不含方括号或圆括号。
 - app、scenario、dashboard 的 Axe serious/critical 问题：0。
 - 320px、390px、横屏、768px、1024px、1440px 和等效高倍缩放检查通过。
-- 生产构建包含 93 个文件；其中包括 12 张情景角色帧、4 张地点背景、8 张实体卡、8 张 AR 姿势图和一个 2.44 MB MindAR v2 目标包。
+- 生产构建包含 65 个精确列出的运行文件（20.11 MB）；其中包括 12 张情景与 AR 共用角色帧、4 张地点背景、8 张实体卡和一个 2.44 MB MindAR v2 目标包。
 - 示例数据导出、dry run 和 168 份正式文档逐一检查通过。
 - 生产构建只包含白名单运行文件。
 
