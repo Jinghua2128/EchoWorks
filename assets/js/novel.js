@@ -110,36 +110,16 @@ const initialHistoryReady = new Promise(resolve => { resolveInitialHistory = res
 
 function createCharacterSpeechAnimator({ panel, characters, reducedMotionEnabled }) {
   const characterList = Array.from(characters || []).filter(Boolean);
-  const movementKeyframes = [
-    { transform: "translateY(0) scale(1)" },
-    { transform: "translateY(-3px) scale(1.006)" }
-  ];
-  const movementOptions = {
-    duration: 520,
-    direction: "alternate",
-    easing: "ease-in-out",
-    iterations: Infinity
-  };
-  const mouthFrameMs = 170;
   let activeCharacter = null;
-  let animationFrameId = null;
-  let movementAnimation = null;
-  let generation = 0;
 
   function setImage(character, state) {
-    const source = character?.dataset?.[state];
+    const source = character?.dataset?.[state] || character?.dataset?.talk;
     if (source) character.src = source;
   }
 
   function stop() {
-    generation += 1;
-    if (animationFrameId !== null) window.cancelAnimationFrame(animationFrameId);
-    animationFrameId = null;
-    movementAnimation?.cancel();
-    movementAnimation = null;
     activeCharacter = null;
     panel?.classList.remove("is-speaking");
-
     characterList.forEach(character => {
       character.classList.remove("is-talking");
       setImage(character, "idle");
@@ -151,40 +131,15 @@ function createCharacterSpeechAnimator({ panel, characters, reducedMotionEnabled
     if (activeCharacter === character && panel?.classList.contains("is-speaking")) return true;
 
     stop();
-    const animationGeneration = generation;
     activeCharacter = character;
     panel?.classList.add("is-speaking");
     character.classList.add("is-talking");
-    setImage(character, "talk");
-
-    if (reducedMotionEnabled) return true;
-    if (typeof character.animate === "function") {
-      movementAnimation = character.animate(movementKeyframes, movementOptions);
-    }
-
-    let talkFrameVisible = true;
-    let lastSwapAt = null;
-    const updateMouth = timestamp => {
-      if (generation !== animationGeneration || activeCharacter !== character) return;
-      if (lastSwapAt === null) lastSwapAt = timestamp;
-
-      const elapsed = timestamp - lastSwapAt;
-      if (elapsed >= mouthFrameMs) {
-        const swaps = Math.floor(elapsed / mouthFrameMs);
-        if (swaps % 2 === 1) talkFrameVisible = !talkFrameVisible;
-        lastSwapAt += swaps * mouthFrameMs;
-        setImage(character, talkFrameVisible ? "talk" : "idle");
-      }
-
-      animationFrameId = window.requestAnimationFrame(updateMouth);
-    };
-    animationFrameId = window.requestAnimationFrame(updateMouth);
+    setImage(character, reducedMotionEnabled ? "talk" : "speaking");
     return true;
   }
 
   return Object.freeze({ start, stop });
 }
-
 const characterSpeechAnimator = createCharacterSpeechAnimator({
   panel: dialoguePanelEl,
   characters: [managerEl, sarahEl],
@@ -839,11 +794,12 @@ function setCharacterPose(element, modelKey, poseName) {
   const model = characterModels[modelKey];
   const resolvedPose = model?.poses?.[poseName] ? poseName : model?.defaultPose || "neutral";
   const assets = poseAssets(model, resolvedPose);
-  if (!assets?.idle || !assets?.talk) return;
+  if (!assets?.idle || !assets?.talk || !assets?.speaking) return;
 
   element.dataset.pose = resolvedPose;
   element.dataset.idle = assets.idle;
   element.dataset.talk = assets.talk;
+  element.dataset.speaking = assets.speaking;
   element.src = assets.idle;
 }
 
@@ -860,6 +816,7 @@ function applyCharacterModels() {
     Object.values(model.poses || { neutral: defaultAssets }).forEach(assets => {
       preloadImage(assets.idle);
       preloadImage(assets.talk);
+      preloadImage(assets.speaking);
     });
   });
 }

@@ -26,12 +26,14 @@
   <link rel="preload" as="image" href="assets/office-vn.webp" />
   <link rel="preload" as="image" href="assets/characters/manager-lowpoly-idle.webp" />
   <link rel="preload" as="image" href="assets/characters/sarah-lowpoly-idle.webp" />
+  <link rel="preload" as="image" href="assets/characters/manager-lowpoly-speaking.gif" />
+  <link rel="preload" as="image" href="assets/characters/sarah-lowpoly-speaking.gif" />
   <link rel="prefetch" as="image" href="assets/office-success.webp" />
   <link rel="prefetch" as="image" href="assets/office-tense.webp" />
   <link rel="prefetch" as="image" href="assets/office-mentor.webp" />
   <link rel="stylesheet" href="assets/css/novel.css?v=20260724-layout3" />
-  <link rel="stylesheet" href="assets/css/novel-visual.css?v=20260729-speech-animation-rebuild" />
-  <script type="module" src="assets/js/novel.js?v=20260729-speech-animation-rebuild"></script>
+  <link rel="stylesheet" href="assets/css/novel-visual.css?v=20260729-speaking-gif" />
+  <script type="module" src="assets/js/novel.js?v=20260729-speaking-gif"></script>
   <script defer src="assets/vendor/gsap/gsap.min.js?v=3.12.5"></script>
   <script defer src="assets/js/motion.js?v=20260718-full-script-ar"></script>
 </head>
@@ -121,8 +123,8 @@
     </section>
 
     <section class="stage" aria-label="Scenario scene">
-      <img src="assets/characters/manager-lowpoly-idle.webp" data-character-model="manager" data-idle="assets/characters/manager-lowpoly-idle.webp" data-talk="assets/characters/manager-lowpoly-talk.webp" id="manager" class="character manager" alt="Manager character" width="1024" height="1536" decoding="async" />
-      <img src="assets/characters/sarah-lowpoly-idle.webp" data-character-model="employee" data-idle="assets/characters/sarah-lowpoly-idle.webp" data-talk="assets/characters/sarah-lowpoly-talk.webp" id="sarah" class="character sarah" alt="Sarah Tan character" width="1024" height="1536" decoding="async" />
+      <img src="assets/characters/manager-lowpoly-idle.webp" data-character-model="manager" data-idle="assets/characters/manager-lowpoly-idle.webp" data-talk="assets/characters/manager-lowpoly-talk.webp" data-speaking="assets/characters/manager-lowpoly-speaking.gif" id="manager" class="character manager" alt="Manager character" width="1024" height="1536" decoding="async" />
+      <img src="assets/characters/sarah-lowpoly-idle.webp" data-character-model="employee" data-idle="assets/characters/sarah-lowpoly-idle.webp" data-talk="assets/characters/sarah-lowpoly-talk.webp" data-speaking="assets/characters/sarah-lowpoly-speaking.gif" id="sarah" class="character sarah" alt="Sarah Tan character" width="1024" height="1536" decoding="async" />
     </section>
 
     <section class="choice-panel" id="choices" aria-label="Response choices" hidden></section>

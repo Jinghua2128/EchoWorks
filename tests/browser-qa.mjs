@@ -448,7 +448,22 @@ export async function ensureFirestore() { return sdk; }
   }
   assert.equal(await page.locator(".dialogue-panel").evaluate(element => element.classList.contains("is-speaking")), true);
   assert.equal(await page.locator(".character.active").evaluate(element => element.classList.contains("is-talking")), true);
-  assert.equal(await page.locator(".character.active").evaluate(element => element.getAnimations().length > 0), true);
+  await page.waitForFunction(() => {
+    const active = document.querySelector(".character.active");
+    return active && active.getAttribute("src") === active.dataset.speaking;
+  });
+  const speakingGif = await page.locator(".character.active").evaluate(async element => {
+    const response = await fetch(element.dataset.speaking);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    return {
+      contentType: response.headers.get("content-type"),
+      header: String.fromCharCode(...bytes.slice(0, 6)),
+      ok: response.ok
+    };
+  });
+  assert.equal(speakingGif.ok, true);
+  assert.ok(["image/gif", "application/octet-stream"].includes(speakingGif.contentType));
+  assert.equal(speakingGif.header, "GIF89a");
   const laptopCharacterInset = await page.evaluate(() => ({
     manager: Number.parseFloat(getComputedStyle(document.querySelector("#manager")).right),
     employee: Number.parseFloat(getComputedStyle(document.querySelector("#sarah")).left)
@@ -457,14 +472,9 @@ export async function ensureFirestore() { return sdk; }
   assert.ok(laptopCharacterInset.employee >= 70);
   await page.waitForFunction(() => document.querySelector("#advanceLabel")?.textContent !== "Reveal");
   assert.equal(await page.locator(".dialogue-panel").evaluate(element => element.classList.contains("is-speaking")), true);
-  await page.waitForFunction(() => {
-    const active = document.querySelector(".character.active");
-    return active && active.getAttribute("src") === active.dataset.idle;
-  });
-  await page.waitForFunction(() => {
-    const active = document.querySelector(".character.active");
-    return active && active.getAttribute("src") === active.dataset.talk;
-  });
+  assert.equal(await page.locator(".character.active").evaluate(element => (
+    element.getAttribute("src") === element.dataset.speaking
+  )), true);
   await page.evaluate(() => window.__qaVoiceAnimation.finish());
   await page.waitForFunction(() => !document.querySelector(".dialogue-panel")?.classList.contains("is-speaking"));
   const voiceAnimation = await page.evaluate(() => {

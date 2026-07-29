@@ -1,4 +1,4 @@
-const pose = (idle, talk) => Object.freeze({ idle, talk });
+const pose = (idle, talk, speaking) => Object.freeze({ idle, talk, speaking });
 
 const model = (defaultPose, speakingPoses, poses) => Object.freeze({
   defaultPose,
@@ -8,12 +8,14 @@ const model = (defaultPose, speakingPoses, poses) => Object.freeze({
 
 const managerPose = pose(
   "assets/characters/manager-lowpoly-idle.webp",
-  "assets/characters/manager-lowpoly-talk.webp"
+  "assets/characters/manager-lowpoly-talk.webp",
+  "assets/characters/manager-lowpoly-speaking.gif"
 );
 
 const employeePose = pose(
   "assets/characters/sarah-lowpoly-idle.webp",
-  "assets/characters/sarah-lowpoly-talk.webp"
+  "assets/characters/sarah-lowpoly-talk.webp",
+  "assets/characters/sarah-lowpoly-speaking.gif"
 );
 
 // Semantic states stay available to scenario logic while the approved base
