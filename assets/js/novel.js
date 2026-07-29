@@ -997,16 +997,19 @@ function getActiveCharacterElement() {
 
 function startTalking() {
   stopTalking();
-  if (reducedMotion) return;
   const activeElement = getActiveCharacterElement();
   if (!activeElement) return;
 
   dialoguePanelEl.classList.add("is-speaking");
-  let talking = false;
+  activeElement.classList.add("is-talking");
+  activeElement.src = activeElement.dataset.talk;
+  if (reducedMotion) return;
+
+  let talking = true;
   talkingTimer = window.setInterval(() => {
     talking = !talking;
     activeElement.src = talking ? activeElement.dataset.talk : activeElement.dataset.idle;
-  }, 140);
+  }, 170);
 }
 
 function stopTalking() {
@@ -1014,6 +1017,7 @@ function stopTalking() {
   talkingTimer = null;
   dialoguePanelEl.classList.remove("is-speaking");
   [managerEl, sarahEl].forEach(element => {
+    element.classList.remove("is-talking");
     element.src = element.dataset.idle;
   });
 }

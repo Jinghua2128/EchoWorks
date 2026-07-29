@@ -50,8 +50,9 @@ The confirmed production audit is implemented locally.
 - Every scene transition, restart, tab hide, and page exit cancels active speech before another line can start. Full stage-direction lines remain hidden; square-bracket markers and all parenthetical acting cues are removed from both displayed and spoken dialogue.
 - No generated audio files or external speech service are required. If speech synthesis is unavailable, the existing line cue and typing clicks continue to work where Web Audio is supported.
 - Typing now produces a consistent, clearly audible click on the first and every third visible character; whitespace no longer creates irregular silent cadence. Muting scenario audio stops new clicks immediately.
-- Character talk frames now start on the speech utterance start event and return to idle on end, error, mute, scene change, or page hide. Their timing is independent of the text typing animation.
-- The scenario script cache version is `20260729-approved-base-only`. Character mouth timing remains voice-driven, but all semantic pose states resolve to the approved idle/talk pair for that character.
+- Character talk frames start on the speech utterance start event and return to idle on end, error, mute, scene change, or page hide. The approved talk frame appears immediately, alternates with idle every 170ms during voice playback, and uses a restrained 3px speaking pulse. Reduced-motion users receive the static talk frame without the pulse.
+- Above 920px, both characters move inward with a responsive 72-140px inset so laptop and desktop conversations feel connected. Tablet and phone positioning is unchanged.
+- The scenario script and visual CSS cache version is `20260729-speaking-motion`. All semantic pose states still resolve only to the approved idle/talk pair for that character.
 
 The deployable output is generated in ignored `public/` by `npm run build`.
 
@@ -228,7 +229,7 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - `npm test`: 14/14 passed.
 - `npm run test:rules`: 5/5 Firestore emulator suites passed.
 - `npm run test:browser`: passed in Chrome 150.0.7871.184 and Edge 150.0.4078.83.
-- Browser coverage includes auth errors/reset/signup verification/logout, first-time tutorial, pre-pulse prerequisite routing, guest mode, optional survey/AR retry, AR disclosures, exact card-specific AR pose loading, sticky mobile header, four pulse answers, progress deletion dialog, both roles, reflection/replay, dialogue panel click/tap, text-selection protection, input cooldown, deterministic voice-over/mute/cancellation/speaker-profile checks, real-motion typing-audio cadence and mute checks, voice-driven mouth animation that outlives typing and stops on audio end, bracket-free visible/spoken dialogue, dashboard denial/owner access/filters/detail/viewer management, keyboard flow, and reduced motion.
+- Browser coverage includes auth errors/reset/signup verification/logout, first-time tutorial, pre-pulse prerequisite routing, guest mode, optional survey/AR retry, AR disclosures, exact card-specific AR pose loading, sticky mobile header, four pulse answers, progress deletion dialog, both roles, reflection/replay, dialogue panel click/tap, text-selection protection, input cooldown, deterministic voice-over/mute/cancellation/speaker-profile checks, real-motion typing-audio cadence and mute checks, voice-driven mouth animation with active-state and laptop-inset assertions that outlives typing and stops on audio end, bracket-free visible/spoken dialogue, dashboard denial/owner access/filters/detail/viewer management, keyboard flow, and reduced motion.
 - Axe serious/critical violations: 0 on app, scenario, and dashboard.
 - Responsive checks passed at 320px, 390px, short landscape, 768px, 1024px, 1440px, and 200%/400% equivalent reflow widths with 44px controls and no horizontal overflow.
 - Dashboard fixture: 75 learners and 300 result records rendered in about 40-50ms.

@@ -1543,6 +1543,28 @@ body.novel-page .role-card {
 .character.sarah {
   left: 5px;
 }
+
+@media (min-width: 921px) {
+  .character.manager {
+    right: clamp(72px, 9vw, 140px);
+  }
+
+  .character.sarah {
+    left: clamp(72px, 9vw, 140px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .character.is-talking {
+    animation: characterSpeakingPulse .52s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes characterSpeakingPulse {
+  from { transform: translateY(0) scale(1); }
+  to { transform: translateY(-3px) scale(1.006); }
+}
+
 /* Generated model mobile framing */
 @media (max-width: 760px) {
   .character {
