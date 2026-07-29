@@ -39,9 +39,9 @@ The confirmed production audit is implemented locally.
 - AR now has one audited, card-specific pose per framework letter in `assets/ar-models`: `real-r`, `real-e`, `real-a`, `real-l`, `care-c`, `care-a`, `care-r`, and `care-e`.
 - The four REAL renders are derived directly from `assets/characters/manager-lowpoly-idle.webp`; the four CARE renders are derived directly from `assets/characters/sarah-lowpoly-idle.webp`. Their original face geometry, closed-eye bars, proportions, clothing, color, polygon facets, lighting, front camera, and canvas remain locked while only body posture changes for each card action.
 - All eight AR models are transparent `1024x1536` WebP cutouts (about 59-70 KB each). The physical card artwork and the MindAR target bundle are unchanged.
-- Scenario characters remain the existing 12 idle/talking frames in `assets/characters`; this AR-only regeneration does not modify visual-novel presentation or audio-driven mouth timing.
+- Scenario characters still use 12 idle/talking frames in `assets/characters`, but the four secondary pose pairs were regenerated from the authoritative neutral bases on 2026-07-29: manager explain/reflect from `manager-lowpoly-idle.webp`, and Sarah attentive/confident from `sarah-lowpoly-idle.webp`. Neutral frames and audio-driven mouth timing are unchanged.
 - `assets/data/ar-cards.json` maps every card directly to `assets/ar-models/<card-id>-lowpoly.webp`. The AR cache key is `20260729-base-locked-ar-poses`.
-- `scripts/build-public.mjs` copies an exact 73-file runtime manifest. The production package is 20.60 MB and excludes source/reference documents by construction.
+- `scripts/build-public.mjs` copies an exact 73-file runtime manifest. The production package is 20.15 MB and excludes source/reference documents by construction.
 ### Scenario voice-over release (2026-07-28)
 
 - Scenario narration and character dialogue now use the browser Web Speech API after the learner's first pointer or keyboard interaction.
@@ -51,7 +51,7 @@ The confirmed production audit is implemented locally.
 - No generated audio files or external speech service are required. If speech synthesis is unavailable, the existing line cue and typing clicks continue to work where Web Audio is supported.
 - Typing now produces a consistent, clearly audible click on the first and every third visible character; whitespace no longer creates irregular silent cadence. Muting scenario audio stops new clicks immediately.
 - Character talk frames now start on the speech utterance start event and return to idle on end, error, mute, scene change, or page hide. Their timing is independent of the text typing animation.
-- The scenario script cache version is `20260728-audio-sync`.
+- The scenario script cache version is `20260729-base-locked-scenario-poses`; the regenerated secondary talking frames preserve the matching idle pose and differ only through a restrained mouth opening.
 
 The deployable output is generated in ignored `public/` by `npm run build`.
 
@@ -215,7 +215,7 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - Screen-reader output announces each complete line once with the speaker; do not restore character-by-character live announcements.
 - Keep the existing screen-swipe transition and reduced-motion fallback.
 - Do not flip character images.
-- Scenario characters use 12 lightweight pre-rendered low-poly frames: three synchronized idle/talk pose pairs per character. Paths are centralized in `assets/characters/character-models.js`; speaker, mood, tone, and turn-based pose selection live in `assets/js/novel.js`. This is not a real-time Three.js character runtime.
+- Scenario characters use 12 lightweight pre-rendered low-poly frames: three synchronized idle/talk pose pairs per character. Manager secondary poses must retain the cream long-pointed-ear base; Sarah secondary poses must retain the tan rounded-ear base with white inner-ear tufts. Every talking frame must stay aligned with its idle counterpart and change only the mouth. Paths are centralized in `assets/characters/character-models.js`; speaker, mood, tone, and turn-based pose selection live in `assets/js/novel.js`. This is not a real-time Three.js character runtime.
 - Each scenario has a location background from `assets/scenes` (meeting room, review office, corridor, or planning workspace). Coach feedback may switch to the existing success/tense/mentor backdrop while preserving the screen-swipe transition.
 - Current AR is web-based card recognition/manual learning, not a Unity package or world-anchored AR. One local MindAR bundle at `assets/ar-targets/echoworks-cards.mind` recognizes all eight physical CARE/REAL artworks.
 - Physical card sources remain in `assets/ar-cards`. AR overlays use the dedicated, identity-locked card poses in `assets/ar-models`; keep the scenario pose system in `assets/characters` separate and unchanged. Target indexes remain fixed as REAL_R, REAL_E, REAL_A, REAL_L, CARE_C, CARE_A, CARE_R, CARE_E (0 through 7).
