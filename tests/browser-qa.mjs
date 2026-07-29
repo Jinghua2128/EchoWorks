@@ -244,7 +244,7 @@ export async function ensureFirestore() { return sdk; }
   });
   assert.match(
     await page.locator("#arCharacterImage").getAttribute("src"),
-    /assets\/ar-models\/real-a-lowpoly\.webp\?v=20260729-consistent-ar-poses/
+    /assets\/ar-models\/real-a-lowpoly\.webp\?v=20260729-base-locked-ar-poses/
   );
   assert.equal(await page.locator("#arLearningPanel").count(), 0);
   assert.equal(await page.locator("#arCardsTitle").textContent(), "Manually choose a card");

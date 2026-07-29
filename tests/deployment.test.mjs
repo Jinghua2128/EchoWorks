@@ -50,7 +50,7 @@ test("AR card overlays use a consistent card-specific low-poly pose set", async 
   const characterImages = new Set(arCards.cards.map(card => card.characterImage));
   assert.equal(arCards.cards.length, 8);
   assert.equal(characterImages.size, 8);
-  assert.match(app, /const arAssetVersion = "20260729-consistent-ar-poses"/);
+  assert.match(app, /const arAssetVersion = "20260729-base-locked-ar-poses"/);
   for (const card of arCards.cards) {
     assert.equal(card.characterImage, `assets/ar-models/${card.id}-lowpoly.webp`);
     await access(new URL(card.characterImage, root));

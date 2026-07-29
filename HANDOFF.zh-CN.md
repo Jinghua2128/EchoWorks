@@ -37,11 +37,11 @@ English handoff: [HANDOFF.md](HANDOFF.md)
 
 - 前一次清理共移除 40 个已淘汰文件（13.96 MB），包括重复角色帧、旧 AR 原型、无损办公室源图、过期情景数据和未使用的设计参考。
 - AR 现在为每个框架字母提供一张专属姿势，统一存放在 `assets/ar-models`：`real-r`、`real-e`、`real-a`、`real-l`、`care-c`、`care-a`、`care-r`、`care-e`。
-- 四张 REAL 图共用锁定的 Alex 角色身份；四张 CARE 图共用锁定的 Jamie 角色身份。脸部结构、服装、配色、低多边形材质、光照、镜头和画布保持一致，只改变与每张卡学习动作对应的身体姿势。
-- 八张 AR 角色图都是透明的 `1024x1536` WebP（每张约 52-73 KB）。实物卡图和 MindAR 识别目标包没有更改。
+- 四张 REAL 图直接以 `assets/characters/manager-lowpoly-idle.webp` 为基准生成；四张 CARE 图直接以 `assets/characters/sarah-lowpoly-idle.webp` 为基准生成。原有脸部结构、闭眼黑条、身体比例、服装、配色、多边形切面、光照、正面镜头和画布全部锁定，只改变每张卡对应的身体姿势。
+- 八张 AR 角色图都是透明的 `1024x1536` WebP（每张约 59-70 KB）。实物卡图和 MindAR 识别目标包没有更改。
 - 情景页仍使用 `assets/characters` 中原有的 12 张静止/说话帧；本次只重做 AR，不修改视觉小说的角色呈现或由语音驱动的口型时序。
-- `assets/data/ar-cards.json` 将每张卡直接映射到 `assets/ar-models/<card-id>-lowpoly.webp`；AR 缓存版本为 `20260729-consistent-ar-poses`。
-- `scripts/build-public.mjs` 现在发布 73 个白名单运行文件；生产包大小为 20.61 MB，并继续排除源文件和参考文档。
+- `assets/data/ar-cards.json` 将每张卡直接映射到 `assets/ar-models/<card-id>-lowpoly.webp`；AR 缓存版本为 `20260729-base-locked-ar-poses`。
+- `scripts/build-public.mjs` 现在发布 73 个白名单运行文件；生产包大小为 20.60 MB，并继续排除源文件和参考文档。
 ### 情景语音版本（2026-07-28）
 
 - 情景旁白和角色对白现在会在学习者首次点击、触摸或键盘操作后，通过浏览器 Web Speech API 播放。
@@ -202,7 +202,7 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 - 新增浏览器验证：AR 会为每张卡加载对应的专属低多边形姿势；角色口型在文字完成后仍随语音继续，并在语音结束时恢复静止；可见对白和朗读对白均不含方括号或圆括号。
 - app、scenario、dashboard 的 Axe serious/critical 问题：0。
 - 320px、390px、横屏、768px、1024px、1440px 和等效高倍缩放检查通过。
-- 生产构建包含 73 个精确列出的运行文件（20.61 MB）；其中包括 12 张情景角色帧、8 张专属透明 AR 模型姿势、4 张地点背景、8 张实体卡和一个 2.44 MB MindAR v2 目标包。
+- 生产构建包含 73 个精确列出的运行文件（20.60 MB）；其中包括 12 张情景角色帧、8 张专属透明 AR 模型姿势、4 张地点背景、8 张实体卡和一个 2.44 MB MindAR v2 目标包。
 - 示例数据导出、dry run 和 168 份正式文档逐一检查通过。
 - 生产构建只包含白名单运行文件。
 

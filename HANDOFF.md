@@ -37,11 +37,11 @@ The confirmed production audit is implemented locally.
 
 - The earlier cleanup removed 40 superseded files (13.96 MB), including duplicate character frames, legacy AR prototypes, lossless office sources, obsolete scenario data, and unused design references.
 - AR now has one audited, card-specific pose per framework letter in `assets/ar-models`: `real-r`, `real-e`, `real-a`, `real-l`, `care-c`, `care-a`, `care-r`, and `care-e`.
-- The four REAL renders share one locked Alex identity; the four CARE renders share one locked Jamie identity. Face geometry, clothing, color, low-poly material, lighting, camera, and canvas stay consistent while body language changes to match each card's learning action.
-- All eight AR models are transparent `1024x1536` WebP cutouts (about 52-73 KB each). The physical card artwork and the MindAR target bundle are unchanged.
+- The four REAL renders are derived directly from `assets/characters/manager-lowpoly-idle.webp`; the four CARE renders are derived directly from `assets/characters/sarah-lowpoly-idle.webp`. Their original face geometry, closed-eye bars, proportions, clothing, color, polygon facets, lighting, front camera, and canvas remain locked while only body posture changes for each card action.
+- All eight AR models are transparent `1024x1536` WebP cutouts (about 59-70 KB each). The physical card artwork and the MindAR target bundle are unchanged.
 - Scenario characters remain the existing 12 idle/talking frames in `assets/characters`; this AR-only regeneration does not modify visual-novel presentation or audio-driven mouth timing.
-- `assets/data/ar-cards.json` maps every card directly to `assets/ar-models/<card-id>-lowpoly.webp`. The AR cache key is `20260729-consistent-ar-poses`.
-- `scripts/build-public.mjs` copies an exact 73-file runtime manifest. The production package is 20.61 MB and excludes source/reference documents by construction.
+- `assets/data/ar-cards.json` maps every card directly to `assets/ar-models/<card-id>-lowpoly.webp`. The AR cache key is `20260729-base-locked-ar-poses`.
+- `scripts/build-public.mjs` copies an exact 73-file runtime manifest. The production package is 20.60 MB and excludes source/reference documents by construction.
 ### Scenario voice-over release (2026-07-28)
 
 - Scenario narration and character dialogue now use the browser Web Speech API after the learner's first pointer or keyboard interaction.
@@ -234,7 +234,7 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - Dashboard fixture: 75 learners and 300 result records rendered in about 40-50ms.
 - Firestore sample pack: 12 synthetic learners, 61 attempts, 4 drop-offs, 8 replays, 41 reflections, and 53 latest-progress records; dry run and all 168 live-document checks passed.
 - `npm audit --omit=dev --audit-level=moderate`: 0 vulnerabilities after `protobufjs` 7.6.5 patch.
-- Final build: 73 explicit runtime files (20.61 MB), including 12 scenario character frames, eight dedicated transparent AR model poses, four location backgrounds, eight supplied physical card artworks, and one locally compiled 2.44 MB MindAR version-2 bundle.
+- Final build: 73 explicit runtime files (20.60 MB), including 12 scenario character frames, eight dedicated transparent AR model poses, four location backgrounds, eight supplied physical card artworks, and one locally compiled 2.44 MB MindAR version-2 bundle.
 
 ## Known Limits
 
