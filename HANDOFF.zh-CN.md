@@ -39,9 +39,9 @@ English handoff: [HANDOFF.md](HANDOFF.md)
 - AR 现在为每个框架字母提供一张专属姿势，统一存放在 `assets/ar-models`：`real-r`、`real-e`、`real-a`、`real-l`、`care-c`、`care-a`、`care-r`、`care-e`。
 - 四张 REAL 图直接以 `assets/characters/manager-lowpoly-idle.webp` 为基准生成；四张 CARE 图直接以 `assets/characters/sarah-lowpoly-idle.webp` 为基准生成。原有脸部结构、闭眼黑条、身体比例、服装、配色、多边形切面、光照、正面镜头和画布全部锁定，只改变每张卡对应的身体姿势。
 - 八张 AR 角色图都是透明的 `1024x1536` WebP（每张约 59-70 KB）。实物卡图和 MindAR 识别目标包没有更改。
-- 情景页仍使用 `assets/characters` 中的 12 张静止/说话帧，但 2026-07-29 已按权威中立基准重做四组辅助姿势：经理 explain/reflect 以 `manager-lowpoly-idle.webp` 为基准，Sarah attentive/confident 以 `sarah-lowpoly-idle.webp` 为基准。中立帧和由语音驱动的口型时序不变。
+- 情景页现在只使用 `assets/characters` 中四张已确认角色图：经理静止/说话一组，以及 Sarah 静止/说话一组。Explain、reflect、attentive、confident 仍是语义状态，但会有意复用对应角色的已确认图片，从根本上避免身份与比例漂移。八张生成式辅助姿势已删除。
 - `assets/data/ar-cards.json` 将每张卡直接映射到 `assets/ar-models/<card-id>-lowpoly.webp`；AR 缓存版本为 `20260729-base-locked-ar-poses`。
-- `scripts/build-public.mjs` 现在发布 73 个白名单运行文件；生产包大小为 20.15 MB，并继续排除源文件和参考文档。
+- `scripts/build-public.mjs` 现在发布 65 个白名单运行文件；生产包大小为 19.74 MB，并继续排除源文件、参考文档和被否决的生成式姿势。
 ### 情景语音版本（2026-07-28）
 
 - 情景旁白和角色对白现在会在学习者首次点击、触摸或键盘操作后，通过浏览器 Web Speech API 播放。
@@ -51,7 +51,7 @@ English handoff: [HANDOFF.md](HANDOFF.md)
 - 不需要生成音频文件或接入外部语音服务。浏览器不支持语音合成时，只要 Web Audio 可用，原有提示音和打字音仍会正常工作。
 - 打字时会在第一个和之后每三个可见字符播放一次清晰但克制的点击声；空格不再造成不规律的静音间隔。静音情景音频后，新点击声会立即停止。
 - 角色说话姿势现在由语音的开始和结束事件控制，而不是由文字打字时长控制。语音结束、出错、静音、切换场景或离开页面时都会恢复静止姿势。
-- 情景脚本缓存版本号为 `20260729-base-locked-scenario-poses`；重做后的辅助说话帧与对应静止帧保持相同位置和姿势，只使用克制的小幅张嘴变化。
+- 情景脚本缓存版本号为 `20260729-approved-base-only`。角色口型仍由语音驱动，但所有语义姿势状态都会使用该角色已确认的静止/说话图片。
 
 npm run build 会把可发布内容生成到已忽略的 public 文件夹。
 
@@ -187,7 +187,7 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 - 浏览器语音会在用户操作后朗读可见情景对白；有可用声音时按旁白、经理、员工和教练使用不同配置，并在下一场景开始前取消上一句。
 - 屏幕对白和朗读对白都不能显示方括号或圆括号标记。完整舞台指示保持隐藏；行内方括号中的正文会保留文字但移除括号，圆括号表演提示会完整移除。
 - `feedbackPlaybook.dialogueSound` 同时控制语音、提示音和打字音；此实现不提交生成语音文件，浏览器语音不可用时保留原有音效作为降级方案。
-- 当前情景角色使用 12 张轻量预渲染低多边形帧：每个角色各有 3 组对齐的静止/说话姿势。经理辅助姿势必须保留奶油色长尖耳基准；Sarah 辅助姿势必须保留棕褐色圆耳和白色内耳绒毛基准。每张说话帧必须与对应静止帧对齐，并且只改变嘴部。资源路径统一配置在 `assets/characters/character-models.js`，说话者、情绪、语气和轮次姿势选择位于 `assets/js/novel.js`。这不是实时 Three.js 角色系统。
+- 当前情景角色只使用四张已确认的预渲染低多边形帧：每个角色一组对齐的静止/说话图片。经理始终使用奶油色长尖耳图片；Sarah 始终使用棕褐色圆耳和白色内耳绒毛图片。语义姿势名称仍可供情景逻辑使用，但统一映射到这两组已确认图片。未经视觉确认，不要新增生成式辅助角色姿势。资源路径统一配置在 `assets/characters/character-models.js`，口型时序继续由 `assets/js/novel.js` 中的语音事件驱动。
 - 不要翻转角色图片；相机识别不可用时继续提供 AR 手动选卡。
 - 每个情景使用 `assets/scenes` 中的地点背景（会议室、绩效面谈办公室、走廊或规划工作区）；教练反馈可切换为原有 success/tense/mentor 背景，同时保留屏幕滑动转场。
 - assets/ar-targets/echoworks-cards.mind 仍是可识别全部八张 CARE/REAL 实体卡的本地 MindAR 目标包。实体卡源图保留在 `assets/ar-cards`；AR 叠加图使用 `assets/ar-models` 中身份统一、按卡片区分的专属姿势。`assets/characters` 中的情景角色系统必须保持独立且不受本次修改影响。
@@ -202,7 +202,7 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 - 新增浏览器验证：AR 会为每张卡加载对应的专属低多边形姿势；角色口型在文字完成后仍随语音继续，并在语音结束时恢复静止；可见对白和朗读对白均不含方括号或圆括号。
 - app、scenario、dashboard 的 Axe serious/critical 问题：0。
 - 320px、390px、横屏、768px、1024px、1440px 和等效高倍缩放检查通过。
-- 生产构建包含 73 个精确列出的运行文件（20.60 MB）；其中包括 12 张情景角色帧、8 张专属透明 AR 模型姿势、4 张地点背景、8 张实体卡和一个 2.44 MB MindAR v2 目标包。
+- 生产构建包含 65 个精确列出的运行文件（19.74 MB）；其中包括 4 张已确认的情景角色帧、8 张专属透明 AR 模型姿势、4 张地点背景、8 张实体卡和一个 2.44 MB MindAR v2 目标包。
 - 示例数据导出、dry run 和 168 份正式文档逐一检查通过。
 - 生产构建只包含白名单运行文件。
 

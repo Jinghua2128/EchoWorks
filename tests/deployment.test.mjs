@@ -28,14 +28,23 @@ test("dynamic character poses and scenario backgrounds are centralized and deplo
   assert.match(scenarioMarkup, /data-character-model="manager"/);
   assert.match(scenarioMarkup, /data-character-model="employee"/);
 
+  const characterAssets = new Set();
   for (const model of Object.values(characterModels)) {
     assert.ok(model.poses[model.defaultPose]);
     assert.ok(Object.keys(model.poses).length >= 3);
     for (const pose of Object.values(model.poses)) {
+      characterAssets.add(pose.idle);
+      characterAssets.add(pose.talk);
       await access(new URL(pose.idle, root));
       await access(new URL(pose.talk, root));
     }
   }
+  assert.deepEqual([...characterAssets].sort(), [
+    "assets/characters/manager-lowpoly-idle.webp",
+    "assets/characters/manager-lowpoly-talk.webp",
+    "assets/characters/sarah-lowpoly-idle.webp",
+    "assets/characters/sarah-lowpoly-talk.webp"
+  ]);
 
   const sceneBackgrounds = scenarioLibrary.scenarios.map(scenario => scenario.background);
   assert.equal(new Set(sceneBackgrounds).size, 4);

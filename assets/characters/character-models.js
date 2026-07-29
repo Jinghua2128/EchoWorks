@@ -6,34 +6,27 @@ const model = (defaultPose, speakingPoses, poses) => Object.freeze({
   poses: Object.freeze(poses)
 });
 
-// Scenario code selects semantic pose names; file paths stay centralized here.
+const managerPose = pose(
+  "assets/characters/manager-lowpoly-idle.webp",
+  "assets/characters/manager-lowpoly-talk.webp"
+);
+
+const employeePose = pose(
+  "assets/characters/sarah-lowpoly-idle.webp",
+  "assets/characters/sarah-lowpoly-talk.webp"
+);
+
+// Semantic states stay available to scenario logic while the approved base
+// pairs prevent generated pose variants from drifting between characters.
 export const characterModels = Object.freeze({
   manager: model("neutral", ["explain", "reflect", "neutral"], {
-    neutral: pose(
-      "assets/characters/manager-lowpoly-idle.webp",
-      "assets/characters/manager-lowpoly-talk.webp"
-    ),
-    explain: pose(
-      "assets/characters/manager-lowpoly-explain-idle.webp",
-      "assets/characters/manager-lowpoly-explain-talk.webp"
-    ),
-    reflect: pose(
-      "assets/characters/manager-lowpoly-reflect-idle.webp",
-      "assets/characters/manager-lowpoly-reflect-talk.webp"
-    )
+    neutral: managerPose,
+    explain: managerPose,
+    reflect: managerPose
   }),
   employee: model("neutral", ["attentive", "confident", "neutral"], {
-    neutral: pose(
-      "assets/characters/sarah-lowpoly-idle.webp",
-      "assets/characters/sarah-lowpoly-talk.webp"
-    ),
-    attentive: pose(
-      "assets/characters/sarah-lowpoly-attentive-idle.webp",
-      "assets/characters/sarah-lowpoly-attentive-talk.webp"
-    ),
-    confident: pose(
-      "assets/characters/sarah-lowpoly-confident-idle.webp",
-      "assets/characters/sarah-lowpoly-confident-talk.webp"
-    )
+    neutral: employeePose,
+    attentive: employeePose,
+    confident: employeePose
   })
 });
