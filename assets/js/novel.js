@@ -260,8 +260,12 @@ function speakDialogue(scene, text) {
   utterance.rate = profile.rate;
   utterance.pitch = profile.pitch;
   utterance.volume = profile.volume;
+  const beginVoiceAnimation = () => {
+    if (activeDialogueUtterance !== utterance) return;
+    if (!dialoguePanelEl.classList.contains("is-speaking")) startTalking();
+  };
   utterance.addEventListener?.("start", () => {
-    if (activeDialogueUtterance === utterance) startTalking();
+    beginVoiceAnimation();
   }, { once: true });
   utterance.addEventListener?.("end", () => {
     if (activeDialogueUtterance !== utterance) return;
@@ -278,9 +282,11 @@ function speakDialogue(scene, text) {
     stopDialogueVoice();
     activeDialogueUtterance = utterance;
     synthesis.speak(utterance);
+    beginVoiceAnimation();
     return true;
   } catch {
     activeDialogueUtterance = null;
+    stopTalking();
     return false;
   }
 }

@@ -391,7 +391,6 @@ export async function ensureFirestore() { return sdk; }
         voiceState.active = utterance;
         voiceState.speaking = true;
         voiceState.started += 1;
-        utterance.emit("start");
       },
       cancel() {
         voiceState.cancelled += 1;

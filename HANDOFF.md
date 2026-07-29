@@ -50,9 +50,9 @@ The confirmed production audit is implemented locally.
 - Every scene transition, restart, tab hide, and page exit cancels active speech before another line can start. Full stage-direction lines remain hidden; square-bracket markers and all parenthetical acting cues are removed from both displayed and spoken dialogue.
 - No generated audio files or external speech service are required. If speech synthesis is unavailable, the existing line cue and typing clicks continue to work where Web Audio is supported.
 - Typing now produces a consistent, clearly audible click on the first and every third visible character; whitespace no longer creates irregular silent cadence. Muting scenario audio stops new clicks immediately.
-- Character talk frames start on the speech utterance start event and return to idle on end, error, mute, scene change, or page hide. The approved talk frame appears immediately, alternates with idle every 170ms during voice playback, and uses a restrained 3px speaking pulse. Reduced-motion users receive the static talk frame without the pulse.
+- Character talk frames start immediately after the browser accepts the speech utterance, with the speech `start` event retained as a backup. This avoids browsers that speak but omit the event. Characters return to idle on end, error, mute, scene change, or page hide. The approved talk frame appears immediately, alternates with idle every 170ms during voice playback, and uses a visible 6px speaking pulse. Reduced-motion users receive the static talk frame without the pulse.
 - Above 920px, both characters move inward with a responsive 72-140px inset so laptop and desktop conversations feel connected. Tablet and phone positioning is unchanged.
-- The scenario script and visual CSS cache version is `20260729-speaking-motion`. All semantic pose states still resolve only to the approved idle/talk pair for that character.
+- The scenario script and visual CSS cache version is `20260729-speaking-runtime-fallback`. All semantic pose states still resolve only to the approved idle/talk pair for that character.
 
 The deployable output is generated in ignored `public/` by `npm run build`.
 

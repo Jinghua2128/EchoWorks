@@ -1562,7 +1562,7 @@ body.novel-page .role-card {
 
 @keyframes characterSpeakingPulse {
   from { transform: translateY(0) scale(1); }
-  to { transform: translateY(-3px) scale(1.006); }
+  to { transform: translateY(-6px) scale(1.012); }
 }
 
 /* Generated model mobile framing */
