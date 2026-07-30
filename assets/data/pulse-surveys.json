@@ -1,54 +1,80 @@
 {
-  "version": "2026-07-19-four-question-pulse",
-  "source": "MDC Google Drive document / Pulse survey tab, condensed to four learner-facing questions",
+  "version": "2026-07-30-role-specific-24-question-pulse",
+  "source": "Confirmed Employee CARE and Manager REAL pre/post pulse survey",
   "scale": {
     "min": 1,
     "max": 5,
     "labels": [
-      "Strongly disagree",
+      "Strongly Disagree",
       "Disagree",
       "Neutral",
       "Agree",
-      "Strongly agree"
+      "Strongly Agree"
     ]
   },
   "surveys": [
     {
-      "id": "pre-pulse",
+      "id": "employee-pre-pulse",
       "stage": "pre",
-      "frameworkId": "PRE",
-      "title": "Pre-pulse",
-      "description": "Two quick questions before the feedback scenario.",
+      "role": "employee",
+      "frameworkId": "CARE",
+      "title": "Employee Pre-Pulse (Baseline)",
+      "description": "Six baseline questions for the Employee CARE path.",
       "questions": [
-        {
-          "id": "pre-confidence",
-          "dimension": "confidence",
-          "text": "I feel comfortable taking part in a feedback conversation."
-        },
-        {
-          "id": "pre-action",
-          "dimension": "action",
-          "text": "I know how to turn feedback into clear and actionable next steps."
-        }
+        { "id": "employee-pre-calm-1", "dimension": "calm", "dimensionLabel": "Calm", "text": "I feel comfortable discussing feedback with my manager." },
+        { "id": "employee-pre-calm-2", "dimension": "calm", "dimensionLabel": "Calm", "text": "I feel safe sharing my thoughts during feedback conversations." },
+        { "id": "employee-pre-clarity", "dimension": "clarity", "dimensionLabel": "Clarity", "text": "I clearly understand the feedback I receive and know what actions to take." },
+        { "id": "employee-pre-reflection", "dimension": "reflection", "dimensionLabel": "Reflection", "text": "I understand how to improve after receiving feedback." },
+        { "id": "employee-pre-execution", "dimension": "execution", "dimensionLabel": "Execution", "text": "I apply feedback to improve my work performance." },
+        { "id": "employee-pre-overall", "dimension": "overall", "dimensionLabel": "Overall satisfaction", "text": "Overall, I am satisfied with the feedback culture in my workplace." }
       ]
     },
     {
-      "id": "post-pulse",
+      "id": "employee-post-pulse",
       "stage": "post",
-      "frameworkId": "POST",
-      "title": "Post-pulse",
-      "description": "Two quick questions after practising CARE or REAL.",
+      "role": "employee",
+      "frameworkId": "CARE",
+      "title": "Employee Post-Pulse",
+      "description": "Six follow-up questions for the Employee CARE path.",
       "questions": [
-        {
-          "id": "post-confidence",
-          "dimension": "confidence",
-          "text": "I feel more confident taking part in a feedback conversation after this practice."
-        },
-        {
-          "id": "post-action",
-          "dimension": "action",
-          "text": "I can apply CARE or REAL to make my next feedback conversation more effective."
-        }
+        { "id": "employee-post-calm-1", "dimension": "calm", "dimensionLabel": "Calm", "text": "I feel comfortable discussing feedback with my manager." },
+        { "id": "employee-post-calm-2", "dimension": "calm", "dimensionLabel": "Calm", "text": "I feel safe sharing my thoughts during feedback conversations." },
+        { "id": "employee-post-clarity", "dimension": "clarity", "dimensionLabel": "Clarity", "text": "I clearly understand the feedback I receive and know what actions to take." },
+        { "id": "employee-post-reflection", "dimension": "reflection", "dimensionLabel": "Reflection", "text": "I understand how to improve after receiving feedback." },
+        { "id": "employee-post-execution", "dimension": "execution", "dimensionLabel": "Execution", "text": "I apply feedback to improve my work performance." },
+        { "id": "employee-post-overall", "dimension": "overall", "dimensionLabel": "Overall satisfaction", "text": "Overall, I am satisfied with the feedback culture in my workplace." }
+      ]
+    },
+    {
+      "id": "manager-pre-pulse",
+      "stage": "pre",
+      "role": "manager",
+      "frameworkId": "REAL",
+      "title": "Manager Pre-Pulse (Baseline)",
+      "description": "Six baseline questions for the Manager REAL path.",
+      "questions": [
+        { "id": "manager-pre-recognise", "dimension": "recognise", "dimensionLabel": "Recognise", "text": "I identify specific employee behaviours when giving feedback." },
+        { "id": "manager-pre-evaluate", "dimension": "evaluate", "dimensionLabel": "Evaluate", "text": "I link feedback to clear performance standards or expectations." },
+        { "id": "manager-pre-advise", "dimension": "advise", "dimensionLabel": "Advise", "text": "I provide clear and actionable improvement steps." },
+        { "id": "manager-pre-link", "dimension": "link", "dimensionLabel": "Link", "text": "I connect feedback to employees' long-term growth and development." },
+        { "id": "manager-pre-confidence", "dimension": "confidence", "dimensionLabel": "Confidence", "text": "I feel confident giving constructive feedback to employees." },
+        { "id": "manager-pre-overall", "dimension": "overall", "dimensionLabel": "Overall satisfaction", "text": "Overall, I am satisfied with the feedback culture in my team." }
+      ]
+    },
+    {
+      "id": "manager-post-pulse",
+      "stage": "post",
+      "role": "manager",
+      "frameworkId": "REAL",
+      "title": "Manager Post-Pulse",
+      "description": "Six follow-up questions for the Manager REAL path.",
+      "questions": [
+        { "id": "manager-post-recognise", "dimension": "recognise", "dimensionLabel": "Recognise", "text": "I identify specific employee behaviours when giving feedback." },
+        { "id": "manager-post-evaluate", "dimension": "evaluate", "dimensionLabel": "Evaluate", "text": "I link feedback to clear performance standards or expectations." },
+        { "id": "manager-post-advise", "dimension": "advise", "dimensionLabel": "Advise", "text": "I provide clear and actionable improvement steps." },
+        { "id": "manager-post-link", "dimension": "link", "dimensionLabel": "Link", "text": "I connect feedback to employees' long-term growth and development." },
+        { "id": "manager-post-confidence", "dimension": "confidence", "dimensionLabel": "Confidence", "text": "I feel confident giving constructive feedback to employees." },
+        { "id": "manager-post-overall", "dimension": "overall", "dimensionLabel": "Overall satisfaction", "text": "Overall, I am satisfied with the feedback culture in my team." }
       ]
     }
   ]

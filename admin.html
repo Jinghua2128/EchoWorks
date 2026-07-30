@@ -12,8 +12,8 @@
   <link rel="stylesheet" href="assets/css/tokens.css?v=20260724" />
   <title>Feedback Culture Dashboard | Feedback Playbook</title>
   <link rel="stylesheet" href="assets/css/app.css?v=20260724-audit" />
-  <link rel="stylesheet" href="assets/css/admin.css?v=20260724-audit" />
-  <script type="module" src="assets/js/admin.js?v=20260724-audit"></script>
+  <link rel="stylesheet" href="assets/css/admin.css?v=20260730-culture-overview" />
+  <script type="module" src="assets/js/admin.js?v=20260730-culture-overview"></script>
   <script defer src="assets/vendor/gsap/gsap.min.js?v=3.12.5"></script>
   <script defer src="assets/js/motion.js?v=20260722-admin-access"></script>
 </head>
@@ -59,6 +59,77 @@
     </section>
 
     <section class="admin-content" id="dashboardContent" hidden>
+
+      <section class="culture-overview" aria-labelledby="cultureOverviewTitle">
+        <header class="culture-overview-heading">
+          <div>
+            <h1 id="cultureOverviewTitle">Feedback culture overview</h1>
+            <p>Strongest and lowest areas shown at a glance across pulse surveys and scenario practice.</p>
+          </div>
+          <p class="culture-data-status" id="cultureDataStatus">Live Firestore data</p>
+        </header>
+
+        <div class="culture-signal-grid">
+          <article class="culture-signal-card" data-signal="positive" aria-labelledby="goingWellTitle">
+            <header>
+              <span class="culture-signal-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 12 3 3 7-7"/><circle cx="12" cy="12" r="9"/></svg></span>
+              <span><h2 id="goingWellTitle">What's going well</h2><p>Highest-performing areas</p></span>
+            </header>
+            <dl>
+              <div><dt><span>Employee</span><strong id="employeeStrongArea">No pulse data</strong></dt><dd id="employeeStrongValue">-</dd></div>
+              <div><dt><span>Manager</span><strong id="managerStrongArea">No pulse data</strong></dt><dd id="managerStrongValue">-</dd></div>
+              <div><dt><span>Scenario</span><strong id="scenarioStrongArea">No scored choices</strong></dt><dd id="scenarioStrongValue">-</dd></div>
+            </dl>
+          </article>
+
+          <article class="culture-signal-card" data-signal="attention" aria-labelledby="needsAttentionTitle">
+            <header>
+              <span class="culture-signal-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 8v5m0 3h.01M10.3 4.5 3.4 17a2 2 0 0 0 1.8 3h13.6a2 2 0 0 0 1.8-3L13.7 4.5a2 2 0 0 0-3.4 0Z"/></svg></span>
+              <span><h2 id="needsAttentionTitle">What needs attention</h2><p>Lowest-performing areas</p></span>
+            </header>
+            <dl>
+              <div><dt><span>Employee</span><strong id="employeeAttentionArea">No pulse data</strong></dt><dd id="employeeAttentionValue">-</dd></div>
+              <div><dt><span>Manager</span><strong id="managerAttentionArea">No pulse data</strong></dt><dd id="managerAttentionValue">-</dd></div>
+              <div><dt><span>Scenario</span><strong id="scenarioAttentionArea">No scored choices</strong></dt><dd id="scenarioAttentionValue">-</dd></div>
+            </dl>
+          </article>
+        </div>
+
+        <div class="culture-metric-grid" aria-label="Feedback culture summary">
+          <button class="culture-metric-card" type="button" data-pulse-detail="employee" aria-expanded="false" aria-controls="pulseDetailPanel">
+            <span class="culture-metric-heading"><span><small>Employee pulse</small><strong>CARE score</strong></span><span class="culture-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 10h8m-8 4h5"/><path d="M5 19.5 3.5 21v-4A8 8 0 1 1 7 20"/></svg></span></span>
+            <span class="culture-metric-value" id="employeePulseScore">-</span>
+            <span class="culture-metric-footer"><span>Pre <b id="employeePulsePre">-</b><br />Post <b id="employeePulsePost">-</b></span><span id="employeePulseDelta">View details</span></span>
+          </button>
+
+          <button class="culture-metric-card" type="button" data-pulse-detail="manager" aria-expanded="false" aria-controls="pulseDetailPanel">
+            <span class="culture-metric-heading"><span><small>Manager pulse</small><strong>REAL score</strong></span><span class="culture-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 16H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4l-4 4Z"/><path d="M17 9h3a2 2 0 0 1 2 2v7l-3-2"/></svg></span></span>
+            <span class="culture-metric-value" id="managerPulseScore">-</span>
+            <span class="culture-metric-footer"><span>Pre <b id="managerPulsePre">-</b><br />Post <b id="managerPulsePost">-</b></span><span id="managerPulseDelta">View details</span></span>
+          </button>
+
+          <article class="culture-metric-card">
+            <span class="culture-metric-heading"><span><small>Game performance</small><strong>Scenario application</strong></span><span class="culture-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 12h8M12 8v8"/><path d="M7 5h10a5 5 0 0 1 4.7 6.7l-1.4 4.1A3 3 0 0 1 15.4 17l-1.2-1H9.8l-1.2 1a3 3 0 0 1-4.9-1.2l-1.4-4.1A5 5 0 0 1 7 5Z"/></svg></span></span>
+            <strong class="culture-metric-value" id="gamePerformanceScore">-</strong>
+            <span class="culture-metric-footer"><span>Employee <b id="employeeGameScore">-</b><br />Manager <b id="managerGameScore">-</b></span><span>Skills</span></span>
+          </article>
+
+          <article class="culture-metric-card">
+            <span class="culture-metric-heading"><span><small>Engagement</small><strong>Participation</strong></span><span class="culture-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span></span>
+            <strong class="culture-metric-value" id="engagementScore">-</strong>
+            <span class="culture-metric-footer"><span>Employee pulse <b id="employeeParticipation">-</b><br />Manager pulse <b id="managerParticipation">-</b></span><span>Counts</span></span>
+          </article>
+        </div>
+
+        <section class="culture-pulse-detail" id="pulseDetailPanel" aria-labelledby="culturePulseDetailTitle" hidden>
+          <header>
+            <div><h2 id="culturePulseDetailTitle">Employee CARE breakdown</h2><p>Pre- and post-pulse dimension scores</p></div>
+            <button class="button subtle fit" type="button" id="closePulseDetail">Close details</button>
+          </header>
+          <div class="chart-legend" aria-label="Pulse comparison legend"><span><i class="legend-dot pre" aria-hidden="true"></i>Pre</span><span><i class="legend-dot culture-post" aria-hidden="true"></i>Post</span></div>
+          <div class="culture-pulse-chart" id="culturePulseChart"></div>
+        </section>
+      </section>
       <section class="dashboard-overview" aria-labelledby="overviewTitle">
         <header class="overview-toolbar">
           <div class="overview-title">
@@ -227,12 +298,12 @@
         </article>
       </section>
 
-      <section class="panel admin-section" aria-labelledby="usersTitle">
-        <header class="dashboard-section-heading filters-heading">
-          <div>
-            <h2 id="usersTitle">Learner progress</h2>
-            <p>Review completion, reflection status, and follow-up needs.</p>
-          </div>
+      <details class="panel admin-section dashboard-disclosure" id="learnerProgressDisclosure" aria-labelledby="usersTitle">
+        <summary>
+          <span class="dashboard-disclosure-copy"><strong id="usersTitle">Learner progress</strong><small>Review completion, reflection status, and follow-up needs.</small></span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5" /></svg>
+        </summary>
+        <div class="dashboard-disclosure-content">
           <div class="filter-group" aria-label="Filter learners by progress status">
             <button class="filter-button active" type="button" data-filter="all" aria-pressed="true">All</button>
             <button class="filter-button" type="button" data-filter="completed" aria-pressed="false">Completed</button>
@@ -240,31 +311,36 @@
             <button class="filter-button" type="button" data-filter="not_started" aria-pressed="false">Not started</button>
             <button class="filter-button" type="button" data-filter="needs_follow_up" aria-pressed="false">Needs follow-up</button>
           </div>
-        </header>
-        <div class="table-wrap" tabindex="0" role="region" aria-label="Learner progress table">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Learner progress table">
           <table>
             <thead><tr><th id="users-name" scope="col">Name</th><th id="users-role" scope="col">Role</th><th id="users-completed" scope="col">Completed scenarios</th><th id="users-care" scope="col">CARE score</th><th id="users-real" scope="col">REAL score</th><th id="users-status" scope="col">Status</th><th id="users-reflection" scope="col">Reflection</th><th id="users-activity" scope="col">Last activity</th><th id="users-action" scope="col">Action</th></tr></thead>
             <tbody id="usersTable"></tbody>
           </table>
         </div>
-        <div class="pagination-status"><span id="usersPageStatus">No learners loaded.</span><button class="button secondary fit" type="button" id="loadMoreUsers">Load more learners</button></div>
-      </section>
+          <div class="pagination-status"><span id="usersPageStatus">No learners loaded.</span><button class="button secondary fit" type="button" id="loadMoreUsers">Load more learners</button></div>
+        </div>
+      </details>
 
       <section class="panel detail-panel" id="detailPanel" aria-labelledby="detailTitle" hidden>
         <header class="dashboard-section-heading"><div><h2 id="detailTitle">Select a learner</h2><p>Scenario scores and saved reflections.</p></div></header>
         <div id="detailBody" class="detail-body"></div>
       </section>
 
-      <section class="panel admin-section" aria-labelledby="resultsTitle">
-        <header class="dashboard-section-heading"><div><h2 id="resultsTitle">CARE / REAL result records</h2><p>Detailed scoring and reflection evidence.</p></div></header>
-        <div class="table-wrap" tabindex="0" role="region" aria-label="CARE and REAL result table">
+      <details class="panel admin-section dashboard-disclosure" id="resultRecordsDisclosure" aria-labelledby="resultsTitle">
+        <summary>
+          <span class="dashboard-disclosure-copy"><strong id="resultsTitle">CARE / REAL result records</strong><small>Detailed scoring and reflection evidence.</small></span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5" /></svg>
+        </summary>
+        <div class="dashboard-disclosure-content">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="CARE and REAL result table">
           <table>
             <thead><tr><th id="results-user" scope="col">User</th><th id="results-scenario" scope="col">Scenario</th><th id="results-attempt" scope="col">Attempt</th><th id="results-dimension" scope="col">Dimension</th><th id="results-option" scope="col">Option</th><th id="results-class" scope="col">Result</th><th id="results-score" scope="col">Score</th><th id="results-reflection" scope="col">Reflection</th></tr></thead>
             <tbody id="resultsTable"></tbody>
           </table>
         </div>
-        <div class="pagination-status"><span id="resultsPageStatus">No result records loaded.</span><button class="button secondary fit" type="button" id="loadMoreResults">Load more results</button></div>
-      </section>
+          <div class="pagination-status"><span id="resultsPageStatus">No result records loaded.</span><button class="button secondary fit" type="button" id="loadMoreResults">Load more results</button></div>
+        </div>
+      </details>
 
       <section class="panel admin-section" id="viewerAdminSection" aria-labelledby="adminsTitle">
         <header class="dashboard-section-heading"><div><h2 id="adminsTitle">Dashboard viewers</h2><p>Only listed viewers can access this page.</p></div></header>

@@ -1,6 +1,6 @@
 # EchoWorks Project Handoff
 
-Updated: 2026-07-29 (Asia/Singapore)
+Updated: 2026-07-30 (Asia/Singapore)
 
 Chinese handoff: [HANDOFF.zh-CN.md](HANDOFF.zh-CN.md)
 
@@ -31,8 +31,17 @@ The confirmed production audit is implemented locally.
 - First-time guests and first-time signed-in accounts receive a two-step, keyboard-accessible tutorial. Completion is stored per guest/profile under feedbackPlaybook.tutorialSeen.v1.*.
 - The AR page keeps camera and manual selection, removes the redundant changing learning-detail panel, uses an icon-only retry control, and presents facilitator flow and scannable card materials as collapsed native disclosures.
 - Settings uses a clearly red-tinted danger panel.
-- Cache-busting for the current learner app release is 20260729-clean-assets on app.css and app.js.
+- Cache-busting for the current learner app release is 20260730-role-pulse on app.css and app.js.
 
+### Dashboard and role-specific pulse release (2026-07-30)
+
+- The dashboard begins with a scan-first Feedback culture overview that preserves the existing red, white, teal, and neutral palette. It shows strongest and lowest Employee, Manager, and scenario areas plus Employee CARE, Manager REAL, scenario application, and participation summary cards.
+- Employee and Manager pulse cards open an accessible pre/post dimension comparison. Learner progress and CARE / REAL result records are collapsed native disclosures by default so the overview remains readable on desktop and mobile.
+- `assets/data/pulse-surveys.json` now contains four role/stage surveys: Employee pre, Employee post, Manager pre, and Manager post. Each survey has six 1-5 questions, for 24 saved responses in total.
+- Employee pulse dimensions are Calm (two questions), Clarity, Reflection, Execution, and Overall satisfaction. Manager pulse dimensions are Recognise, Evaluate, Advise, Link, Confidence, and Overall satisfaction.
+- Home progress now reports 12 pre-pulse and 12 post-pulse responses. Continue learning still sends a learner with no pre-pulse response to Employee Pre-Pulse before resuming scenario practice.
+- The deterministic sample generator and reviewable JSON preview use the new 24-answer schema. The live Firestore sample records from 2026-07-24 still use the previous pulse schema until the owner intentionally reruns the sample seed command.
+- Dashboard cache-busting is `20260730-culture-overview`; learner pulse data cache-busting is `20260730-role-pulse`.
 ### Asset cleanup and consistent AR models (2026-07-29)
 
 - The earlier cleanup removed 40 superseded files (13.96 MB), including duplicate character frames, legacy AR prototypes, lossless office sources, obsolete scenario data, and unused design references.
@@ -41,7 +50,7 @@ The confirmed production audit is implemented locally.
 - All eight AR models are transparent `1024x1536` WebP cutouts (about 59-70 KB each). The physical card artwork and the MindAR target bundle are unchanged.
 - Scenario characters use the four approved manager/Sarah idle/talk WebP files plus one transparent four-frame speaking GIF per character. The GIFs keep the approved low-poly identities and add a brief open-palm hand gesture; semantic pose states still reuse the same identity-locked assets.
 - `assets/data/ar-cards.json` maps every card directly to `assets/ar-models/<card-id>-lowpoly.webp`. The AR cache key is `20260729-base-locked-ar-poses`.
-- `scripts/build-public.mjs` copies an exact 67-file runtime manifest. The production package is 20.20 MB and excludes source/reference documents and rejected generated poses by construction.
+- `scripts/build-public.mjs` copies an exact 67-file runtime manifest. The production package is 20.24 MB and excludes source/reference documents and rejected generated poses by construction.
 ### Scenario voice-over release (2026-07-29)
 
 - Scenario narration and character dialogue now use the browser Web Speech API after the learner's first pointer or keyboard interaction.
@@ -130,7 +139,7 @@ Roles:
 
 The Dashboard link appears in the main sidebar only after a signed-in email has a valid dashboard profile. The owner may bootstrap its protected owner profile under the included rules. The owner profile cannot be deleted or demoted.
 
-Dashboard behavior now includes bounded 75-record pages, server filters for framework/path, cohort, scenario and dates, aggregate counts, pagination/end states, lazy reflection text, account identity/sign-out, learner detail focus, and owner-only viewer management.
+Dashboard behavior now includes the feedback-culture overview, pre/post pulse dimension details, collapsed learner/result disclosures, bounded 75-record pages, server filters for framework/path, cohort, scenario and dates, aggregate counts, pagination/end states, lazy reflection text, account identity/sign-out, learner detail focus, and owner-only viewer management.
 
 ## Firestore Sample Data and Deployment
 
@@ -139,7 +148,7 @@ Full setup instructions:
 - [FIREBASE_GITHUB_PAGES.md](FIREBASE_GITHUB_PAGES.md)
 - [FIREBASE_GITHUB_PAGES.zh-CN.md](FIREBASE_GITHUB_PAGES.zh-CN.md)
 
-The deterministic sample pack was written to the live `echoworks-e3b4d` project on 2026-07-24. It contains 12 synthetic learners, 61 scenario result records, 4 drop-offs, 8 replay attempts, 41 reflections, 53 latest-progress records, and both-path completions. All sample addresses use the non-deliverable `echoworks.invalid` domain.
+The deterministic sample pack was written to the live `echoworks-e3b4d` project on 2026-07-24. It contains 12 synthetic learners, 61 scenario result records, 4 drop-offs, 8 replay attempts, 41 reflections, 53 latest-progress records, and both-path completions. All sample addresses use the non-deliverable `echoworks.invalid` domain. The local generator and preview now contain 24-answer role-specific pulse data; rerun the confirmed seed command to replace the older live pulse shape.
 
 Important files:
 
@@ -176,7 +185,7 @@ Local content:
 
 - `assets/data/scenarios/full-game-script.json`
 - `assets/data/scenarios/scenario-library.json`
-- `assets/data/pulse-surveys.json`: exactly two pre-pulse and two post-pulse questions.
+- `assets/data/pulse-surveys.json`: four role/stage surveys with six questions each (24 answers total).
 - `assets/data/ar-cards.json`
 
 Do not move these content definitions into Firestore.
@@ -229,13 +238,13 @@ The pulse survey and game competency dimensions are reported separately; do not 
 - `npm test`: 15/15 passed.
 - `npm run test:rules`: 5/5 Firestore emulator suites passed.
 - `npm run test:browser`: passed in Chrome 150.0.7871.184 and Edge 150.0.4078.83.
-- Browser coverage includes auth errors/reset/signup verification/logout, first-time tutorial, pre-pulse prerequisite routing, guest mode, optional survey/AR retry, AR disclosures, exact card-specific AR pose loading, sticky mobile header, four pulse answers, progress deletion dialog, both roles, reflection/replay, dialogue panel click/tap, text-selection protection, input cooldown, deterministic voice-over/mute/cancellation/speaker-profile checks, real-motion typing-audio cadence and mute checks, voice-driven speaking-GIF source switching, GIF signature validation, laptop inset, typing lifetime, idle restoration after audio, bracket-free visible/spoken dialogue, dashboard denial/owner access/filters/detail/viewer management, keyboard flow, and reduced motion.
+- Browser coverage includes auth errors/reset/signup verification/logout, first-time tutorial, pre-pulse prerequisite routing, all four role-specific surveys and 24 answers, guest mode, optional survey/AR retry, AR disclosures, exact card-specific AR pose loading, sticky mobile header, progress deletion dialog, both roles, reflection/replay, dialogue panel click/tap, text-selection protection, input cooldown, deterministic voice-over/mute/cancellation/speaker-profile checks, real-motion typing-audio cadence and mute checks, voice-driven speaking-GIF source switching, GIF signature validation, laptop inset, typing lifetime, idle restoration after audio, bracket-free visible/spoken dialogue, dashboard denial/owner access/overview/pulse details/collapsed records/filters/detail/viewer management, keyboard flow, and reduced motion.
 - Axe serious/critical violations: 0 on app, scenario, and dashboard.
 - Responsive checks passed at 320px, 390px, short landscape, 768px, 1024px, 1440px, and 200%/400% equivalent reflow widths with 44px controls and no horizontal overflow.
 - Dashboard fixture: 75 learners and 300 result records rendered in about 40-50ms.
 - Firestore sample pack: 12 synthetic learners, 61 attempts, 4 drop-offs, 8 replays, 41 reflections, and 53 latest-progress records; dry run and all 168 live-document checks passed.
 - `npm audit --omit=dev --audit-level=moderate`: 0 vulnerabilities after `protobufjs` 7.6.5 patch.
-- Final build: 67 explicit runtime files (20.20 MB), including four approved static scenario character frames, two transparent four-frame speaking GIFs with hand gestures, eight dedicated transparent AR model poses, four location backgrounds, eight supplied physical card artworks, and one locally compiled 2.44 MB MindAR version-2 bundle.
+- Final build: 67 explicit runtime files (20.24 MB), including four approved static scenario character frames, two transparent four-frame speaking GIFs with hand gestures, eight dedicated transparent AR model poses, four location backgrounds, eight supplied physical card artworks, and one locally compiled 2.44 MB MindAR version-2 bundle.
 
 ## Known Limits
 
@@ -252,7 +261,8 @@ The reviewed release is published on GitHub Pages. Firestore rules, indexes, own
 
 ## Next Steps
 
-1. Sign in at the live site as `liuguangxuan1230@gmail.com`, refresh once if the session predates the permission update, and verify the Dashboard link, metrics, reflection detail, and viewer management.
-2. Use disposable accounts to test verification/reset email, cross-device merge, cloud deletion, and owner/viewer access end to end.
-3. Run Firefox/Safari keyboard and zoom checks, then test all eight printed AR cards on physical Android and iOS devices over HTTPS.
-4. Review the existing `.firebaserc`, `firebase.json`, and handoff changes before the next intentional commit.
+1. Sign in at the live site as `liuguangxuan1230@gmail.com` and verify the Dashboard overview, Employee/Manager pulse breakdowns, collapsed learner/result records, reflection detail, and viewer management.
+2. Rerun the confirmed sample seed command when the live Firestore demo should use the new 24-answer role-specific pulse schema.
+3. Use disposable accounts to test verification/reset email, cross-device merge, cloud deletion, and owner/viewer access end to end.
+4. Run Firefox/Safari keyboard and zoom checks, then test all eight printed AR cards on physical Android and iOS devices over HTTPS.
+5. Review the existing `.firebaserc` and `firebase.json` changes before the next intentional commit.

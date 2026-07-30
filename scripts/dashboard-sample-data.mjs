@@ -346,11 +346,28 @@ export async function buildDashboardSampleData() {
     const latestResult = results
       .filter(result => result.data.uid === learner.uid)
       .sort((left, right) => Date.parse(right.data.updatedAtIso) - Date.parse(left.data.updatedAtIso))[0];
-    const completedAnyPath = learner.paths.some(path => path.first.length === 4);
     const updatedAtIso = latestResult?.data.updatedAtIso || isoAt(learnerIndex, 0, 1, 0);
-    const preAnswers = [3 + (learnerIndex % 2), 2 + (learnerIndex % 3)];
-    const postAnswers = completedAnyPath ? [Math.min(5, preAnswers[0] + 1), Math.min(5, preAnswers[1] + 1)] : [-1, -1];
-    const completedSurveyAnswers = completedAnyPath ? 4 : 2;
+    const pulseAnswers = {
+      "employee-pre-pulse": [-1, -1, -1, -1, -1, -1],
+      "employee-post-pulse": [-1, -1, -1, -1, -1, -1],
+      "manager-pre-pulse": [-1, -1, -1, -1, -1, -1],
+      "manager-post-pulse": [-1, -1, -1, -1, -1, -1]
+    };
+
+    learner.paths.forEach(path => {
+      const role = path.frameworkId === "REAL" ? "manager" : "employee";
+      const pre = role === "employee" ? [3, 3, 3, 3, 4, 3] : [3, 3, 3, 2, 3, 3];
+      const post = role === "employee" ? [4, 3, 4, 4, 5, 4] : [5, 4, 4, 3, 4, 4];
+      pulseAnswers[`${role}-pre-pulse`] = pre.map((value, questionIndex) => (
+        Math.max(1, Math.min(5, value + ((learnerIndex + questionIndex) % 4 === 0 ? 1 : 0)))
+      ));
+      if (path.first.length === 4) {
+        pulseAnswers[`${role}-post-pulse`] = post.map((value, questionIndex) => (
+          Math.max(1, Math.min(5, value + ((learnerIndex + questionIndex) % 5 === 0 ? 1 : 0)))
+        ));
+      }
+    });
+    const completedSurveyAnswers = Object.values(pulseAnswers).flat().filter(value => value > 0).length;
 
     return {
       id: learner.uid,
@@ -361,13 +378,10 @@ export async function buildDashboardSampleData() {
         anonymousPlayerId: demoPlayerId(learnerIndex),
         learningProgress: {
           surveyVersion: pulseSurvey.version,
-          answers: {
-            "pre-pulse": preAnswers,
-            "post-pulse": postAnswers
-          },
+          answers: pulseAnswers,
           completed: completedSurveyAnswers,
-          total: 4,
-          progress: completedSurveyAnswers * 25,
+          total: 24,
+          progress: Math.round((completedSurveyAnswers / 24) * 100),
           updatedAt: Date.parse(updatedAtIso)
         },
         createdAt: isoAt(learnerIndex, 0, 1, 0, -20),

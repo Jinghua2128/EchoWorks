@@ -26,7 +26,7 @@ const storageKeys = {
 const protectedRoutes = new Set(["home", "survey", "ar", "settings"]);
 const authRoutes = new Set(["login", "signup"]);
 const routeIds = ["login", "signup", "home", "survey", "ar", "settings"];
-const storageVersion = "2026-07-four-question-pulse-v8";
+const storageVersion = "2026-07-role-specific-pulse-v9";
 
 function notifyMotion(name, detail = {}) {
   window.dispatchEvent(new CustomEvent(name, { detail }));
@@ -161,15 +161,22 @@ function safeJsonParse(value, fallback) {
 }
 
 async function loadSurveyDefinitions() {
-  const response = await fetch(`${pulseSurveyFile}?v=20260724`);
+  const response = await fetch(`${pulseSurveyFile}?v=20260730-role-pulse`);
   if (!response.ok) throw new Error("Pulse survey questions could not be loaded.");
 
   const data = await response.json();
-  if (!Array.isArray(data.surveys) || data.surveys.length !== 2 || !Array.isArray(data.scale?.labels)) {
+  if (!Array.isArray(data.surveys) || data.surveys.length !== 4 || !Array.isArray(data.scale?.labels)) {
     throw new Error("Pulse survey data is incomplete.");
   }
-  if (data.surveys.some(survey => !Array.isArray(survey.questions) || survey.questions.length !== 2)) {
-    throw new Error("Each pulse survey must contain exactly two questions.");
+  const surveyKeys = new Set(data.surveys.map(survey => `${survey.role}:${survey.stage}`));
+  if (
+    data.surveys.some(survey => !["employee", "manager"].includes(survey.role)
+      || !["pre", "post"].includes(survey.stage)
+      || !Array.isArray(survey.questions)
+      || survey.questions.length !== 6)
+    || surveyKeys.size !== 4
+  ) {
+    throw new Error("Each Employee and Manager pre/post pulse must contain exactly six questions.");
   }
 
   surveyDefinitions = data.surveys;
@@ -811,16 +818,14 @@ function renderRatingOptions() {
 
 
 function surveyStageProgress(stage) {
-  const survey = surveyDefinitions.find(item => item.stage === stage);
-  if (!survey) return { answered: 0, total: 0, complete: false };
+  const surveys = surveyDefinitions.filter(item => item.stage === stage);
+  if (!surveys.length) return { answered: 0, total: 0, complete: false };
 
-  const values = answers[survey.id] || [];
-  const answered = values.filter(answer => answer !== null).length;
-  return {
-    answered,
-    total: survey.questions.length,
-    complete: answered === survey.questions.length
-  };
+  const total = surveys.reduce((sum, survey) => sum + survey.questions.length, 0);
+  const answered = surveys.reduce((sum, survey) => (
+    sum + (answers[survey.id] || []).filter(answer => answer !== null).length
+  ), 0);
+  return { answered, total, complete: answered === total };
 }
 
 function setMilestoneState(name, state, text, active) {
@@ -911,7 +916,9 @@ function openSurvey(index) {
 
 async function continueLearning() {
   await surveyDataReady;
-  const preSurveyIndex = surveyDefinitions.findIndex(survey => survey.stage === "pre");
+  const preSurveyIndex = surveyDefinitions.findIndex(survey => (
+    survey.stage === "pre" && (answers[survey.id] || []).some(answer => answer === null)
+  ));
   const hasAttemptedPrePulse = surveyStageProgress("pre").answered > 0;
 
   if (!hasAttemptedPrePulse && preSurveyIndex >= 0) {

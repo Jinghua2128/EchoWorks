@@ -45,7 +45,18 @@ test("local learning JSON is complete and internally consistent", async () => {
   ]);
   assert.deepEqual(validateLearningData({ scenarioLibrary, fullGameScript, pulseSurveys, arCards }), []);
   assert.equal(fullGameScript.scenarioOrder.length, 8);
-  assert.equal(pulseSurveys.surveys.reduce((sum, survey) => sum + survey.questions.length, 0), 4);
+  assert.equal(pulseSurveys.surveys.length, 4);
+  assert.ok(pulseSurveys.surveys.every(survey => survey.questions.length === 6));
+  assert.deepEqual(
+    pulseSurveys.surveys.map(survey => `${survey.role}:${survey.stage}`).sort(),
+    ["employee:post", "employee:pre", "manager:post", "manager:pre"]
+  );
+  assert.equal(pulseSurveys.surveys.reduce((sum, survey) => sum + survey.questions.length, 0), 24);
+  assert.equal(
+    pulseSurveys.surveys.find(survey => survey.id === "manager-pre-pulse")
+      .questions.find(question => question.dimension === "advise").dimensionLabel,
+    "Advise"
+  );
 });
 test("stage directions drive presentation without appearing as dialogue", () => {
   const lines = prepareVisibleSceneLines([

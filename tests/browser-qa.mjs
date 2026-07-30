@@ -194,7 +194,7 @@ export async function ensureFirestore() { return sdk; }
 
   await page.click('[data-action="continue-learning"]');
   await page.waitForSelector("#survey.active");
-  assert.match(await page.locator("#surveyTitle").textContent(), /Pre-pulse/i);
+  assert.match(await page.locator("#surveyTitle").textContent(), /Employee Pre-Pulse/i);
   await page.click('#survey [data-route="home"]');
   await page.waitForSelector("#home.active");
 
@@ -202,7 +202,7 @@ export async function ensureFirestore() { return sdk; }
   assert.equal(await page.locator("#unitsTitle").textContent(), "Complete the pre and post survey");
   assert.equal(await page.locator(".support-panel").count(), 0);
 
-  for (const surveyIndex of [0, 1]) {
+  for (const surveyIndex of [0, 1, 2, 3]) {
     await page.click(`[data-survey-index="${surveyIndex}"]`);
     await page.waitForSelector("#survey.active");
     const questionHierarchy = await page.evaluate(() => {
@@ -219,7 +219,7 @@ export async function ensureFirestore() { return sdk; }
     assert.ok(questionHierarchy.weight >= 700);
     assert.match(questionHierarchy.text, /^I /);
     assert.equal(await page.locator('[data-action="retry-survey"]').isHidden(), true);
-    for (const value of [4, 5]) {
+    for (const value of [4, 5, 4, 5, 4, 5]) {
       await page.check(`input[name="comfort"][value="${value}"]`);
       await page.click('#surveyForm button[type="submit"]');
     }
@@ -231,8 +231,8 @@ export async function ensureFirestore() { return sdk; }
     answers: JSON.parse(localStorage.getItem("feedbackPlaybook.answers") || "{}"),
     focused: document.activeElement?.id
   }));
-  assert.match(surveyState.progress, /4 of 4 pulse responses/);
-  assert.equal(Object.values(surveyState.answers).flat().length, 4);
+  assert.match(surveyState.progress, /24 of 24 pulse responses/);
+  assert.equal(Object.values(surveyState.answers).flat().length, 24);
 
   await page.locator('[data-route="ar"]:visible').first().click();
   await page.waitForSelector("#ar.active");
@@ -690,12 +690,30 @@ export async function ensureFirestore() { return sdk; }
 
 {
   const library = JSON.parse(await readFile(new URL("../assets/data/scenarios/scenario-library.json", import.meta.url), "utf8"));
+  const pulse = JSON.parse(await readFile(new URL("../assets/data/pulse-surveys.json", import.meta.url), "utf8"));
   let source = await readFile(new URL("../assets/js/admin.js", import.meta.url), "utf8");
   source = source.replace(/^import\s+\{[^;]+;\s*/, 'const normalizeEmail=value=>String(value||"").trim().toLowerCase(); const rootAdminEmail="liuguangxuan1230@gmail.com"; const dashboardRole=(profile,email)=>email===rootAdminEmail?"owner":profile?.role; const loadFirebaseClient=async()=>null;\n');
   const users = Array.from({ length: 75 }, (_, index) => ({
     uid: `u${index + 1}`,
     email: `learner${index + 1}@example.com`,
-    selectedRole: index % 2 ? "manager" : "employee"
+    selectedRole: index % 2 ? "manager" : "employee",
+    learningProgress: {
+      surveyVersion: pulse.version,
+      answers: index % 2 ? {
+        "employee-pre-pulse": [-1, -1, -1, -1, -1, -1],
+        "employee-post-pulse": [-1, -1, -1, -1, -1, -1],
+        "manager-pre-pulse": [4, 4, 4, 3, 4, 4],
+        "manager-post-pulse": [5, 4, 5, 4, 4, 5]
+      } : {
+        "employee-pre-pulse": [3, 3, 4, 4, 4, 3],
+        "employee-post-pulse": [4, 4, 4, 4, 5, 4],
+        "manager-pre-pulse": [-1, -1, -1, -1, -1, -1],
+        "manager-post-pulse": [-1, -1, -1, -1, -1, -1]
+      },
+      completed: 12,
+      total: 24,
+      progress: 50
+    }
   }));
   const results = users.flatMap((user, userIndex) => library.scenarios
     .filter(scenario => scenario.role === user.selectedRole)
@@ -712,6 +730,7 @@ export async function ensureFirestore() { return sdk; }
     }));
   const seed = [
     `scenarioDefinitions=${JSON.stringify(library.scenarios)};`,
+    `pulseSurveyDefinitions=${JSON.stringify(pulse.surveys)};`,
     `frameworkDefinitions=${JSON.stringify(library.frameworks)};`,
     `cachedUsers=${JSON.stringify(users)};`,
     `cachedResults=${JSON.stringify(results)};`,
@@ -734,6 +753,16 @@ export async function ensureFirestore() { return sdk; }
   await page.waitForSelector("#dashboardContent:not([hidden])");
   const dashboardRenderMs = await page.evaluate(() => window.__dashboardRenderMs);
   assert.ok(dashboardRenderMs < 2000, `Dashboard render took ${dashboardRenderMs}ms`);
+  assert.equal(await page.locator("#learnerProgressDisclosure").getAttribute("open"), null);
+  assert.equal(await page.locator("#resultRecordsDisclosure").getAttribute("open"), null);
+  assert.doesNotMatch(await page.locator("#employeePulseScore").textContent(), /^-$/);
+  assert.doesNotMatch(await page.locator("#managerPulseScore").textContent(), /^-$/);
+  await page.locator('[data-pulse-detail="employee"]').click();
+  await page.waitForSelector("#pulseDetailPanel:not([hidden])");
+  assert.match(await page.locator("#culturePulseDetailTitle").textContent(), /Employee CARE breakdown/);
+  assert.ok(await page.locator("#culturePulseChart .culture-pulse-row").count() >= 5);
+  await page.locator('#closePulseDetail').click();
+  await page.locator("#learnerProgressDisclosure summary").click();
   await page.locator("[data-user-id]").first().click();
   await page.waitForSelector("#detailPanel:not([hidden])");
   assert.equal(await page.locator("#detailTitle").evaluate(element => element === document.activeElement), true);
@@ -748,6 +777,7 @@ export async function ensureFirestore() { return sdk; }
   assert.equal(await page.locator('[data-remove-admin="viewer@example.com"]').count(), 0);
   await page.click('[data-filter="completed"]');
   assert.equal(await page.locator('[data-filter="completed"]').getAttribute("aria-pressed"), "true");
+  await page.locator("#resultRecordsDisclosure summary").click();
   const desktop = await page.evaluate(() => ({
     rows: document.querySelectorAll("#usersTable tr").length,
     results: document.querySelectorAll("#resultsTable tr").length,

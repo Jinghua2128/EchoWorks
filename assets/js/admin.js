@@ -65,8 +65,41 @@ const viewerAdminSection = document.getElementById("viewerAdminSection");
 const adminAccountEmail = document.getElementById("adminAccountEmail");
 const adminAccountRole = document.getElementById("adminAccountRole");
 const adminSignOutButton = document.getElementById("adminSignOutButton");
+const cultureDataStatus = document.getElementById("cultureDataStatus");
+const employeeStrongArea = document.getElementById("employeeStrongArea");
+const employeeStrongValue = document.getElementById("employeeStrongValue");
+const managerStrongArea = document.getElementById("managerStrongArea");
+const managerStrongValue = document.getElementById("managerStrongValue");
+const scenarioStrongArea = document.getElementById("scenarioStrongArea");
+const scenarioStrongValue = document.getElementById("scenarioStrongValue");
+const employeeAttentionArea = document.getElementById("employeeAttentionArea");
+const employeeAttentionValue = document.getElementById("employeeAttentionValue");
+const managerAttentionArea = document.getElementById("managerAttentionArea");
+const managerAttentionValue = document.getElementById("managerAttentionValue");
+const scenarioAttentionArea = document.getElementById("scenarioAttentionArea");
+const scenarioAttentionValue = document.getElementById("scenarioAttentionValue");
+const employeePulseScore = document.getElementById("employeePulseScore");
+const employeePulsePre = document.getElementById("employeePulsePre");
+const employeePulsePost = document.getElementById("employeePulsePost");
+const employeePulseDelta = document.getElementById("employeePulseDelta");
+const managerPulseScore = document.getElementById("managerPulseScore");
+const managerPulsePre = document.getElementById("managerPulsePre");
+const managerPulsePost = document.getElementById("managerPulsePost");
+const managerPulseDelta = document.getElementById("managerPulseDelta");
+const gamePerformanceScore = document.getElementById("gamePerformanceScore");
+const employeeGameScore = document.getElementById("employeeGameScore");
+const managerGameScore = document.getElementById("managerGameScore");
+const engagementScore = document.getElementById("engagementScore");
+const employeeParticipation = document.getElementById("employeeParticipation");
+const managerParticipation = document.getElementById("managerParticipation");
+const pulseDetailPanel = document.getElementById("pulseDetailPanel");
+const culturePulseDetailTitle = document.getElementById("culturePulseDetailTitle");
+const culturePulseChart = document.getElementById("culturePulseChart");
+const closePulseDetail = document.getElementById("closePulseDetail");
+const pulseDetailButtons = document.querySelectorAll("[data-pulse-detail]");
 
 const scenarioLibraryFile = "assets/data/scenarios/scenario-library.json";
+const pulseSurveyFile = "assets/data/pulse-surveys.json";
 
 let firebaseClient = null;
 let currentUser = null;
@@ -79,6 +112,8 @@ let canBootstrapAdmin = false;
 let currentDashboardRole = null;
 let scenarioDefinitions = [];
 let frameworkDefinitions = {};
+let pulseSurveyDefinitions = [];
+let activePulseDetailRole = null;
 let usersCursor = null;
 let resultsCursor = null;
 let hasMoreUsers = false;
@@ -238,6 +273,18 @@ function resultTimestamp(result) {
   );
 }
 
+async function loadPulseSurveyDefinitions() {
+  const response = await fetch(pulseSurveyFile + "?v=20260730-role-pulse");
+  if (!response.ok) throw new Error("Pulse survey definitions could not be loaded.");
+
+  const data = await response.json();
+  const surveys = Array.isArray(data.surveys) ? data.surveys : [];
+  if (surveys.length !== 4 || surveys.some(survey => survey.questions?.length !== 6)) {
+    throw new Error("Pulse survey definitions are incomplete.");
+  }
+  pulseSurveyDefinitions = surveys;
+}
+
 async function loadScenarioDefinitions() {
   const response = await fetch(`${scenarioLibraryFile}?v=20260724`);
   if (!response.ok) throw new Error("Scenario scoring definitions could not be loaded.");
@@ -251,6 +298,260 @@ async function loadScenarioDefinitions() {
 function average(values) {
   if (!values.length) return null;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function validPulseScore(value) {
+  const score = Number(value);
+  return Number.isInteger(score) && score >= 1 && score <= 5 ? score : null;
+}
+
+function pulseSurveyDefinition(role, stage) {
+  return pulseSurveyDefinitions.find(survey => survey.role === role && survey.stage === stage) || null;
+}
+
+function pulseAnswerValues(user, role, stage) {
+  const survey = pulseSurveyDefinition(role, stage);
+  if (!survey) return [];
+  const stored = user?.learningProgress?.answers?.[survey.id];
+  return survey.questions.map((_, index) => validPulseScore(Array.isArray(stored) ? stored[index] : null));
+}
+
+function pulseDimensions(users, role, stage) {
+  const survey = pulseSurveyDefinition(role, stage);
+  if (!survey) return [];
+
+  const grouped = new Map();
+  survey.questions.forEach((question, index) => {
+    const group = grouped.get(question.dimension) || {
+      id: question.dimension,
+      label: question.dimensionLabel || question.dimension,
+      values: []
+    };
+    users.forEach(user => {
+      const value = pulseAnswerValues(user, role, stage)[index];
+      if (value !== null) group.values.push(value);
+    });
+    grouped.set(question.dimension, group);
+  });
+
+  return Array.from(grouped.values()).map(group => ({
+    id: group.id,
+    label: group.label,
+    average: average(group.values)
+  }));
+}
+
+function pulseRoleSummary(users, role) {
+  const roleUsers = users.filter(user => {
+    const hasPulse = ["pre", "post"].some(stage => pulseAnswerValues(user, role, stage).some(value => value !== null));
+    return hasPulse || userRole(user) === role;
+  });
+  const completeForStage = stage => roleUsers.filter(user => {
+    const values = pulseAnswerValues(user, role, stage);
+    return values.length === 6 && values.every(value => value !== null);
+  });
+  const preUsers = completeForStage("pre");
+  const postUsers = completeForStage("post");
+  const preValues = preUsers.flatMap(user => pulseAnswerValues(user, role, "pre"));
+  const postValues = postUsers.flatMap(user => pulseAnswerValues(user, role, "post"));
+  const participants = roleUsers.filter(user => ["pre", "post"].some(stage => (
+    pulseAnswerValues(user, role, stage).some(value => value !== null)
+  )));
+
+  return {
+    role,
+    users: roleUsers,
+    pre: average(preValues),
+    post: average(postValues),
+    dimensions: {
+      pre: pulseDimensions(preUsers, role, "pre"),
+      post: pulseDimensions(postUsers, role, "post")
+    },
+    participants: participants.length,
+    participationRate: roleUsers.length ? Math.round((participants.length / roleUsers.length) * 100) : 0,
+    responseRate: roleUsers.length ? Math.round((postUsers.length / roleUsers.length) * 100) : 0
+  };
+}
+
+function formatPulseScore(value) {
+  return value == null ? "-" : Number(value).toFixed(2).replace(/0$/, "").replace(/\.0$/, "") + "/5";
+}
+
+function formatPulseDelta(pre, post) {
+  if (pre == null || post == null) return "View details";
+  const delta = post - pre;
+  return (delta >= 0 ? "+" : "") + delta.toFixed(2) + " from baseline";
+}
+
+function pulseDimensionSignal(summary, highest) {
+  const excluded = new Set(summary.role === "manager" ? ["confidence", "overall"] : ["overall"]);
+  const values = summary.dimensions.post
+    .filter(dimension => !excluded.has(dimension.id) && dimension.average != null)
+    .sort((left, right) => highest ? right.average - left.average : left.average - right.average);
+  return values[0] || null;
+}
+
+function scenarioDimensionSignals(results) {
+  const formal = selectAttemptResults(results, "first");
+  const dimensions = new Map();
+  formal.forEach(result => {
+    const score = resultOptionScore(result);
+    if (score === null) return;
+    const framework = result.frameworkId || scenarioDefinition(result.scenarioId)?.frameworkId;
+    const dimensionId = result.frameworkDimensionId || scenarioDefinition(result.scenarioId)?.focusDimension;
+    const dimension = frameworkDefinitions?.[framework]?.dimensions?.find(item => item.id === dimensionId);
+    if (!dimension) return;
+    const key = framework + ":" + dimension.id;
+    const current = dimensions.get(key) || {
+      label: (framework === "CARE" ? "Employee " : "Manager ") + dimension.label,
+      scores: []
+    };
+    current.scores.push(score);
+    dimensions.set(key, current);
+  });
+
+  const values = Array.from(dimensions.values()).map(item => ({
+    label: item.label,
+    percent: Math.round((average(item.scores) / 2) * 100)
+  }));
+  return {
+    strongest: [...values].sort((left, right) => right.percent - left.percent)[0] || null,
+    attention: [...values].sort((left, right) => left.percent - right.percent)[0] || null
+  };
+}
+
+function createCulturePulseTrack(label, value, tone) {
+  const track = document.createElement("div");
+  track.className = "culture-pulse-track " + tone;
+  const percent = value == null ? 0 : Math.max(0, Math.min(100, (value / 5) * 100));
+  track.style.setProperty("--pulse-value", percent + "%");
+
+  if (value == null) {
+    track.classList.add("is-empty");
+    track.setAttribute("aria-label", label + ": no responses");
+  } else {
+    track.setAttribute("role", "progressbar");
+    track.setAttribute("aria-label", label);
+    track.setAttribute("aria-valuemin", "1");
+    track.setAttribute("aria-valuemax", "5");
+    track.setAttribute("aria-valuenow", Number(value).toFixed(2));
+  }
+
+  const fill = document.createElement("span");
+  fill.className = "culture-pulse-fill";
+  const amount = document.createElement("span");
+  amount.className = "culture-pulse-value";
+  amount.textContent = value == null ? "No responses" : label + " " + formatPulseScore(value);
+  track.append(fill, amount);
+  return track;
+}
+
+function renderCulturePulseDetail(role) {
+  const tracked = allTrackedUsers(cachedUsers, cachedResults);
+  const summary = pulseRoleSummary(tracked, role);
+  const framework = role === "employee" ? "CARE" : "REAL";
+  culturePulseDetailTitle.textContent = (role === "employee" ? "Employee " : "Manager ") + framework + " breakdown";
+  culturePulseChart.textContent = "";
+
+  const preById = new Map(summary.dimensions.pre.map(item => [item.id, item]));
+  const postById = new Map(summary.dimensions.post.map(item => [item.id, item]));
+  const dimensionIds = [...new Set([
+    ...summary.dimensions.pre.map(item => item.id),
+    ...summary.dimensions.post.map(item => item.id)
+  ])];
+
+  if (!dimensionIds.length) {
+    const empty = document.createElement("p");
+    empty.className = "pulse-empty";
+    empty.textContent = "Pulse breakdowns will appear after learners submit this survey.";
+    culturePulseChart.append(empty);
+    return;
+  }
+
+  dimensionIds.forEach(id => {
+    const pre = preById.get(id);
+    const post = postById.get(id);
+    const row = document.createElement("article");
+    row.className = "culture-pulse-row";
+
+    const heading = document.createElement("header");
+    const label = document.createElement("strong");
+    label.textContent = post?.label || pre?.label || id;
+    const delta = document.createElement("span");
+    if (pre?.average != null && post?.average != null) {
+      const amount = post.average - pre.average;
+      delta.textContent = (amount >= 0 ? "+" : "") + amount.toFixed(2);
+    } else {
+      delta.textContent = "-";
+    }
+    heading.append(label, delta);
+
+    const bars = document.createElement("div");
+    bars.className = "culture-pulse-bars";
+    bars.append(
+      createCulturePulseTrack("Pre", pre?.average, "pre"),
+      createCulturePulseTrack("Post", post?.average, "post")
+    );
+    row.append(heading, bars);
+    culturePulseChart.append(row);
+  });
+}
+
+function setPulseDetail(role = null) {
+  activePulseDetailRole = role;
+  pulseDetailPanel.hidden = !role;
+  pulseDetailButtons.forEach(button => {
+    button.setAttribute("aria-expanded", String(button.dataset.pulseDetail === role));
+  });
+  if (role) renderCulturePulseDetail(role);
+}
+
+function renderCultureOverview(users, results) {
+  const tracked = allTrackedUsers(users, results);
+  const employee = pulseRoleSummary(tracked, "employee");
+  const manager = pulseRoleSummary(tracked, "manager");
+  const employeeStrong = pulseDimensionSignal(employee, true);
+  const employeeAttention = pulseDimensionSignal(employee, false);
+  const managerStrong = pulseDimensionSignal(manager, true);
+  const managerAttention = pulseDimensionSignal(manager, false);
+  const scenarioSignals = scenarioDimensionSignals(results);
+
+  const setSignal = (labelElement, valueElement, signal, suffix = "/5") => {
+    labelElement.textContent = signal?.label || (suffix === "/5" ? "No pulse data" : "No scored choices");
+    valueElement.textContent = signal ? (suffix === "/5" ? formatPulseScore(signal.average) : signal.percent + "%") : "-";
+  };
+  setSignal(employeeStrongArea, employeeStrongValue, employeeStrong);
+  setSignal(employeeAttentionArea, employeeAttentionValue, employeeAttention);
+  setSignal(managerStrongArea, managerStrongValue, managerStrong);
+  setSignal(managerAttentionArea, managerAttentionValue, managerAttention);
+  setSignal(scenarioStrongArea, scenarioStrongValue, scenarioSignals.strongest, "%");
+  setSignal(scenarioAttentionArea, scenarioAttentionValue, scenarioSignals.attention, "%");
+
+  employeePulseScore.textContent = formatPulseScore(employee.post ?? employee.pre);
+  employeePulsePre.textContent = formatPulseScore(employee.pre);
+  employeePulsePost.textContent = formatPulseScore(employee.post);
+  employeePulseDelta.textContent = formatPulseDelta(employee.pre, employee.post);
+  managerPulseScore.textContent = formatPulseScore(manager.post ?? manager.pre);
+  managerPulsePre.textContent = formatPulseScore(manager.pre);
+  managerPulsePost.textContent = formatPulseScore(manager.post);
+  managerPulseDelta.textContent = formatPulseDelta(manager.pre, manager.post);
+
+  const care = pathScoreSummary(tracked, results, "CARE", "first");
+  const real = pathScoreSummary(tracked, results, "REAL", "first");
+  const gameScores = [care.average, real.average].filter(value => value != null);
+  gamePerformanceScore.textContent = gameScores.length ? Math.round(average(gameScores)) + "%" : "-";
+  employeeGameScore.textContent = care.average == null ? "-" : care.average + "%";
+  managerGameScore.textContent = real.average == null ? "-" : real.average + "%";
+
+  const pulseParticipantKeys = new Set(tracked.filter(user => ["employee", "manager"].some(role => (
+    ["pre", "post"].some(stage => pulseAnswerValues(user, role, stage).some(value => value !== null))
+  ))).map(user => user.uid || user.email));
+  engagementScore.textContent = tracked.length ? Math.round((pulseParticipantKeys.size / tracked.length) * 100) + "%" : "-";
+  employeeParticipation.textContent = employee.participationRate + "%";
+  managerParticipation.textContent = manager.participationRate + "%";
+  cultureDataStatus.textContent = tracked.length + " learners · " + pulseParticipantKeys.size + " pulse respondents";
+
+  if (activePulseDetailRole) renderCulturePulseDetail(activePulseDetailRole);
 }
 
 function resultPlayerKey(result) {
@@ -965,6 +1266,7 @@ function renderAdmins(admins) {
 }
 
 function renderDashboardData() {
+  renderCultureOverview(cachedUsers, cachedResults);
   const scoped = dashboardScope(cachedUsers, cachedResults);
   renderPrimaryAnalytics(scoped.users, scoped.results, scoped.framework);
   renderMetrics(cachedUsers, cachedResults);
@@ -1260,6 +1562,14 @@ async function removeAdmin(email) {
 }
 
 function bindEvents() {
+  pulseDetailButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      const role = button.dataset.pulseDetail;
+      setPulseDetail(activePulseDetailRole === role ? null : role);
+    });
+  });
+  closePulseDetail.addEventListener("click", () => setPulseDetail(null));
+
   refreshButton.addEventListener("click", () => loadDashboard());
   dashboardRetryButton.addEventListener("click", () => loadDashboard());
   loadMoreUsersButton.addEventListener("click", () => loadDashboard({ append: "users" }));
@@ -1341,12 +1651,13 @@ async function init() {
   bindEvents();
   setAccess("Connecting", "Checking Firebase Authentication and dashboard permissions...");
 
-  try {
-    await loadScenarioDefinitions();
-  } catch {
+  await loadScenarioDefinitions().catch(() => {
     scenarioDefinitions = [];
     frameworkDefinitions = {};
-  }
+  });
+  await loadPulseSurveyDefinitions().catch(() => {
+    pulseSurveyDefinitions = [];
+  });
 
   try {
     firebaseClient = await loadFirebaseClient();

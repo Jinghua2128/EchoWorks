@@ -64,8 +64,16 @@ export function validateLearningData({ scenarioLibrary, fullGameScript, pulseSur
   });
 
   const surveys = pulseSurveys?.surveys;
-  if (!Array.isArray(surveys) || surveys.length !== 2 || surveys.some(survey => survey.questions?.length !== 2)) {
-    errors.push("Pulse survey must contain two pre and two post questions.");
+  const surveyKeys = new Set((surveys || []).map(survey => `${survey.role}:${survey.stage}`));
+  if (
+    !Array.isArray(surveys)
+    || surveys.length !== 4
+    || surveyKeys.size !== 4
+    || surveys.some(survey => !["employee", "manager"].includes(survey.role)
+      || !["pre", "post"].includes(survey.stage)
+      || survey.questions?.length !== 6)
+  ) {
+    errors.push("Pulse surveys must contain six questions for each Employee and Manager pre/post survey.");
   }
 
   if (!Array.isArray(arCards?.cards) || arCards.cards.length < 8) errors.push("CARE and REAL AR card definitions are incomplete.");

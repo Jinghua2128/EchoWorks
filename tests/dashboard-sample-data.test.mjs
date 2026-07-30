@@ -28,6 +28,9 @@ test("dashboard sample data is deterministic and exercises dashboard states", as
   assert.equal(new Set(ids).size, ids.length);
   assert.ok(first.users.every(user => user.data.email.endsWith("@echoworks.invalid")));
   assert.ok(first.users.every(user => user.data.isSampleData && user.data.seedNamespace === SEED_NAMESPACE));
+  assert.ok(first.users.every(user => user.data.learningProgress.total === 24));
+  assert.ok(first.users.every(user => Object.keys(user.data.learningProgress.answers).sort().join(",") === "employee-post-pulse,employee-pre-pulse,manager-post-pulse,manager-pre-pulse"));
+  assert.ok(first.users.every(user => Object.values(user.data.learningProgress.answers).every(answers => answers.length === 6)));
   assert.ok(first.scenarioResults.every(result => result.data.isSampleData && result.data.seedNamespace === SEED_NAMESPACE));
   assert.deepEqual(optionLabels(), ["A", "B", "C"]);
 });

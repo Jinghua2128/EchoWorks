@@ -1,6 +1,6 @@
 # EchoWorks 项目交接文档
 
-更新日期：2026-07-29（Asia/Singapore）
+更新日期：2026-07-30（Asia/Singapore）
 
 English handoff: [HANDOFF.md](HANDOFF.md)
 
@@ -31,8 +31,17 @@ English handoff: [HANDOFF.md](HANDOFF.md)
 - 首次游客和首次登录账号会看到两步、可用键盘操作的导航教程；完成状态按游客/账号保存到 feedbackPlaybook.tutorialSeen.v1.*。
 - AR 页面保留相机与手动选卡，删除重复的动态详情区，重试按钮改为仅图标方形按钮；Facilitator flow 和 Workshop materials 改为默认折叠的原生下拉区。
 - Settings 的 Danger zone 使用更清晰的红色浅底。
-- 当前学习者页面的 app.css 与 app.js 缓存版本号为 20260729-clean-assets。
+- 当前学习者页面的 app.css 与 app.js 缓存版本号为 20260730-role-pulse。
 
+### 仪表板与角色问卷版本（2026-07-30）
+
+- 仪表板顶部新增可快速浏览的 Feedback culture overview，并保留现有红、白、青绿和中性色，不更换品牌配色。概览会显示员工、经理和情景练习中表现最好与最需关注的领域，以及 Employee CARE、Manager REAL、情景应用和参与度摘要。
+- 点击 Employee 或 Manager 问卷卡可查看 pre/post 维度对比。Learner progress 与 CARE / REAL result records 默认使用原生折叠区，桌面和手机都先显示重点信息。
+- `assets/data/pulse-surveys.json` 现在包含四份独立问卷：Employee pre、Employee post、Manager pre、Manager post。每份有 6 道 1-5 分题目，共保存 24 个回答。
+- Employee 维度为 Calm（2 题）、Clarity、Reflection、Execution、Overall satisfaction；Manager 维度为 Recognise、Evaluate、Advise、Link、Confidence、Overall satisfaction。
+- 主页进度现在分别计算 12 道 pre-pulse 和 12 道 post-pulse。完全没有 pre-pulse 回答的学习者仍会先进入 Employee Pre-Pulse。
+- 本地固定样本生成器和 JSON 预览已改用新的 24 回答结构。2026-07-24 已写入 Firestore 的旧样本仍是旧问卷结构；只有 owner 明确重新运行样本写入命令后，正式样本才会更新。
+- 仪表板缓存版本为 `20260730-culture-overview`；学习者问卷数据缓存版本为 `20260730-role-pulse`。
 ### 资源清理与统一 AR 角色模型（2026-07-29）
 
 - 前一次清理共移除 40 个已淘汰文件（13.96 MB），包括重复角色帧、旧 AR 原型、无损办公室源图、过期情景数据和未使用的设计参考。
@@ -41,7 +50,7 @@ English handoff: [HANDOFF.md](HANDOFF.md)
 - 八张 AR 角色图都是透明的 `1024x1536` WebP（每张约 59-70 KB）。实物卡图和 MindAR 识别目标包没有更改。
 - 情景页使用四张已确认的经理/Sarah 静止与说话 WebP，并为每个角色增加一张透明四帧说话 GIF。GIF 保持已确认的低多边形角色身份，并加入短暂的张掌手势；所有语义姿势仍复用同一组身份锁定资源。
 - `assets/data/ar-cards.json` 将每张卡直接映射到 `assets/ar-models/<card-id>-lowpoly.webp`；AR 缓存版本为 `20260729-base-locked-ar-poses`。
-- `scripts/build-public.mjs` 现在发布 67 个白名单运行文件；生产包大小为 20.20 MB，并继续排除源文件、参考文档和被否决的生成式姿势。
+- `scripts/build-public.mjs` 现在发布 67 个白名单运行文件；生产包大小为 20.24 MB，并继续排除源文件、参考文档和被否决的生成式姿势。
 ### 情景语音版本（2026-07-29）
 
 - 情景旁白和角色对白现在会在学习者首次点击、触摸或键盘操作后，通过浏览器 Web Speech API 播放。
@@ -105,7 +114,7 @@ dashboardAdminEmails/{标准化小写邮箱}
 - viewer：只能查看仪表板，不能改学习者数据或 viewer 名单。
 - learner：只能读取和写入自己的规则允许数据。
 
-只有登录邮箱在 dashboardAdminEmails 中拥有有效 owner/viewer 文档时，主导航才显示 Dashboard。owner 文档不能被删除或降级。
+只有登录邮箱在 dashboardAdminEmails 中拥有有效 owner/viewer 文档时，主导航才显示 Dashboard。owner 文档不能被删除或降级。仪表板现在包含文化概览、pre/post 维度详情、默认折叠的学习者与结果记录、筛选、分页、反思详情和 owner 专用 viewer 管理。
 
 ## 示例数据
 
@@ -118,6 +127,7 @@ dashboardAdminEmails/{标准化小写邮箱}
 - 41 份反思
 - 53 条每个用户/情景的最新进度
 - CARE、REAL、两条路线完成、A/B/C 分布和第一次/最新尝试进步
+- 本地生成器与预览中的四份角色问卷各有 6 个回答；需要重新运行确认后的写入命令才会替换正式 Firestore 中的旧问卷样本
 
 相关文件：
 
@@ -199,11 +209,11 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 - npm run check：通过。
 - npm test：15/15 通过。
 - npm run test:rules：5/5 Firestore 模拟器套件通过。
-- npm run test:browser：Chrome 与 Edge 通过，包括首次教程、pre-pulse 前置路由、AR 下拉区、手机置顶页头、对话框点击/触摸、文字选择保护、键盘操作、输入冷却，以及固定语音引擎下的朗读、静音、取消、角色声音配置和真实打字动画音效检查。
+- npm run test:browser：Chrome 与 Edge 通过；最新 Chrome 回归覆盖四份角色问卷的全部 24 个回答、pre-pulse 前置路由、文化概览、问卷维度详情、默认折叠记录、管理员权限、首次教程、AR 下拉区、手机置顶页头、对话框点击/触摸、文字选择保护、键盘操作、输入冷却，以及固定语音引擎下的朗读、静音、取消、角色声音配置和真实打字动画音效检查。
 - 新增浏览器验证：AR 会为每张卡加载对应的专属低多边形姿势；说话角色会切换到对应 GIF，测试会验证 GIF 文件签名、笔记本内缩位置，并确认语音结束时恢复静止；可见对白和朗读对白均不含方括号或圆括号。
 - app、scenario、dashboard 的 Axe serious/critical 问题：0。
 - 320px、390px、横屏、768px、1024px、1440px 和等效高倍缩放检查通过。
-- 生产构建包含 67 个精确列出的运行文件（20.20 MB）；其中包括 4 张已确认的静态情景角色帧、2 张带手势的透明四帧说话 GIF、8 张专属透明 AR 模型姿势、4 张地点背景、8 张实体卡和一个 2.44 MB MindAR v2 目标包。
+- 生产构建包含 67 个精确列出的运行文件（20.24 MB）；其中包括 4 张已确认的静态情景角色帧、2 张带手势的透明四帧说话 GIF、8 张专属透明 AR 模型姿势、4 张地点背景、8 张实体卡和一个 2.44 MB MindAR v2 目标包。
 - 示例数据导出、dry run 和 168 份正式文档逐一检查通过。
 - 生产构建只包含白名单运行文件。
 
@@ -217,7 +227,8 @@ Pulse survey 与游戏能力维度必须分开报告，除非以后确认正式�
 
 ## 下一步
 
-1. 在正式网站使用 `liuguangxuan1230@gmail.com` 登录；如果登录状态早于权限更新，刷新一次，然后检查 Dashboard 导航、指标、反思详情和 viewer 管理。
-2. 使用临时真实账号完成验证邮件、密码重设、跨设备合并、云端删除和 owner/viewer 权限测试。
-3. 完成 Firefox、Safari、键盘、高倍缩放和全部 8 张实体手机 AR 卡测试。
-4. 下次提交前检查现有的 `.firebaserc`、`firebase.json` 和交接文档修改，不要直接重置。
+1. 在正式网站使用 `liuguangxuan1230@gmail.com` 登录，并检查文化概览、Employee/Manager 问卷对比、折叠记录、反思详情和 viewer 管理。
+2. 需要正式样本显示新 24 回答结构时，再运行经过确认的样本写入命令。
+3. 使用临时真实账号完成验证邮件、密码重设、跨设备合并、云端删除和 owner/viewer 权限测试。
+4. 完成 Firefox、Safari、键盘、高倍缩放和全部 8 张实体手机 AR 卡测试。
+5. 下次提交前检查现有的 `.firebaserc` 和 `firebase.json` 修改，不要直接重置。

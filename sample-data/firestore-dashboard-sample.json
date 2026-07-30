@@ -31,20 +31,44 @@
         "selectedRole": "employee",
         "anonymousPlayerId": "demo-player-01",
         "learningProgress": {
-          "surveyVersion": "2026-07-19-four-question-pulse",
+          "surveyVersion": "2026-07-30-role-specific-24-question-pulse",
           "answers": {
-            "pre-pulse": [
-              3,
-              2
-            ],
-            "post-pulse": [
+            "employee-pre-pulse": [
               4,
+              3,
+              3,
+              3,
+              5,
               3
+            ],
+            "employee-post-pulse": [
+              5,
+              3,
+              4,
+              4,
+              5,
+              5
+            ],
+            "manager-pre-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
+            ],
+            "manager-post-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
             ]
           },
-          "completed": 4,
-          "total": 4,
-          "progress": 100,
+          "completed": 12,
+          "total": 24,
+          "progress": 50,
           "updatedAt": 1782874260000
         },
         "createdAt": "2026-07-01T00:40:00.000Z",
@@ -61,20 +85,44 @@
         "selectedRole": "employee",
         "anonymousPlayerId": "demo-player-02",
         "learningProgress": {
-          "surveyVersion": "2026-07-19-four-question-pulse",
+          "surveyVersion": "2026-07-30-role-specific-24-question-pulse",
           "answers": {
-            "pre-pulse": [
+            "employee-pre-pulse": [
+              3,
+              3,
+              3,
+              4,
               4,
               3
             ],
-            "post-pulse": [
+            "employee-post-pulse": [
+              4,
+              3,
+              4,
+              4,
               5,
               4
+            ],
+            "manager-pre-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
+            ],
+            "manager-post-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
             ]
           },
-          "completed": 4,
-          "total": 4,
-          "progress": 100,
+          "completed": 12,
+          "total": 24,
+          "progress": 50,
           "updatedAt": 1784040660000
         },
         "createdAt": "2026-07-02T12:40:00.000Z",
@@ -91,20 +139,44 @@
         "selectedRole": "employee",
         "anonymousPlayerId": "demo-player-03",
         "learningProgress": {
-          "surveyVersion": "2026-07-19-four-question-pulse",
+          "surveyVersion": "2026-07-30-role-specific-24-question-pulse",
           "answers": {
-            "pre-pulse": [
+            "employee-pre-pulse": [
               3,
+              3,
+              4,
+              3,
+              4,
+              3
+            ],
+            "employee-post-pulse": [
+              4,
+              3,
+              4,
+              5,
+              5,
               4
             ],
-            "post-pulse": [
-              4,
-              5
+            "manager-pre-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
+            ],
+            "manager-post-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
             ]
           },
-          "completed": 4,
-          "total": 4,
-          "progress": 100,
+          "completed": 12,
+          "total": 24,
+          "progress": 50,
           "updatedAt": 1783133460000
         },
         "createdAt": "2026-07-04T00:40:00.000Z",
@@ -121,20 +193,44 @@
         "selectedRole": "employee",
         "anonymousPlayerId": "demo-player-04",
         "learningProgress": {
-          "surveyVersion": "2026-07-19-four-question-pulse",
+          "surveyVersion": "2026-07-30-role-specific-24-question-pulse",
           "answers": {
-            "pre-pulse": [
+            "employee-pre-pulse": [
+              3,
               4,
-              2
+              3,
+              3,
+              4,
+              4
             ],
-            "post-pulse": [
+            "employee-post-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
+            ],
+            "manager-pre-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
+            ],
+            "manager-post-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
               -1,
               -1
             ]
           },
-          "completed": 2,
-          "total": 4,
-          "progress": 50,
+          "completed": 6,
+          "total": 24,
+          "progress": 25,
           "updatedAt": 1783260660000
         },
         "createdAt": "2026-07-05T12:40:00.000Z",
@@ -151,20 +247,44 @@
         "selectedRole": "manager",
         "anonymousPlayerId": "demo-player-05",
         "learningProgress": {
-          "surveyVersion": "2026-07-19-four-question-pulse",
+          "surveyVersion": "2026-07-30-role-specific-24-question-pulse",
           "answers": {
-            "pre-pulse": [
+            "employee-pre-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
+            ],
+            "employee-post-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
+            ],
+            "manager-pre-pulse": [
+              4,
               3,
+              3,
+              2,
+              4,
               3
             ],
-            "post-pulse": [
+            "manager-post-pulse": [
+              5,
+              5,
+              4,
+              3,
               4,
               4
             ]
           },
-          "completed": 4,
-          "total": 4,
-          "progress": 100,
+          "completed": 12,
+          "total": 24,
+          "progress": 50,
           "updatedAt": 1783392660000
         },
         "createdAt": "2026-07-07T00:40:00.000Z",
@@ -181,20 +301,44 @@
         "selectedRole": "manager",
         "anonymousPlayerId": "demo-player-06",
         "learningProgress": {
-          "surveyVersion": "2026-07-19-four-question-pulse",
+          "surveyVersion": "2026-07-30-role-specific-24-question-pulse",
           "answers": {
-            "pre-pulse": [
-              4,
-              4
+            "employee-pre-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
             ],
-            "post-pulse": [
+            "employee-post-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
+            ],
+            "manager-pre-pulse": [
+              3,
+              3,
+              3,
+              3,
+              3,
+              3
+            ],
+            "manager-post-pulse": [
               5,
+              4,
+              4,
+              3,
+              4,
               5
             ]
           },
-          "completed": 4,
-          "total": 4,
-          "progress": 100,
+          "completed": 12,
+          "total": 24,
+          "progress": 50,
           "updatedAt": 1783522260000
         },
         "createdAt": "2026-07-08T12:40:00.000Z",
@@ -211,20 +355,44 @@
         "selectedRole": "manager",
         "anonymousPlayerId": "demo-player-07",
         "learningProgress": {
-          "surveyVersion": "2026-07-19-four-question-pulse",
+          "surveyVersion": "2026-07-30-role-specific-24-question-pulse",
           "answers": {
-            "pre-pulse": [
-              3,
-              2
+            "employee-pre-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
             ],
-            "post-pulse": [
+            "employee-post-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
+            ],
+            "manager-pre-pulse": [
+              3,
+              3,
               4,
+              2,
+              3,
               3
+            ],
+            "manager-post-pulse": [
+              5,
+              4,
+              4,
+              3,
+              5,
+              4
             ]
           },
-          "completed": 4,
-          "total": 4,
-          "progress": 100,
+          "completed": 12,
+          "total": 24,
+          "progress": 50,
           "updatedAt": 1784688660000
         },
         "createdAt": "2026-07-10T00:40:00.000Z",
@@ -241,20 +409,44 @@
         "selectedRole": "manager",
         "anonymousPlayerId": "demo-player-08",
         "learningProgress": {
-          "surveyVersion": "2026-07-19-four-question-pulse",
+          "surveyVersion": "2026-07-30-role-specific-24-question-pulse",
           "answers": {
-            "pre-pulse": [
-              4,
-              3
+            "employee-pre-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
             ],
-            "post-pulse": [
+            "employee-post-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
+            ],
+            "manager-pre-pulse": [
+              3,
+              4,
+              3,
+              2,
+              3,
+              4
+            ],
+            "manager-post-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
               -1,
               -1
             ]
           },
-          "completed": 2,
-          "total": 4,
-          "progress": 50,
+          "completed": 6,
+          "total": 24,
+          "progress": 25,
           "updatedAt": 1783777020000
         },
         "createdAt": "2026-07-11T12:40:00.000Z",
@@ -271,19 +463,43 @@
         "selectedRole": "manager",
         "anonymousPlayerId": "demo-player-09",
         "learningProgress": {
-          "surveyVersion": "2026-07-19-four-question-pulse",
+          "surveyVersion": "2026-07-30-role-specific-24-question-pulse",
           "answers": {
-            "pre-pulse": [
+            "employee-pre-pulse": [
+              4,
               3,
+              3,
+              3,
+              5,
+              3
+            ],
+            "employee-post-pulse": [
+              4,
+              3,
+              5,
+              4,
+              5,
               4
             ],
-            "post-pulse": [
+            "manager-pre-pulse": [
               4,
-              5
+              3,
+              3,
+              2,
+              4,
+              3
+            ],
+            "manager-post-pulse": [
+              5,
+              4,
+              5,
+              3,
+              4,
+              4
             ]
           },
-          "completed": 4,
-          "total": 4,
+          "completed": 24,
+          "total": 24,
           "progress": 100,
           "updatedAt": 1783943460000
         },
@@ -301,19 +517,43 @@
         "selectedRole": "manager",
         "anonymousPlayerId": "demo-player-10",
         "learningProgress": {
-          "surveyVersion": "2026-07-19-four-question-pulse",
+          "surveyVersion": "2026-07-30-role-specific-24-question-pulse",
           "answers": {
-            "pre-pulse": [
+            "employee-pre-pulse": [
+              3,
+              3,
+              3,
               4,
-              2
-            ],
-            "post-pulse": [
-              5,
+              4,
               3
+            ],
+            "employee-post-pulse": [
+              4,
+              4,
+              4,
+              4,
+              5,
+              4
+            ],
+            "manager-pre-pulse": [
+              3,
+              3,
+              3,
+              3,
+              3,
+              3
+            ],
+            "manager-post-pulse": [
+              5,
+              5,
+              4,
+              3,
+              4,
+              4
             ]
           },
-          "completed": 4,
-          "total": 4,
+          "completed": 24,
+          "total": 24,
           "progress": 100,
           "updatedAt": 1784073060000
         },
@@ -331,20 +571,44 @@
         "selectedRole": "manager",
         "anonymousPlayerId": "demo-player-11",
         "learningProgress": {
-          "surveyVersion": "2026-07-19-four-question-pulse",
+          "surveyVersion": "2026-07-30-role-specific-24-question-pulse",
           "answers": {
-            "pre-pulse": [
+            "employee-pre-pulse": [
+              3,
+              3,
+              4,
+              3,
+              4,
+              3
+            ],
+            "employee-post-pulse": [
+              5,
+              3,
+              4,
+              4,
+              5,
+              5
+            ],
+            "manager-pre-pulse": [
+              3,
+              3,
+              4,
+              2,
               3,
               3
             ],
-            "post-pulse": [
-              4,
-              4
+            "manager-post-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
             ]
           },
-          "completed": 4,
-          "total": 4,
-          "progress": 100,
+          "completed": 18,
+          "total": 24,
+          "progress": 75,
           "updatedAt": 1784200260000
         },
         "createdAt": "2026-07-16T00:40:00.000Z",
@@ -361,20 +625,44 @@
         "selectedRole": "manager",
         "anonymousPlayerId": "demo-player-12",
         "learningProgress": {
-          "surveyVersion": "2026-07-19-four-question-pulse",
+          "surveyVersion": "2026-07-30-role-specific-24-question-pulse",
           "answers": {
-            "pre-pulse": [
+            "employee-pre-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
+            ],
+            "employee-post-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
+            ],
+            "manager-pre-pulse": [
+              3,
               4,
+              3,
+              2,
+              3,
               4
             ],
-            "post-pulse": [
+            "manager-post-pulse": [
+              -1,
+              -1,
+              -1,
+              -1,
               -1,
               -1
             ]
           },
-          "completed": 2,
-          "total": 4,
-          "progress": 50,
+          "completed": 6,
+          "total": 24,
+          "progress": 25,
           "updatedAt": 1784293380000
         },
         "createdAt": "2026-07-17T12:40:00.000Z",
