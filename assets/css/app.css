@@ -646,6 +646,21 @@ svg {
   color: var(--teal);
 }
 
+.unit-row.locked,
+.unit-row.locked:hover {
+  cursor: not-allowed;
+  border-color: var(--line);
+  background: #f6f7f9;
+  box-shadow: none;
+  opacity: .76;
+  transform: none;
+}
+
+.unit-row.locked .unit-state {
+  background: #e7e9ed;
+  color: #596273;
+}
+
 .status-dot {
   width: 12px;
   height: 12px;

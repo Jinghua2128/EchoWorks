@@ -18,6 +18,9 @@ const fullGameScriptFile = "assets/data/scenarios/full-game-script.json";
 const lastScenarioKey = scenarioStorageKeys.recentByRole;
 const anonymousPlayerKey = scenarioStorageKeys.anonymousPlayerId;
 const soundPreferenceKey = "feedbackPlaybook.dialogueSound";
+const pulseAnswerKey = "feedbackPlaybook.answers";
+const pulseVersionKey = "feedbackPlaybook.storageVersion";
+const pulseStorageVersion = "2026-07-role-specific-pulse-v9";
 const textSpeed = 16;
 const dialogueInputCooldownMs = 260;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -611,6 +614,75 @@ function setRoleMessage(message, tone = "neutral") {
   roleMessageEl.dataset.tone = tone;
 }
 
+function readPulseAnswers() {
+  if (localStorage.getItem(pulseVersionKey) !== pulseStorageVersion) return {};
+  return safeJsonParse(localStorage.getItem(pulseAnswerKey), {});
+}
+
+function pulseAnswerIsComplete(value) {
+  const answer = Number(value);
+  return Number.isInteger(answer) && answer >= 1 && answer <= 5;
+}
+
+function rolePrePulseComplete(role, storedAnswers = readPulseAnswers()) {
+  const values = storedAnswers?.[`${role}-pre-pulse`];
+  return Array.isArray(values) && values.length === 6 && values.every(pulseAnswerIsComplete);
+}
+
+function setRoleStartLabel(card, text) {
+  const start = card?.querySelector(".role-start");
+  if (!start) return;
+  const textNode = [...start.childNodes].find(node => node.nodeType === Node.TEXT_NODE);
+  if (textNode) textNode.nodeValue = `${text} `;
+}
+
+function renderRoleAccess({ announceReady = false } = {}) {
+  const storedAnswers = readPulseAnswers();
+  let unlockedCount = 0;
+
+  rolePanelEl.querySelectorAll("[data-role]").forEach(card => {
+    const role = card.dataset.role;
+    const roleLabel = role === "manager" ? "Manager" : "Employee";
+    const unlocked = rolePrePulseComplete(role, storedAnswers);
+    if (unlocked) unlockedCount += 1;
+    card.classList.toggle("is-locked", !unlocked);
+    card.setAttribute("aria-label", unlocked
+      ? `${roleLabel}. Pre-pulse complete. Choose this role.`
+      : `${roleLabel}. Complete the ${roleLabel} pre-pulse before choosing this role.`);
+    setRoleStartLabel(card, unlocked ? `Choose ${roleLabel}` : "Complete pre-pulse");
+    const status = card.querySelector("[data-role-gate-status]");
+    if (status) status.textContent = unlocked
+      ? "Pre-pulse complete. Ready to practise."
+      : `${roleLabel} pre-pulse required.`;
+  });
+
+  const intro = document.getElementById("roleIntro");
+  if (intro) intro.textContent = unlockedCount
+    ? "Choose any role whose pre-pulse is complete."
+    : "Complete a role's pre-pulse before choosing that position.";
+
+  const readyRole = new URL(window.location.href).searchParams.get("ready");
+  if (announceReady && rolePrePulseComplete(readyRole, storedAnswers)) {
+    const roleLabel = readyRole === "manager" ? "Manager" : "Employee";
+    setRoleMessage(`${roleLabel} pre-pulse complete. That scenario path is now unlocked.`, "success");
+    rolePanelEl.querySelector(`[data-role="${readyRole}"]`)?.focus({ preventScroll: true });
+  }
+}
+function openRolePrePulse(role) {
+  const surveyId = `${role}-pre-pulse`;
+  window.location.assign(`index.html?survey=${encodeURIComponent(surveyId)}&next=scenario#survey`);
+}
+async function syncPulseAnswersFromCloud(user) {
+  const snapshot = await firebaseClient.getDoc(firebaseClient.doc(firebaseClient.db, "users", user.uid));
+  const cloudAnswers = snapshot.exists() ? snapshot.data()?.learningProgress?.answers : null;
+  if (!cloudAnswers || Array.isArray(cloudAnswers) || typeof cloudAnswers !== "object") return;
+  const decoded = Object.fromEntries(Object.entries(cloudAnswers).map(([surveyId, values]) => [
+    surveyId,
+    Array.isArray(values) ? values.map(value => Number(value) < 0 ? null : Number(value)) : []
+  ]));
+  localStorage.setItem(pulseVersionKey, pulseStorageVersion);
+  localStorage.setItem(pulseAnswerKey, JSON.stringify(decoded));
+}
 function randomIndex(length) {
   if (length <= 1) return 0;
   if (window.crypto?.getRandomValues) {
@@ -1407,6 +1479,7 @@ function restartScenario() {
   setSceneEnvironment({ tone: "neutral" });
   setCharacters({ speaker: "Scene" });
   updateDialogueInteractionState();
+  renderRoleAccess({ announceReady: true });
   window.requestAnimationFrame(() => {
     const roleTitle = document.getElementById("roleTitle");
     roleTitle?.setAttribute("tabindex", "-1");
@@ -1415,7 +1488,7 @@ function restartScenario() {
 }
 
 async function selectRole(role) {
-  setRoleMessage("Loading your scenario...", "neutral");
+  setRoleMessage("Checking your saved learning progress...", "neutral");
   rolePanelEl.setAttribute("aria-busy", "true");
   rolePanelEl.querySelectorAll("button").forEach(button => { button.disabled = true; });
 
@@ -1424,6 +1497,15 @@ async function selectRole(role) {
       initialHistoryReady,
       new Promise(resolve => window.setTimeout(resolve, 3500))
     ]);
+    renderRoleAccess();
+    if (!rolePrePulseComplete(role)) {
+      const roleLabel = role === "manager" ? "Manager" : "Employee";
+      setRoleMessage(`Complete the ${roleLabel} pre-pulse before choosing this position.`, "neutral");
+      openRolePrePulse(role);
+      return;
+    }
+
+    setRoleMessage("Loading your scenario...", "neutral");
     const nextScenario = await loadScenario(role);
     scenario = nextScenario;
     characterPoseTurns = { manager: 0, employee: 0 };
@@ -1574,23 +1656,28 @@ async function initFirebase() {
       if (!user) {
         resolveInitialHistory();
         setRoleMessage("Signed out: scenario progress stays on this device.", "neutral");
+        renderRoleAccess({ announceReady: true });
         return;
       }
 
       try {
         firebaseClient = await ensureFirestore(firebaseClient);
+        await syncPulseAnswersFromCloud(user);
         await mergeCloudScenarioRecords(firebaseClient, user);
         await syncPendingScenarioRecords();
         resolveInitialHistory();
+        renderRoleAccess({ announceReady: true });
         if (scenario) await saveScenarioRecord(completedAtIso ? "completed" : "in_progress");
       } catch {
         resolveInitialHistory();
         setRoleMessage("Cloud progress could not be loaded. Local progress is still available.", "error");
+        renderRoleAccess({ announceReady: true });
       }
     });
   } catch {
     resolveInitialHistory();
     setRoleMessage("Cloud sync is unavailable. Scenario progress will save on this device.", "neutral");
+    renderRoleAccess({ announceReady: true });
   }
 }
 function bindEvents() {

@@ -32,8 +32,8 @@
   <link rel="prefetch" as="image" href="assets/office-tense.webp" />
   <link rel="prefetch" as="image" href="assets/office-mentor.webp" />
   <link rel="stylesheet" href="assets/css/novel.css?v=20260724-layout3" />
-  <link rel="stylesheet" href="assets/css/novel-visual.css?v=20260729-speaking-gif" />
-  <script type="module" src="assets/js/novel.js?v=20260729-speaking-gif"></script>
+  <link rel="stylesheet" href="assets/css/novel-visual.css?v=20260801-learning-gates" />
+  <script type="module" src="assets/js/novel.js?v=20260801-learning-gates"></script>
   <script defer src="assets/vendor/gsap/gsap.min.js?v=3.12.5"></script>
   <script defer src="assets/js/motion.js?v=20260718-full-script-ar"></script>
 </head>
@@ -93,7 +93,7 @@
     <section class="role-panel" id="rolePanel" aria-labelledby="roleTitle" aria-busy="false">
       <p class="section-label">Start here</p>
       <h2 id="roleTitle">Which side are you on?</h2>
-      <p>Every day, someone has to speak. And someone has to listen.</p>
+      <p id="roleIntro">Complete a role's pre-pulse before choosing that position.</p>
       <div class="role-actions" aria-label="Role choices">
         <button class="role-card" type="button" data-role="manager">
           <span class="role-portrait" aria-hidden="true">
@@ -103,6 +103,7 @@
           <span class="role-copy">
             <strong>Manager</strong>
             <small>I deliver the feedback.</small>
+            <small class="role-gate-status" data-role-gate-status="manager"></small>
           </span>
           <span class="role-start">Choose Manager <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13m-5-5 5 5-5 5" /></svg></span>
         </button>
@@ -114,6 +115,7 @@
           <span class="role-copy">
             <strong>Employee</strong>
             <small>I receive the feedback.</small>
+            <small class="role-gate-status" data-role-gate-status="employee"></small>
           </span>
           <span class="role-start">Choose Employee <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13m-5-5 5 5-5 5" /></svg></span>
         </button>

@@ -1,6 +1,6 @@
 # EchoWorks Project Handoff
 
-Updated: 2026-07-30 (Asia/Singapore)
+Updated: 2026-08-01 (Asia/Singapore)
 
 Chinese handoff: [HANDOFF.zh-CN.md](HANDOFF.zh-CN.md)
 
@@ -26,12 +26,12 @@ The confirmed production audit is implemented locally.
 ### Learner UI release (2026-07-28)
 
 - The home page now uses Your progress as the progress heading, removes the duplicate learning-path/next-action/quick-tools copy, shows 5 min / scenario, and reports scenario status as Not Done until all eight scenarios are complete.
-- Continue learning opens the pre-pulse when the learner has no pre-pulse answer. After any pre-pulse attempt, it resumes the existing scenario route.
+- Continue learning now requires one fully completed role-specific pre-pulse before opening scenario role selection; a partial pre-pulse remains a prerequisite and resumes at its first unanswered question.
 - The responsive header keeps the home cross icon, adds a red AR icon shortcut, labels the menu Quick Access, includes a Scenario entry, and remains sticky across the full mobile/tablet breakpoint.
 - First-time guests and first-time signed-in accounts receive a two-step, keyboard-accessible tutorial. Completion is stored per guest/profile under feedbackPlaybook.tutorialSeen.v1.*.
 - The AR page keeps camera and manual selection, removes the redundant changing learning-detail panel, uses an icon-only retry control, and presents facilitator flow and scannable card materials as collapsed native disclosures.
 - Settings uses a clearly red-tinted danger panel.
-- Cache-busting for the current learner app release is 20260730-role-pulse on app.css and app.js.
+- Cache-busting for the current learner app release is `20260801-learning-gates` on app.css and app.js.
 
 ### Dashboard and role-specific pulse release (2026-07-30)
 
@@ -39,9 +39,17 @@ The confirmed production audit is implemented locally.
 - Employee and Manager pulse cards open an accessible pre/post dimension comparison. Learner progress and CARE / REAL result records are collapsed native disclosures by default so the overview remains readable on desktop and mobile.
 - `assets/data/pulse-surveys.json` now contains four role/stage surveys: Employee pre, Employee post, Manager pre, and Manager post. Each survey has six 1-5 questions, for 24 saved responses in total.
 - Employee pulse dimensions are Calm (two questions), Clarity, Reflection, Execution, and Overall satisfaction. Manager pulse dimensions are Recognise, Evaluate, Advise, Link, Confidence, and Overall satisfaction.
-- Home progress now reports 12 pre-pulse and 12 post-pulse responses. Continue learning still sends a learner with no pre-pulse response to Employee Pre-Pulse before resuming scenario practice.
+- Home progress reports 12 pre-pulse and 12 post-pulse responses. Scenario practice starts only after at least one complete Employee or Manager pre-pulse.
 - The deterministic sample generator and reviewable JSON preview use the new 24-answer schema. The live Firestore sample records from 2026-07-24 still use the previous pulse schema until the owner intentionally reruns the sample seed command.
 - Dashboard cache-busting is `20260730-culture-overview`; learner pulse data cache-busting is `20260730-role-pulse`.
+### Role-gated learning flow (2026-08-01)
+
+- Employee and Manager are independent learning tracks. Employee Pre-Pulse unlocks only the Employee CARE role; Manager Pre-Pulse unlocks only the Manager REAL role.
+- Locked role cards remain actionable and open the exact matching pre-pulse. Finishing that survey runs the existing completion transition, returns to `scenario.html`, confirms the unlock, and leaves role selection to the learner.
+- Employee Post-Pulse unlocks after at least one completed Employee scenario. Manager Post-Pulse unlocks after at least one completed Manager scenario. Completing one role never unlocks the other role's post-pulse.
+- `assets/js/app.js` enforces post-pulse access, direct survey links, and Continue learning. `assets/js/novel.js` enforces direct scenario access and restores signed-in pulse answers from the learner's Firestore profile before finalizing a role gate.
+- Guests use the same sequence with local progress. Partial pre-pulse answers do not unlock a role; they resume at the first unanswered question.
+- Release verification passes 16 automated tests plus the full Playwright browser suite across eight responsive/zoom viewports, with no serious or critical axe findings and no browser console errors.
 ### Asset cleanup and consistent AR models (2026-07-29)
 
 - The earlier cleanup removed 40 superseded files (13.96 MB), including duplicate character frames, legacy AR prototypes, lossless office sources, obsolete scenario data, and unused design references.
@@ -61,7 +69,7 @@ The confirmed production audit is implemented locally.
 - Typing now produces a consistent, clearly audible click on the first and every third visible character; whitespace no longer creates irregular silent cadence. Muting scenario audio stops new clicks immediately.
 - The previous timer, CSS-keyframe, `requestAnimationFrame`, and Web Animations speaking implementations were removed. One controller in `assets/js/novel.js` swaps the active character to its transparent four-frame GIF for the full browser-speech duration, then restores idle on end, error, mute, scene change, replay, or page hide. Each GIF loops talk, open-palm hand gesture, talk, and idle frames. Reduced-motion users receive the static talk WebP.
 - Above 920px, both characters move inward with a responsive 72-140px inset so laptop and desktop conversations feel connected. Tablet and phone positioning is unchanged.
-- The scenario script and visual CSS cache version is `20260729-speaking-gif`. All semantic pose states resolve to the approved idle, talk, and speaking assets for that character.
+- The scenario script and visual CSS cache version is `20260801-learning-gates`. All semantic pose states resolve to the approved idle, talk, and speaking assets for that character.
 
 The deployable output is generated in ignored `public/` by `npm run build`.
 

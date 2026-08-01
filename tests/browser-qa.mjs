@@ -92,7 +92,11 @@ export async function loadFirebaseAuthClient() { return sdk; }
 export async function ensureFirestore() { return sdk; }
 `;
   const context = await browser.newContext({ bypassCSP: true, viewport: { width: 1100, height: 820 }, reducedMotion: "reduce" });
-  await context.addInitScript(() => localStorage.clear());
+  await context.addInitScript(() => {
+    if (sessionStorage.getItem("qaMainAppInitialized")) return;
+    sessionStorage.setItem("qaMainAppInitialized", "true");
+    localStorage.clear();
+  });
   const page = await context.newPage();
   const errors = watchErrors(page);
   await page.route("**/assets/js/firebase-client.js*", route => route.fulfill({ status: 200, contentType: "application/javascript", body: authModule }));
@@ -175,7 +179,11 @@ export async function ensureFirestore() { return sdk; }
 
 {
   const context = await browser.newContext({ bypassCSP: true, viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });
-  await context.addInitScript(() => localStorage.clear());
+  await context.addInitScript(() => {
+    if (sessionStorage.getItem("qaMainAppInitialized")) return;
+    sessionStorage.setItem("qaMainAppInitialized", "true");
+    localStorage.clear();
+  });
   const page = await context.newPage();
   const errors = watchErrors(page);
   await page.goto(`${baseUrl}/index.html#login`, { waitUntil: "domcontentloaded" });
@@ -202,7 +210,7 @@ export async function ensureFirestore() { return sdk; }
   assert.equal(await page.locator("#unitsTitle").textContent(), "Complete the pre and post survey");
   assert.equal(await page.locator(".support-panel").count(), 0);
 
-  for (const surveyIndex of [0, 1, 2, 3]) {
+  for (const surveyIndex of [0, 2]) {
     await page.click(`[data-survey-index="${surveyIndex}"]`);
     await page.waitForSelector("#survey.active");
     const questionHierarchy = await page.evaluate(() => {
@@ -226,13 +234,41 @@ export async function ensureFirestore() { return sdk; }
     await page.waitForSelector("#home.active");
   }
 
+  assert.equal(await page.locator('[data-survey-index="1"]').isDisabled(), true);
+  assert.equal(await page.locator('[data-survey-index="3"]').isDisabled(), true);
+  assert.match(await page.locator('[data-survey-index="1"]').getAttribute("title"), /Complete one Employee scenario/);
+
+  await page.evaluate(() => {
+    localStorage.setItem("feedbackPlaybook.scenarioResults", JSON.stringify({
+      "qa-employee-attempt": {
+        attemptId: "qa-employee-attempt",
+        scenarioId: "care-ambush",
+        selectedRole: "employee",
+        completed: true,
+        completedAtIso: new Date().toISOString()
+      }
+    }));
+  });
+  await page.goto(`${baseUrl}/index.html#home`, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector("#home.active");
+  await page.waitForSelector('[data-survey-index="1"]:not([disabled])');
+  assert.equal(await page.locator('[data-survey-index="3"]').isDisabled(), true);
+
+  await page.click('[data-survey-index="1"]');
+  await page.waitForSelector("#survey.active");
+  for (const value of [5, 4, 5, 4, 5, 4]) {
+    await page.check(`input[name="comfort"][value="${value}"]`);
+    await page.click('#surveyForm button[type="submit"]');
+  }
+  await page.waitForSelector("#home.active");
+
   const surveyState = await page.evaluate(() => ({
     progress: document.querySelector("#progressText")?.textContent,
     answers: JSON.parse(localStorage.getItem("feedbackPlaybook.answers") || "{}"),
     focused: document.activeElement?.id
   }));
-  assert.match(surveyState.progress, /24 of 24 pulse responses/);
-  assert.equal(Object.values(surveyState.answers).flat().length, 24);
+  assert.match(surveyState.progress, /18 of 24 pulse responses/);
+  assert.equal(Object.values(surveyState.answers).flat().filter(value => value !== null).length, 18);
 
   await page.locator('[data-route="ar"]:visible').first().click();
   await page.waitForSelector("#ar.active");
@@ -302,6 +338,8 @@ export async function ensureFirestore() { return sdk; }
 {
   const context = await browser.newContext({ bypassCSP: true, viewport: { width: 1024, height: 768 }, reducedMotion: "reduce" });
   await context.addInitScript(() => {
+    if (sessionStorage.getItem("qaContinueInitialized")) return;
+    sessionStorage.setItem("qaContinueInitialized", "true");
     localStorage.clear();
     localStorage.setItem("feedbackPlaybook.tutorialSeen.v1.guest", "true");
   });
@@ -311,9 +349,10 @@ export async function ensureFirestore() { return sdk; }
   await page.waitForSelector("#home.active");
   await page.click('[data-action="continue-learning"]');
   await page.waitForSelector("#survey.active");
-  await page.check('input[name="comfort"][value="4"]');
-  await page.click('#surveyForm button[type="submit"]');
-  await page.click('#survey [data-route="home"]');
+  for (const value of [4, 4, 4, 4, 4, 4]) {
+    await page.check(`input[name="comfort"][value="${value}"]`);
+    await page.click('#surveyForm button[type="submit"]');
+  }
   await page.waitForSelector("#home.active");
   await Promise.all([
     page.waitForURL(/scenario\.html/),
@@ -324,9 +363,45 @@ export async function ensureFirestore() { return sdk; }
 }
 
 {
+  const context = await browser.newContext({ bypassCSP: true, viewport: { width: 1024, height: 768 }, reducedMotion: "reduce" });
+  await context.addInitScript(() => {
+    if (sessionStorage.getItem("qaRoleGateInitialized")) return;
+    sessionStorage.setItem("qaRoleGateInitialized", "true");
+    localStorage.clear();
+    localStorage.setItem("feedbackPlaybook.mode", "guest");
+    localStorage.setItem("feedbackPlaybook.storageVersion", "2026-07-role-specific-pulse-v9");
+    localStorage.setItem("feedbackPlaybook.tutorialSeen.v1.guest", "true");
+  });
+  const page = await context.newPage();
+  await page.goto(`${baseUrl}/scenario.html`, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector('[data-role="manager"].is-locked');
+  assert.equal(await page.locator('[data-role="employee"]').evaluate(card => card.classList.contains("is-locked")), true);
+  await page.click('[data-role="manager"]');
+  await page.waitForURL(/index\.html\?survey=manager-pre-pulse&next=scenario#survey/);
+  await page.waitForSelector("#survey.active");
+  assert.match(await page.locator("#surveyTitle").textContent(), /Manager Pre-Pulse/);
+  for (const value of [4, 4, 5, 4, 5, 4]) {
+    await page.check(`input[name="comfort"][value="${value}"]`);
+    await page.click('#surveyForm button[type="submit"]');
+  }
+  await page.waitForURL(/scenario\.html\?ready=manager/);
+  await page.waitForSelector("#rolePanel:not([hidden])");
+  await page.waitForFunction(() => !document.querySelector('[data-role="manager"]')?.classList.contains("is-locked"));
+  assert.equal(await page.locator('[data-role="employee"]').evaluate(card => card.classList.contains("is-locked")), true);
+  assert.match(await page.locator("#roleMessage").textContent(), /Manager pre-pulse complete/i);
+  report.app.roleGates = { matchingPreRequired: true, matchingRoleUnlocked: true, returnToScenario: true };
+  await context.close();
+}
+
+{
   const context = await browser.newContext({ bypassCSP: true, viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
   await context.addInitScript(() => {
     localStorage.clear();
+    localStorage.setItem("feedbackPlaybook.storageVersion", "2026-07-role-specific-pulse-v9");
+    localStorage.setItem("feedbackPlaybook.answers", JSON.stringify({
+      "manager-pre-pulse": [4, 4, 4, 4, 4, 4],
+      "employee-pre-pulse": [4, 4, 4, 4, 4, 4]
+    }));
     const state = { starts: 0, stops: 0 };
     class QaOscillator {
       constructor() {
@@ -497,6 +572,11 @@ export async function ensureFirestore() { return sdk; }
   const context = await browser.newContext({ bypassCSP: true, viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
   await context.addInitScript(() => {
     localStorage.clear();
+    localStorage.setItem("feedbackPlaybook.storageVersion", "2026-07-role-specific-pulse-v9");
+    localStorage.setItem("feedbackPlaybook.answers", JSON.stringify({
+      "manager-pre-pulse": [4, 4, 4, 4, 4, 4],
+      "employee-pre-pulse": [4, 4, 4, 4, 4, 4]
+    }));
     const state = { spoken: [], cancelled: 0, speaking: false };
     const voices = [
       { name: "Microsoft Aria", lang: "en-SG", localService: true },

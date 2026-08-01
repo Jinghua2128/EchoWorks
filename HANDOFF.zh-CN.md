@@ -1,6 +1,6 @@
 # EchoWorks 项目交接文档
 
-更新日期：2026-07-30（Asia/Singapore）
+更新日期：2026-08-01（Asia/Singapore）
 
 English handoff: [HANDOFF.md](HANDOFF.md)
 
@@ -26,12 +26,12 @@ English handoff: [HANDOFF.md](HANDOFF.md)
 ### 学习者界面版本（2026-07-28）
 
 - 主页进度区现在直接使用 Your progress 标题，并删除重复的 learning path、next action、randomized case 和 quick tools 文案；时长显示为 5 min / scenario，八个情景未全部完成前状态为 Not Done。
-- Continue learning 会先检查 pre-pulse：没有任何 pre-pulse 答案时进入 pre-pulse；已有至少一次回答时继续原有 scenario 路线。
+- Continue learning 现在要求先完整完成至少一份角色对应的 pre-pulse，才会进入情景角色选择；只回答部分题目不会解锁角色，再次进入时会从第一道未回答题目继续。
 - 手机和平板页头仅保留主页红十字图标，并新增红色 AR 图标快捷按钮；菜单改名为 Quick Access，加入 Scenario 入口，并在滚动时保持置顶。
 - 首次游客和首次登录账号会看到两步、可用键盘操作的导航教程；完成状态按游客/账号保存到 feedbackPlaybook.tutorialSeen.v1.*。
 - AR 页面保留相机与手动选卡，删除重复的动态详情区，重试按钮改为仅图标方形按钮；Facilitator flow 和 Workshop materials 改为默认折叠的原生下拉区。
 - Settings 的 Danger zone 使用更清晰的红色浅底。
-- 当前学习者页面的 app.css 与 app.js 缓存版本号为 20260730-role-pulse。
+- 当前学习者页面的 app.css 与 app.js 缓存版本号为 `20260801-learning-gates`。
 
 ### 仪表板与角色问卷版本（2026-07-30）
 
@@ -39,9 +39,17 @@ English handoff: [HANDOFF.md](HANDOFF.md)
 - 点击 Employee 或 Manager 问卷卡可查看 pre/post 维度对比。Learner progress 与 CARE / REAL result records 默认使用原生折叠区，桌面和手机都先显示重点信息。
 - `assets/data/pulse-surveys.json` 现在包含四份独立问卷：Employee pre、Employee post、Manager pre、Manager post。每份有 6 道 1-5 分题目，共保存 24 个回答。
 - Employee 维度为 Calm（2 题）、Clarity、Reflection、Execution、Overall satisfaction；Manager 维度为 Recognise、Evaluate、Advise、Link、Confidence、Overall satisfaction。
-- 主页进度现在分别计算 12 道 pre-pulse 和 12 道 post-pulse。完全没有 pre-pulse 回答的学习者仍会先进入 Employee Pre-Pulse。
+- 主页进度分别计算 12 道 pre-pulse 和 12 道 post-pulse。只有完整完成至少一份 Employee 或 Manager pre-pulse 后，才能开始对应的情景练习。
 - 本地固定样本生成器和 JSON 预览已改用新的 24 回答结构。2026-07-24 已写入 Firestore 的旧样本仍是旧问卷结构；只有 owner 明确重新运行样本写入命令后，正式样本才会更新。
 - 仪表板缓存版本为 `20260730-culture-overview`；学习者问卷数据缓存版本为 `20260730-role-pulse`。
+### 按角色解锁的学习流程（2026-08-01）
+
+- Employee 与 Manager 是两条独立学习路线。Employee Pre-Pulse 只解锁 Employee CARE 角色；Manager Pre-Pulse 只解锁 Manager REAL 角色。
+- 被锁定的角色卡仍可点击，并会直接打开对应的 pre-pulse。完成问卷后会播放原有完成转场，返回 `scenario.html`，提示该路线已解锁，然后由学习者自行选择角色。
+- 至少完成一个 Employee 情景后才会解锁 Employee Post-Pulse；至少完成一个 Manager 情景后才会解锁 Manager Post-Pulse。完成一条路线不会解锁另一条路线的 post-pulse。
+- `assets/js/app.js` 负责 post-pulse 权限、问卷直达链接与 Continue learning；`assets/js/novel.js` 负责情景页直达保护，并在最终判断角色权限前，从学习者的 Firestore profile 恢复已登录账号的问卷答案。
+- 游客使用相同流程，但进度只保存在本机。未完成的 pre-pulse 不会解锁角色，并会从第一道未回答题目继续。
+- 发布验证已通过 16 项自动化测试和完整 Playwright 浏览器测试，覆盖 8 种响应式/缩放视口；axe 未发现 serious 或 critical 问题，浏览器控制台也没有错误。
 ### 资源清理与统一 AR 角色模型（2026-07-29）
 
 - 前一次清理共移除 40 个已淘汰文件（13.96 MB），包括重复角色帧、旧 AR 原型、无损办公室源图、过期情景数据和未使用的设计参考。
@@ -61,7 +69,7 @@ English handoff: [HANDOFF.md](HANDOFF.md)
 - 打字时会在第一个和之后每三个可见字符播放一次清晰但克制的点击声；空格不再造成不规律的静音间隔。静音情景音频后，新点击声会立即停止。
 - 旧的计时器、CSS 关键帧、`requestAnimationFrame` 和 Web Animations 说话实现均已移除。`assets/js/novel.js` 只保留一个控制器：在浏览器语音播放期间把当前角色切换为透明四帧 GIF，并在语音结束、出错、静音、切换场景、重玩或离开页面时恢复静止图。每张 GIF 循环播放说话、张掌手势、说话、静止四帧；减少动态效果模式使用静态说话 WebP。
 - 屏幕宽度超过 920px 时，两名角色会使用 72-140px 响应式内缩，让笔记本和桌面视图中的对话距离更自然；平板与手机位置不变。
-- 情景脚本与视觉 CSS 缓存版本号为 `20260729-speaking-gif`。所有语义姿势状态使用该角色已确认的静止、说话和动态说话资源。
+- 情景脚本与视觉 CSS 缓存版本号为 `20260801-learning-gates`。所有语义姿势状态使用该角色已确认的静止、说话和动态说话资源。
 
 npm run build 会把可发布内容生成到已忽略的 public 文件夹。
 

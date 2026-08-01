@@ -142,3 +142,19 @@ test("production manifest excludes retired prototypes and source-only artwork", 
   assert.doesNotMatch(build, /runtimeDirectories|assets\/ar\//);
   assert.doesNotMatch(build, /sarah-(manager|employee)\.json|assets\/design|\.png".*office-/);
 });
+test("role learning tracks enforce matching pre- and post-pulse gates", async () => {
+  const [app, novel, scenarioMarkup] = await Promise.all([
+    text("assets/js/app.js"),
+    text("assets/js/novel.js"),
+    text("scenario.html")
+  ]);
+
+  assert.match(app, /isRolePrePulseComplete/);
+  assert.match(app, /Complete one \$\{roleLabel\} scenario to unlock this post-pulse/);
+  assert.match(app, /scenario\.html\?ready=/);
+  assert.match(novel, /rolePrePulseComplete/);
+  assert.match(novel, /index\.html\?survey=\$\{encodeURIComponent\(surveyId\)\}&next=scenario#survey/);
+  assert.match(novel, /syncPulseAnswersFromCloud/);
+  assert.match(scenarioMarkup, /data-role-gate-status="manager"/);
+  assert.match(scenarioMarkup, /data-role-gate-status="employee"/);
+});

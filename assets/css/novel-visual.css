@@ -203,6 +203,23 @@ body[data-scenario-state="complete"] .choice-panel {
   height: 18px;
 }
 
+.role-gate-status {
+  color: #667085;
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+.role-card.is-locked {
+  border-color: rgba(89, 98, 115, .24);
+  background: #f6f7f9;
+}
+
+.role-card.is-locked .role-start {
+  background: var(--red-soft);
+  color: var(--red-dark);
+  box-shadow: none;
+}
+
 .sync-message:empty {
   display: none;
 }

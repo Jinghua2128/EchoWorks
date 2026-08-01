@@ -244,6 +244,41 @@ function scenarioResults() {
   return readLocalScenarioRecords().filter(result => scenarioIds.includes(result.scenarioId));
 }
 
+function isSurveyComplete(survey) {
+  const values = answers[survey?.id] || [];
+  return Boolean(survey?.questions?.length) && values.length >= survey.questions.length
+    && values.slice(0, survey.questions.length).every(answer => answer !== null);
+}
+
+function isRolePrePulseComplete(role) {
+  const survey = surveyDefinitions.find(item => item.role === role && item.stage === "pre");
+  return Boolean(survey && isSurveyComplete(survey));
+}
+
+function completedRoleScenarioCount(role, results = readLocalScenarioRecords()) {
+  return new Set(results
+    .filter(result => result.completed && result.selectedRole === role)
+    .map(result => result.scenarioId)).size;
+}
+
+function surveyAccessState(survey, results = readLocalScenarioRecords()) {
+  if (!survey || survey.stage !== "post") return { allowed: true, message: "" };
+  const roleLabel = survey.role === "manager" ? "Manager" : "Employee";
+  const allowed = completedRoleScenarioCount(survey.role, results) >= 1;
+  return {
+    allowed,
+    message: allowed ? "" : `Complete one ${roleLabel} scenario to unlock this post-pulse.`
+  };
+}
+
+function requestedSurveyId() {
+  return new URL(window.location.href).searchParams.get("survey") || "";
+}
+
+function requestedLearningReturn() {
+  return new URL(window.location.href).searchParams.get("next") || "";
+}
+
 function latestScenarioResult() {
   return latestScenarioRecord(scenarioResults());
 }
@@ -335,7 +370,8 @@ async function loadFirebase() {
         await firebaseSdk.signOut(firebaseSdk.auth).catch(() => {});
         return;
       }
-      if (authRoutes.has(activeRoute)) goTo("home", { replace: true });
+      const openedRequestedSurvey = openRequestedSurvey();
+      if (!openedRequestedSurvey && authRoutes.has(activeRoute)) goTo("home", { replace: true });
     });
 
     return firebaseSdk;
@@ -904,25 +940,40 @@ function renderSurvey() {
 function openSurvey(index) {
   if (!surveyDefinitions.length) {
     setMessage("surveyMessage", "Survey questions are still loading. Try again in a moment.");
-    return;
+    return false;
   }
-  currentSurvey = Math.max(0, Math.min(surveyDefinitions.length - 1, Number(index) || 0));
-  const survey = surveyDefinitions[currentSurvey];
+
+  const nextSurvey = Math.max(0, Math.min(surveyDefinitions.length - 1, Number(index) || 0));
+  const survey = surveyDefinitions[nextSurvey];
+  const access = surveyAccessState(survey);
+  if (!access.allowed) {
+    goTo("survey");
+    setMessage("surveyMessage", access.message);
+    document.querySelector(`[data-survey-index="${nextSurvey}"]`)?.focus({ preventScroll: true });
+    return false;
+  }
+
+  currentSurvey = nextSurvey;
   const firstIncomplete = answers[survey.id]?.findIndex(answer => answer === null) ?? -1;
   currentQuestion = firstIncomplete >= 0 ? firstIncomplete : 0;
   renderSurvey();
   goTo("survey");
+  return true;
+}
+
+function openRequestedSurvey() {
+  const surveyId = requestedSurveyId();
+  if (!surveyId || !isSignedIn() || !surveyDefinitions.length) return false;
+  const surveyIndex = surveyDefinitions.findIndex(survey => survey.id === surveyId);
+  return surveyIndex >= 0 && openSurvey(surveyIndex);
 }
 
 async function continueLearning() {
   await surveyDataReady;
-  const preSurveyIndex = surveyDefinitions.findIndex(survey => (
-    survey.stage === "pre" && (answers[survey.id] || []).some(answer => answer === null)
-  ));
-  const hasAttemptedPrePulse = surveyStageProgress("pre").answered > 0;
-
-  if (!hasAttemptedPrePulse && preSurveyIndex >= 0) {
-    openSurvey(preSurveyIndex);
+  const hasUnlockedRole = ["employee", "manager"].some(role => isRolePrePulseComplete(role));
+  if (!hasUnlockedRole) {
+    const preSurveyIndex = surveyDefinitions.findIndex(survey => survey.stage === "pre" && !isSurveyComplete(survey));
+    if (preSurveyIndex >= 0) openSurvey(preSurveyIndex);
     return;
   }
 
@@ -1006,10 +1057,20 @@ async function submitSurvey(event) {
   if (submitButton) submitButton.disabled = true;
   setMessage("surveyMessage", "Completed. Saving your milestone...", "success");
 
+  const returnToScenario = survey.stage === "pre"
+    && requestedSurveyId() === survey.id
+    && requestedLearningReturn() === "scenario";
+
   await runCompletionWipe(
     "Milestone complete",
     `${survey.title} completed`,
-    () => goTo("home")
+    () => {
+      if (returnToScenario) {
+        window.location.assign(`scenario.html?ready=${encodeURIComponent(survey.role)}`);
+        return;
+      }
+      goTo("home");
+    }
   );
 
   surveyTransitioning = false;
@@ -1058,8 +1119,15 @@ function updateUI() {
     const values = answers[survey.id] || [];
     const answered = values.filter(answer => answer !== null).length;
     const complete = answered === survey.questions.length;
+    const access = surveyAccessState(survey, results);
+    row.disabled = !access.allowed;
     row.classList.toggle("complete", complete);
-    row.querySelector(".unit-state").textContent = complete ? "Complete" : `${answered}/${survey.questions.length}`;
+    row.classList.toggle("locked", !access.allowed);
+    row.setAttribute("aria-label", access.allowed ? survey.title : `${survey.title}. ${access.message}`);
+    row.title = access.message;
+    row.querySelector(".unit-state").textContent = complete
+      ? "Complete"
+      : (access.allowed ? `${answered}/${survey.questions.length}` : "Locked");
   });
 }
 
@@ -1690,6 +1758,7 @@ async function initialiseSurveyData() {
     renderRatingOptions();
     renderSurvey();
     updateUI();
+    if (isSignedIn()) openRequestedSurvey();
   } catch (error) {
     questionTitle.textContent = "Pulse survey content is unavailable.";
     setMessage("surveyMessage", error.message || "The pulse survey could not be loaded.");
@@ -1747,8 +1816,8 @@ function init() {
     goTo(authRoutes.has(requestedRoute) ? requestedRoute : "login", { replace: true });
   }
 
-  firebaseReady = loadFirebase();
   surveyDataReady = initialiseSurveyData();
+  firebaseReady = loadFirebase();
   initialiseScenarioDefinitions();
   initialiseArData();
 }
