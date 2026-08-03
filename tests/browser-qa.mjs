@@ -402,6 +402,69 @@ export async function ensureFirestore() { return sdk; }
 }
 
 {
+  const staleCloudModule = `
+const user = { uid: "qa-cloud-learner", email: "learner@example.com" };
+const staleAnswers = {
+  "manager-pre-pulse": [-1, -1, -1, -1, -1, -1],
+  "manager-post-pulse": [-1, -1, -1, -1, -1, -1],
+  "employee-pre-pulse": [-1, -1, -1, -1, -1, -1],
+  "employee-post-pulse": [-1, -1, -1, -1, -1, -1]
+};
+const sdk = {
+  auth: { currentUser: user },
+  db: {},
+  onAuthStateChanged(_auth, callback) { queueMicrotask(() => callback(user)); return () => {}; },
+  doc(_db, ...parts) { return { id: parts.at(-1), parts }; },
+  collection(_db, ...parts) { return { name: parts.at(-1), parts }; },
+  query(base) { return base; },
+  where() { return {}; },
+  async getDoc() {
+    sessionStorage.setItem("qaStaleCloudPulseRead", "true");
+    return { exists: () => true, data: () => ({ learningProgress: { answers: staleAnswers } }) };
+  },
+  async getDocs() { return { docs: [], size: 0 }; },
+  async setDoc() {},
+  serverTimestamp() { return new Date(); },
+  deleteField() { return null; }
+};
+export async function loadFirebaseAuthClient() { return sdk; }
+export async function ensureFirestore() { return sdk; }
+`;
+  const context = await browser.newContext({ bypassCSP: true, viewport: { width: 1024, height: 768 }, reducedMotion: "reduce" });
+  await context.addInitScript(() => {
+    localStorage.clear();
+    localStorage.setItem("feedbackPlaybook.mode", "cloud");
+    localStorage.setItem("feedbackPlaybook.storageVersion", "2026-07-role-specific-pulse-v9");
+    localStorage.setItem("feedbackPlaybook.answers", JSON.stringify({
+      "manager-pre-pulse": [4, 4, 5, 4, 5, 4],
+      "manager-post-pulse": [null, null, null, null, null, null],
+      "employee-pre-pulse": [null, null, null, null, null, null],
+      "employee-post-pulse": [null, null, null, null, null, null]
+    }));
+  });
+  const page = await context.newPage();
+  const errors = watchErrors(page);
+  await page.route("**/assets/js/firebase-client.js*", route => route.fulfill({
+    status: 200,
+    contentType: "application/javascript",
+    body: staleCloudModule
+  }));
+  await page.goto(`${baseUrl}/scenario.html?ready=manager`, { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => sessionStorage.getItem("qaStaleCloudPulseRead") === "true");
+  await page.waitForTimeout(250);
+  const cloudMergeState = await page.evaluate(() => ({
+    locked: document.querySelector('[data-role="manager"]')?.classList.contains("is-locked"),
+    answers: JSON.parse(localStorage.getItem("feedbackPlaybook.answers") || "{}")["manager-pre-pulse"],
+    roleMessage: document.querySelector("#roleMessage")?.textContent
+  }));
+  assert.equal(cloudMergeState.locked, false, JSON.stringify(cloudMergeState));
+  assert.deepEqual(cloudMergeState.answers, [4, 4, 5, 4, 5, 4]);
+  assert.deepEqual(errors, []);
+  report.app.roleGates.cloudRefreshPreservesCompletion = true;
+  await context.close();
+}
+
+{
   const context = await browser.newContext({ bypassCSP: true, viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
   await context.addInitScript(() => {
     localStorage.clear();

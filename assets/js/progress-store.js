@@ -16,6 +16,33 @@ export function safeJsonParse(value, fallback) {
   }
 }
 
+function validPulseAnswer(value) {
+  const answer = Number(value);
+  return Number.isInteger(answer) && answer >= 1 && answer <= 5;
+}
+
+export function mergePulseAnswerMaps(localAnswers = {}, cloudAnswers = {}) {
+  const local = localAnswers && !Array.isArray(localAnswers) && typeof localAnswers === "object"
+    ? localAnswers
+    : {};
+  const cloud = cloudAnswers && !Array.isArray(cloudAnswers) && typeof cloudAnswers === "object"
+    ? cloudAnswers
+    : {};
+  const surveyIds = new Set([...Object.keys(cloud), ...Object.keys(local)]);
+
+  return Object.fromEntries([...surveyIds].map(surveyId => {
+    const localValues = Array.isArray(local[surveyId]) ? local[surveyId] : [];
+    const cloudValues = Array.isArray(cloud[surveyId]) ? cloud[surveyId] : [];
+    const answerCount = Math.max(localValues.length, cloudValues.length);
+    const merged = Array.from({ length: answerCount }, (_, index) => {
+      if (validPulseAnswer(localValues[index])) return Number(localValues[index]);
+      if (validPulseAnswer(cloudValues[index])) return Number(cloudValues[index]);
+      return null;
+    });
+    return [surveyId, merged];
+  }));
+}
+
 export function timestampMillis(value) {
   if (!value) return 0;
   if (typeof value.toMillis === "function") return value.toMillis();

@@ -97,6 +97,29 @@ test("learners can write valid own records but cannot cross user boundaries", as
   await assertFails(setDoc(doc(db, "scenarioResults", "learner-b_forged"), validResult("learner-b")));
 });
 
+test("learners can sync the current 24-question pulse survey format", async () => {
+  await seedAccessAndLearners();
+  const db = userDb("learner-a", "learner-a@example.com");
+  const unanswered = [-1, -1, -1, -1, -1, -1];
+  await assertSucceeds(setDoc(doc(db, "users", "learner-a"), {
+    email: "learner-a@example.com",
+    learningProgress: {
+      surveyVersion: "2026-07-role-specific-pulse-v9",
+      answers: {
+        "employee-pre-pulse": [5, 4, 5, 4, 5, 4],
+        "employee-post-pulse": unanswered,
+        "manager-pre-pulse": unanswered,
+        "manager-post-pulse": unanswered
+      },
+      completed: 6,
+      total: 24,
+      progress: 25,
+      updatedAt: Date.now()
+    },
+    updatedAt: serverTimestamp()
+  }, { merge: true }));
+});
+
 test("completed attempt identity and competency scores are immutable", async () => {
   await seedAccessAndLearners();
   const db = userDb("learner-a", "learner-a@example.com");

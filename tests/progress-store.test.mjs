@@ -2,11 +2,28 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   completionForRole,
+  mergePulseAnswerMaps,
   mergeScenarioRecords,
   nextAttemptNumber,
   readLocalScenarioRecords,
   saveScenarioRecordWithStatus
 } from "../assets/js/progress-store.js";
+
+test("pulse answer merge keeps completed local answers and fills local gaps from cloud", () => {
+  const local = {
+    "manager-pre-pulse": [5, 4, 5, 4, 5, 4],
+    "employee-pre-pulse": [null, 4, null, null, null, null]
+  };
+  const cloud = {
+    "manager-pre-pulse": [-1, -1, -1, -1, -1, -1],
+    "employee-pre-pulse": [3, -1, 5, 4, 3, 5]
+  };
+
+  assert.deepEqual(mergePulseAnswerMaps(local, cloud), {
+    "manager-pre-pulse": [5, 4, 5, 4, 5, 4],
+    "employee-pre-pulse": [3, 4, 5, 4, 3, 5]
+  });
+});
 
 class MemoryStorage {
   #values = new Map();

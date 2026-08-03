@@ -8,9 +8,10 @@ import {
   clearLocalScenarioProgress,
   latestScenarioRecord,
   mergeCloudScenarioRecords,
+  mergePulseAnswerMaps,
   readLocalScenarioRecords,
   retryPendingScenarioRecords
-} from "./progress-store.js";
+} from "./progress-store.js?v=20260803-pulse-sync-merge";
 
 const storageKeys = {
   version: "feedbackPlaybook.storageVersion",
@@ -517,7 +518,9 @@ async function loadUserProgress(user) {
     const data = snapshot.exists() ? snapshot.data() : null;
     const cloudProgress = data?.learningProgress;
     if (cloudProgress?.answers && !Array.isArray(cloudProgress.answers) && typeof cloudProgress.answers === "object") {
-      answers = decodedCloudAnswers(cloudProgress.answers);
+      const cloudAnswers = decodedCloudAnswers(cloudProgress.answers);
+      answers = normalizeAnswers(mergePulseAnswerMaps(loadLocalAnswers(), cloudAnswers));
+      if (JSON.stringify(answers) !== JSON.stringify(cloudAnswers)) await saveProgress(user);
     } else {
       answers = loadLocalAnswers();
       await saveProgress(user);

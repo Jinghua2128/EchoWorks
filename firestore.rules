@@ -53,8 +53,8 @@ service cloud.firestore {
         && progress.answers is map
         && progress.completed is int
         && progress.completed >= 0
-        && progress.completed <= 4
-        && progress.total == 4
+        && progress.completed <= 24
+        && progress.total == 24
         && progress.progress is int
         && progress.progress >= 0
         && progress.progress <= 100

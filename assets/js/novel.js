@@ -4,6 +4,7 @@ import { characterModels } from "../characters/character-models.js?v=20260729-ap
 import {
   completionForRole,
   mergeCloudScenarioRecords,
+  mergePulseAnswerMaps,
   nextAttemptNumber,
   readLocalScenarioRecords,
   retryPendingScenarioRecords,
@@ -11,7 +12,7 @@ import {
   saveScenarioRecordWithStatus,
   scenarioRecordsToMap,
   scenarioStorageKeys
-} from "./progress-store.js";
+} from "./progress-store.js?v=20260803-pulse-sync-merge";
 
 const scenarioLibraryFile = "assets/data/scenarios/scenario-library.json";
 const fullGameScriptFile = "assets/data/scenarios/full-game-script.json";
@@ -680,8 +681,9 @@ async function syncPulseAnswersFromCloud(user) {
     surveyId,
     Array.isArray(values) ? values.map(value => Number(value) < 0 ? null : Number(value)) : []
   ]));
+  const merged = mergePulseAnswerMaps(readPulseAnswers(), decoded);
   localStorage.setItem(pulseVersionKey, pulseStorageVersion);
-  localStorage.setItem(pulseAnswerKey, JSON.stringify(decoded));
+  localStorage.setItem(pulseAnswerKey, JSON.stringify(merged));
 }
 function randomIndex(length) {
   if (length <= 1) return 0;
