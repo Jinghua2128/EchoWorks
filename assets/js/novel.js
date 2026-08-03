@@ -751,12 +751,19 @@ function buildRuntimeScenario(entry, library, scriptLibrary) {
       throw new Error(`The FULL GAME SCRIPT is missing choice ${choice.id}.`);
     }
 
-    const feedbackId = `feedback-${choice.id}`;
-    scenes[feedbackId] = {
-      ...scriptedChoice.feedback,
-      effect: scriptedChoice.effect || choice.effect,
-      next: endingStart
-    };
+    const feedbackLines = (Array.isArray(scriptedChoice.feedback)
+      ? scriptedChoice.feedback
+      : [scriptedChoice.feedback]
+    ).map(line => ({
+      ...line,
+      effect: scriptedChoice.effect || choice.effect
+    }));
+    const feedbackStart = addSceneSequence(
+      scenes,
+      `feedback-${choice.id}`,
+      feedbackLines,
+      endingStart
+    );
 
     const outcomeLines = Array.isArray(scriptedChoice.outcome) && scriptedChoice.outcome.length
       ? scriptedChoice.outcome
@@ -765,7 +772,7 @@ function buildRuntimeScenario(entry, library, scriptLibrary) {
       scenes,
       `outcome-${choice.id}`,
       outcomeLines,
-      feedbackId
+      feedbackStart
     );
 
     return {
@@ -834,8 +841,8 @@ function buildRuntimeScenario(entry, library, scriptLibrary) {
 async function loadScenario(role) {
   if (!scenarioLibrary || !fullGameScript) {
     const [libraryResponse, scriptResponse] = await Promise.all([
-      fetch(`${scenarioLibraryFile}?v=20260727-scenes`),
-      fetch(`${fullGameScriptFile}?v=20260727-scenes`)
+      fetch(`${scenarioLibraryFile}?v=20260803-care-e-feedback`),
+      fetch(`${fullGameScriptFile}?v=20260803-care-e-feedback`)
     ]);
     if (!libraryResponse.ok) throw new Error("Scenario library could not be loaded.");
     if (!scriptResponse.ok) throw new Error("The FULL GAME SCRIPT could not be loaded.");

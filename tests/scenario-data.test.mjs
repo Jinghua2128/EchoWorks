@@ -57,6 +57,15 @@ test("local learning JSON is complete and internally consistent", async () => {
       .questions.find(question => question.dimension === "advise").dimensionLabel,
     "Advise"
   );
+
+  const executeChoices = Object.values(
+    fullGameScript.scenarios["care-three-weeks-one-goal"].choices
+  );
+  assert.ok(executeChoices.every(choice => Array.isArray(choice.feedback)));
+  assert.ok(executeChoices.every(choice => choice.feedback.length === 2));
+  assert.ok(executeChoices.every(choice => choice.feedback[0].speaker === "Feedback Card"));
+  assert.ok(executeChoices.every(choice => choice.feedback[0].text.includes("CARE E: EXECUTE")));
+  assert.ok(executeChoices.every(choice => choice.feedback[1].speaker === "CARE Coach"));
 });
 test("stage directions drive presentation without appearing as dialogue", () => {
   const lines = prepareVisibleSceneLines([

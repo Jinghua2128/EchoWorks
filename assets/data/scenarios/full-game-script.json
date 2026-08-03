@@ -1145,11 +1145,18 @@
               "focus": "manager"
             }
           ],
-          "feedback": {
-            "speaker": "CARE Coach",
-            "tone": "tense",
-            "text": "✗ FEEDBACK CARD — MISSED: E: EXECUTE Big leaps without structure rarely stick. Trying to change everything at once is overwhelming and rarely leads to real growth. EXECUTE means: break it down. Small, specific, trackable steps — not full transformations."
-          }
+          "feedback": [
+            {
+              "speaker": "Feedback Card",
+              "tone": "tense",
+              "text": "✗ MISSED — CARE E: EXECUTE"
+            },
+            {
+              "speaker": "CARE Coach",
+              "tone": "tense",
+              "text": "Big leaps without structure rarely stick. Trying to change everything at once is overwhelming and rarely leads to real growth. EXECUTE means: break it down. Small, specific, trackable steps — not full transformations."
+            }
+          ]
         },
         "example-two-changes-checkin": {
           "label": "B",
@@ -1186,11 +1193,18 @@
               "text": "[You adjusted. You executed. And this time — it stuck.]"
             }
           ],
-          "feedback": {
-            "speaker": "CARE Coach",
-            "tone": "success",
-            "text": "★ FEEDBACK CARD — E: EXECUTE You demonstrated EXECUTE. You broke the feedback into manageable steps, got a reference point, and checked progress before the deadline. Key: Small steps, followed through. That's how feedback becomes real growth."
-          }
+          "feedback": [
+            {
+              "speaker": "Feedback Card",
+              "tone": "success",
+              "text": "★ CARE E: EXECUTE"
+            },
+            {
+              "speaker": "CARE Coach",
+              "tone": "success",
+              "text": "You demonstrated EXECUTE. You broke the feedback into manageable steps, got a reference point, and checked progress before the deadline. Key: Small steps, followed through. That's how feedback becomes real growth."
+            }
+          ]
         },
         "adapt-on-the-fly": {
           "label": "C",
@@ -1214,11 +1228,18 @@
               "text": "Because nothing was really changed. Just adjusted for one report."
             }
           ],
-          "feedback": {
-            "speaker": "CARE Coach",
-            "tone": "tense",
-            "text": "✗ FEEDBACK CARD — MISSED: E: EXECUTE Adapting for one moment isn't execution — it's survival. EXECUTE means making feedback part of how you work, not just how you perform under pressure. Try: Plan ahead. Reflect. Follow up. Build the habit, not just the output."
-          }
+          "feedback": [
+            {
+              "speaker": "Feedback Card",
+              "tone": "tense",
+              "text": "✗ MISSED — CARE E: EXECUTE"
+            },
+            {
+              "speaker": "CARE Coach",
+              "tone": "tense",
+              "text": "Adapting for one moment isn't execution — it's survival. EXECUTE means making feedback part of how you work, not just how you perform under pressure. Try: Plan ahead. Reflect. Follow up. Build the habit, not just the output."
+            }
+          ]
         }
       }
     }
