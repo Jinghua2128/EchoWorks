@@ -232,8 +232,14 @@ export async function ensureFirestore() { return sdk; }
       await page.click('#surveyForm button[type="submit"]');
     }
     await page.waitForSelector("#home.active");
+    assert.equal(await page.locator(`[data-survey-index="${surveyIndex}"] .unit-state`).textContent(), "Complete");
+    if (surveyIndex === 0) {
+      assert.equal(await page.locator("#preMilestoneState").textContent(), "Employee survey complete");
+      assert.equal(await page.locator('[data-learning-milestone="pre"]').evaluate(item => item.classList.contains("complete")), true);
+    }
   }
 
+  assert.equal(await page.locator("#preMilestoneState").textContent(), "Both role surveys complete");
   assert.equal(await page.locator('[data-survey-index="1"]').isDisabled(), true);
   assert.equal(await page.locator('[data-survey-index="3"]').isDisabled(), true);
   assert.match(await page.locator('[data-survey-index="1"]').getAttribute("title"), /Complete one Employee scenario/);
@@ -261,13 +267,15 @@ export async function ensureFirestore() { return sdk; }
     await page.click('#surveyForm button[type="submit"]');
   }
   await page.waitForSelector("#home.active");
+  assert.equal(await page.locator("#postMilestoneState").textContent(), "Employee survey complete");
+  assert.equal(await page.locator('[data-learning-milestone="post"]').evaluate(item => item.classList.contains("complete")), true);
 
   const surveyState = await page.evaluate(() => ({
     progress: document.querySelector("#progressText")?.textContent,
     answers: JSON.parse(localStorage.getItem("feedbackPlaybook.answers") || "{}"),
     focused: document.activeElement?.id
   }));
-  assert.match(surveyState.progress, /18 of 24 pulse responses/);
+  assert.match(surveyState.progress, /3 of 4 surveys complete/);
   assert.equal(Object.values(surveyState.answers).flat().filter(value => value !== null).length, 18);
 
   await page.locator('[data-route="ar"]:visible').first().click();

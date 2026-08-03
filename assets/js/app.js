@@ -240,6 +240,10 @@ function completedSurveyQuestionCount() {
   return Object.values(answers).flat().filter(answer => answer !== null).length;
 }
 
+function completedSurveyCount() {
+  return surveyDefinitions.filter(isSurveyComplete).length;
+}
+
 function scenarioResults() {
   return readLocalScenarioRecords().filter(result => scenarioIds.includes(result.scenarioId));
 }
@@ -855,13 +859,45 @@ function renderRatingOptions() {
 
 function surveyStageProgress(stage) {
   const surveys = surveyDefinitions.filter(item => item.stage === stage);
-  if (!surveys.length) return { answered: 0, total: 0, complete: false };
+  if (!surveys.length) {
+    return {
+      answered: 0,
+      total: 0,
+      complete: false,
+      anyComplete: false,
+      completedSurveys: 0,
+      totalSurveys: 0,
+      completedRoles: []
+    };
+  }
 
   const total = surveys.reduce((sum, survey) => sum + survey.questions.length, 0);
   const answered = surveys.reduce((sum, survey) => (
     sum + (answers[survey.id] || []).filter(answer => answer !== null).length
   ), 0);
-  return { answered, total, complete: answered === total };
+  const completedRoles = surveys
+    .filter(isSurveyComplete)
+    .map(survey => survey.role);
+  const completedSurveys = completedRoles.length;
+  return {
+    answered,
+    total,
+    complete: completedSurveys === surveys.length,
+    anyComplete: completedSurveys > 0,
+    completedSurveys,
+    totalSurveys: surveys.length,
+    completedRoles
+  };
+}
+
+function surveyMilestoneText(progress) {
+  if (progress.complete) return "Both role surveys complete";
+  if (progress.completedSurveys === 1) {
+    const role = progress.completedRoles[0] === "manager" ? "Manager" : "Employee";
+    return `${role} survey complete`;
+  }
+  if (progress.answered > 0) return `${progress.answered} of ${progress.total} responses answered`;
+  return `0 of ${progress.totalSurveys} surveys complete`;
 }
 
 function setMilestoneState(name, state, text, active) {
@@ -878,17 +914,17 @@ function renderLearningMilestones(completedScenarioCount) {
   const post = surveyStageProgress("post");
   const scenariosComplete = completedScenarioCount >= scenarioTarget;
 
-  const preText = pre.complete ? "Completed" : `${pre.answered} of ${pre.total} questions`;
+  const preText = surveyMilestoneText(pre);
   const scenarioText = scenariosComplete ? "Library completed" : `${completedScenarioCount} of ${scenarioTarget} complete`;
-  const postText = post.complete ? "Completed" : `${post.answered} of ${post.total} questions`;
+  const postText = surveyMilestoneText(post);
 
   if (preMilestoneStateEl) preMilestoneStateEl.textContent = preText;
   if (scenarioMilestoneStateEl) scenarioMilestoneStateEl.textContent = scenarioText;
   if (postMilestoneStateEl) postMilestoneStateEl.textContent = postText;
 
-  setMilestoneState("pre", pre.complete, preText, !pre.complete);
-  setMilestoneState("scenario", scenariosComplete, scenarioText, pre.complete);
-  setMilestoneState("post", post.complete, postText, pre.complete && scenariosComplete);
+  setMilestoneState("pre", pre.anyComplete, preText, !pre.anyComplete);
+  setMilestoneState("scenario", scenariosComplete, scenarioText, pre.anyComplete);
+  setMilestoneState("post", post.anyComplete, postText, completedScenarioCount >= 1);
 
   if (pathAchievementEl) {
     pathAchievementEl.hidden = !(pre.complete && scenariosComplete && post.complete);
@@ -1079,6 +1115,7 @@ async function submitSurvey(event) {
 
 function updateUI() {
   const completed = completedSurveyQuestionCount();
+  const surveysCompleted = completedSurveyCount();
   const surveyTotal = totalSurveyQuestions();
   const results = scenarioResults();
   const completedScenarioCount = new Set(results.filter(result => result.completed).map(result => result.scenarioId)).size;
@@ -1091,7 +1128,7 @@ function updateUI() {
   progressBar.style.width = `${progress}%`;
   sidebarProgressBar.style.width = `${progress}%`;
   progressPercent.textContent = `${progress}%`;
-  progressText.textContent = `${completed} of ${surveyTotal} pulse responses; ${completedScenarioCount} of ${scenarioTarget} scenarios`;
+  progressText.textContent = `${surveysCompleted} of ${surveyDefinitions.length} surveys complete; ${completedScenarioCount} of ${scenarioTarget} scenarios complete`;
 
   if (completedScenariosEl) completedScenariosEl.textContent = String(completedScenarioCount);
   if (remainingScenariosEl) remainingScenariosEl.textContent = String(Math.max(0, scenarioTarget - completedScenarioCount));
